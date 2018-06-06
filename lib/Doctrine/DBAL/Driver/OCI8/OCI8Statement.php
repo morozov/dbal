@@ -32,7 +32,6 @@ use const OCI_D_LOB;
 use const OCI_FETCHSTATEMENT_BY_COLUMN;
 use const OCI_FETCHSTATEMENT_BY_ROW;
 use const OCI_NUM;
-use const OCI_RETURN_LOBS;
 use const OCI_RETURN_NULLS;
 use const OCI_TEMP_BLOB;
 use const PREG_OFFSET_CAPTURE;
@@ -451,7 +450,7 @@ class OCI8Statement implements IteratorAggregate, Statement
 
         return oci_fetch_array(
             $this->_sth,
-            self::$fetchModeMap[$fetchMode] | OCI_RETURN_NULLS | OCI_RETURN_LOBS
+            self::$fetchModeMap[$fetchMode] | OCI_RETURN_NULLS
         );
     }
 
@@ -493,8 +492,13 @@ class OCI8Statement implements IteratorAggregate, Statement
                 return [];
             }
 
-            oci_fetch_all($this->_sth, $result, 0, -1,
-                self::$fetchModeMap[$fetchMode] | OCI_RETURN_NULLS | $fetchStructure | OCI_RETURN_LOBS);
+            oci_fetch_all(
+                $this->_sth,
+                $result,
+                0,
+                -1,
+                self::$fetchModeMap[$fetchMode] | OCI_RETURN_NULLS | $fetchStructure
+            );
 
             if ($fetchMode === FetchMode::COLUMN) {
                 $result = $result[0];
@@ -515,7 +519,7 @@ class OCI8Statement implements IteratorAggregate, Statement
             return false;
         }
 
-        $row = oci_fetch_array($this->_sth, OCI_NUM | OCI_RETURN_NULLS | OCI_RETURN_LOBS);
+        $row = oci_fetch_array($this->_sth, OCI_NUM | OCI_RETURN_NULLS);
 
         if (false === $row) {
             return false;
