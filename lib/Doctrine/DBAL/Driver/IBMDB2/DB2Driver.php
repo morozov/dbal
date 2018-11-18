@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Doctrine\DBAL\Driver\IBMDB2;
 
 use Doctrine\DBAL\Driver\AbstractDB2Driver;
+use Doctrine\DBAL\Driver\Connection;
 
 /**
  * IBM DB2 Driver.
@@ -14,7 +15,7 @@ class DB2Driver extends AbstractDB2Driver
     /**
      * {@inheritdoc}
      */
-    public function connect(array $params, $username = null, $password = null, array $driverOptions = [])
+    public function connect(array $params, ?string $username = null, ?string $password = null, array $driverOptions = []) : Connection
     {
         if (! isset($params['protocol'])) {
             $params['protocol'] = 'TCPIP';
@@ -42,7 +43,7 @@ class DB2Driver extends AbstractDB2Driver
     /**
      * {@inheritdoc}
      */
-    public function getName()
+    public function getName() : string
     {
         return 'ibm_db2';
     }

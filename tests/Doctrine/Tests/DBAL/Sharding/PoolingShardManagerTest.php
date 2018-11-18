@@ -7,11 +7,15 @@ namespace Doctrine\Tests\DBAL\Sharding;
 use Doctrine\DBAL\Sharding\PoolingShardConnection;
 use Doctrine\DBAL\Sharding\PoolingShardManager;
 use Doctrine\DBAL\Sharding\ShardChoser\ShardChoser;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class PoolingShardManagerTest extends TestCase
 {
-    private function createConnectionMock()
+    /**
+     * @return PoolingShardConnection|MockObject
+     */
+    private function createConnectionMock() : PoolingShardConnection
     {
         return $this->getMockBuilder(PoolingShardConnection::class)
             ->setMethods(['connect', 'getParams', 'fetchAll'])
@@ -19,7 +23,7 @@ class PoolingShardManagerTest extends TestCase
             ->getMock();
     }
 
-    private function createPassthroughShardChoser()
+    private function createPassthroughShardChoser() : ShardChoser
     {
         $mock = $this->createMock(ShardChoser::class);
         $mock->expects($this->any())
@@ -31,7 +35,7 @@ class PoolingShardManagerTest extends TestCase
         return $mock;
     }
 
-    private function createStaticShardChooser()
+    private function createStaticShardChooser() : ShardChoser
     {
         $mock = $this->createMock(ShardChoser::class);
         $mock->expects($this->any())
@@ -41,10 +45,13 @@ class PoolingShardManagerTest extends TestCase
         return $mock;
     }
 
-    public function testSelectGlobal()
+    public function testSelectGlobal() : void
     {
         $conn = $this->createConnectionMock();
-        $conn->expects($this->once())->method('connect')->with($this->equalTo(0));
+        $conn->expects($this->at(0))
+            ->method('getParams')
+            ->willReturn(['shardChoser' => $this->createMock(ShardChoser::class)]);
+        $conn->expects($this->at(1))->method('connect')->with($this->equalTo(0));
 
         $shardManager = new PoolingShardManager($conn);
         $shardManager->selectGlobal();
@@ -52,7 +59,7 @@ class PoolingShardManagerTest extends TestCase
         self::assertNull($shardManager->getCurrentDistributionValue());
     }
 
-    public function testSelectShard()
+    public function testSelectShard() : void
     {
         $shardId = 10;
         $conn    = $this->createConnectionMock();
@@ -65,7 +72,7 @@ class PoolingShardManagerTest extends TestCase
         self::assertEquals($shardId, $shardManager->getCurrentDistributionValue());
     }
 
-    public function testGetShards()
+    public function testGetShards() : void
     {
         $conn = $this->createConnectionMock();
         $conn->expects($this->any())->method('getParams')->will(
@@ -80,7 +87,7 @@ class PoolingShardManagerTest extends TestCase
         self::assertEquals([['id' => 1], ['id' => 2]], $shards);
     }
 
-    public function testQueryAll()
+    public function testQueryAll() : void
     {
         $sql    = 'SELECT * FROM table';
         $params = [1];
@@ -110,7 +117,7 @@ class PoolingShardManagerTest extends TestCase
         self::assertEquals([['id' => 1], ['id' => 2]], $result);
     }
 
-    public function testQueryAllWithStaticShardChoser()
+    public function testQueryAllWithStaticShardChoser() : void
     {
         $sql    = 'SELECT * FROM table';
         $params = [1];

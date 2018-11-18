@@ -100,7 +100,6 @@ class TableDiff
     /**
      * Constructs an TableDiff object.
      *
-     * @param string       $tableName
      * @param Column[]     $addedColumns
      * @param ColumnDiff[] $changedColumns
      * @param Column[]     $removedColumns
@@ -109,13 +108,13 @@ class TableDiff
      * @param Index[]      $removedIndexes
      */
     public function __construct(
-        $tableName,
-        $addedColumns = [],
-        $changedColumns = [],
-        $removedColumns = [],
-        $addedIndexes = [],
-        $changedIndexes = [],
-        $removedIndexes = [],
+        string $tableName,
+        array $addedColumns = [],
+        array $changedColumns = [],
+        array $removedColumns = [],
+        array $addedIndexes = [],
+        array $changedIndexes = [],
+        array $removedIndexes = [],
         ?Table $fromTable = null
     ) {
         $this->name           = $tableName;
@@ -130,10 +129,8 @@ class TableDiff
 
     /**
      * @param AbstractPlatform $platform The platform to use for retrieving this table diff's name.
-     *
-     * @return Identifier
      */
-    public function getName(AbstractPlatform $platform)
+    public function getName(AbstractPlatform $platform) : Identifier
     {
         return new Identifier(
             $this->fromTable instanceof Table ? $this->fromTable->getQuotedName($platform) : $this->name

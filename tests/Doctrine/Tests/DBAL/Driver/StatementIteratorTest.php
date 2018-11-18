@@ -81,7 +81,7 @@ class StatementIteratorTest extends DbalTestCase
     }
 
     /**
-     * @return string[][]
+     * @return mixed[][]
      */
     public static function statementProvider() : iterable
     {

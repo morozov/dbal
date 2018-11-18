@@ -15,14 +15,18 @@ class DateTimeImmutableType extends DateTimeType
 {
     /**
      * {@inheritdoc}
+     *
+     * @return string
      */
-    public function getName()
+    public function getName() : string
     {
         return Type::DATETIME_IMMUTABLE;
     }
 
     /**
      * {@inheritdoc}
+     *
+     * @return string|false|null
      */
     public function convertToDatabaseValue($value, AbstractPlatform $platform)
     {
@@ -43,6 +47,8 @@ class DateTimeImmutableType extends DateTimeType
 
     /**
      * {@inheritdoc}
+     *
+     * @return DateTimeImmutable|null
      */
     public function convertToPHPValue($value, AbstractPlatform $platform)
     {
@@ -70,7 +76,7 @@ class DateTimeImmutableType extends DateTimeType
     /**
      * {@inheritdoc}
      */
-    public function requiresSQLCommentHint(AbstractPlatform $platform)
+    public function requiresSQLCommentHint(AbstractPlatform $platform) : bool
     {
         return true;
     }

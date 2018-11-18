@@ -31,7 +31,7 @@ class StatementTest extends DbalFunctionalTestCase
      *
      * @dataProvider queryConversionProvider
      */
-    public function testQueryConversion($query, array $params, array $expected)
+    public function testQueryConversion(string $query, array $params, array $expected) : void
     {
         self::assertEquals(
             $expected,
@@ -39,7 +39,10 @@ class StatementTest extends DbalFunctionalTestCase
         );
     }
 
-    public static function queryConversionProvider()
+    /**
+     * @return mixed[][]
+     */
+    public static function queryConversionProvider() : iterable
     {
         return [
             'simple' => [

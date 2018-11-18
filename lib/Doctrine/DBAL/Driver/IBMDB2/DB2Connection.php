@@ -30,17 +30,16 @@ class DB2Connection implements Connection, ServerInfoAwareConnection
 
     /**
      * @param mixed[] $params
-     * @param string  $username
-     * @param string  $password
      * @param mixed[] $driverOptions
      *
      * @throws DB2Exception
      */
-    public function __construct(array $params, $username, $password, $driverOptions = [])
+    public function __construct(array $params, ?string $username, ?string $password, array $driverOptions = [])
     {
-        $isPersistent = (isset($params['persistent']) && $params['persistent'] === true);
+        $username = (string) $username;
+        $password = (string) $password;
 
-        if ($isPersistent) {
+        if (isset($params['persistent']) && $params['persistent'] === true) {
             $conn = db2_pconnect($params['dbname'], $username, $password, $driverOptions);
         } else {
             $conn = db2_connect($params['dbname'], $username, $password, $driverOptions);
@@ -56,7 +55,7 @@ class DB2Connection implements Connection, ServerInfoAwareConnection
     /**
      * {@inheritdoc}
      */
-    public function getServerVersion()
+    public function getServerVersion() : string
     {
         /** @var stdClass $serverInfo */
         $serverInfo = db2_server_info($this->conn);
@@ -67,7 +66,7 @@ class DB2Connection implements Connection, ServerInfoAwareConnection
     /**
      * {@inheritdoc}
      */
-    public function requiresQueryForServerVersion()
+    public function requiresQueryForServerVersion() : bool
     {
         return false;
     }
@@ -121,7 +120,7 @@ class DB2Connection implements Connection, ServerInfoAwareConnection
     /**
      * {@inheritdoc}
      */
-    public function lastInsertId($name = null)
+    public function lastInsertId(?string $name = null) : string
     {
         return db2_last_insert_id($this->conn);
     }

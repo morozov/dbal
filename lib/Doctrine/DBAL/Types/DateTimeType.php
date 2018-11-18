@@ -17,7 +17,7 @@ class DateTimeType extends Type implements PhpDateTimeMappingType
     /**
      * {@inheritdoc}
      */
-    public function getName()
+    public function getName() : string
     {
         return Type::DATETIME;
     }
@@ -25,7 +25,7 @@ class DateTimeType extends Type implements PhpDateTimeMappingType
     /**
      * {@inheritdoc}
      */
-    public function getSQLDeclaration(array $fieldDeclaration, AbstractPlatform $platform)
+    public function getSQLDeclaration(array $fieldDeclaration, AbstractPlatform $platform) : string
     {
         return $platform->getDateTimeTypeDeclarationSQL($fieldDeclaration);
     }

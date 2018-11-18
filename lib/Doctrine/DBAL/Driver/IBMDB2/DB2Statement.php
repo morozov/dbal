@@ -130,7 +130,7 @@ class DB2Statement implements IteratorAggregate, Statement
      *
      * @throws DB2Exception
      */
-    private function bind($position, &$variable, int $parameterType, int $dataType) : void
+    private function bind(int $position, &$variable, int $parameterType, int $dataType) : void
     {
         $this->bindParam[$position] =& $variable;
 
@@ -158,15 +158,19 @@ class DB2Statement implements IteratorAggregate, Statement
     /**
      * {@inheritdoc}
      */
-    public function columnCount()
+    public function columnCount() : int
     {
-        return db2_num_fields($this->stmt) ?: 0;
+        if (! $this->stmt) {
+            return 0;
+        }
+
+        return db2_num_fields($this->stmt);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function execute($params = null) : void
+    public function execute(?array $params = null) : void
     {
         if ($params === null) {
             ksort($this->bindParam);
@@ -206,7 +210,7 @@ class DB2Statement implements IteratorAggregate, Statement
     /**
      * {@inheritdoc}
      */
-    public function setFetchMode($fetchMode, ...$args) : void
+    public function setFetchMode(int $fetchMode, ...$args) : void
     {
         $this->defaultFetchMode = $fetchMode;
 
@@ -232,7 +236,7 @@ class DB2Statement implements IteratorAggregate, Statement
     /**
      * {@inheritdoc}
      */
-    public function fetch($fetchMode = null, ...$args)
+    public function fetch(?int $fetchMode = null, ...$args)
     {
         // do not try fetching from the statement if it's not expected to contain result
         // in order to prevent exceptional situation
@@ -282,7 +286,7 @@ class DB2Statement implements IteratorAggregate, Statement
     /**
      * {@inheritdoc}
      */
-    public function fetchAll($fetchMode = null, ...$args)
+    public function fetchAll(?int $fetchMode = null, ...$args) : array
     {
         $rows = [];
 
@@ -309,7 +313,7 @@ class DB2Statement implements IteratorAggregate, Statement
     /**
      * {@inheritdoc}
      */
-    public function fetchColumn($columnIndex = 0)
+    public function fetchColumn(int $columnIndex = 0)
     {
         $row = $this->fetch(FetchMode::NUMERIC);
 
@@ -339,11 +343,9 @@ class DB2Statement implements IteratorAggregate, Statement
      * @param string|object $destinationClass Name of the class or class instance to cast to.
      * @param mixed[]       $ctorArgs         Arguments to use for constructing the destination class instance.
      *
-     * @return object
-     *
      * @throws DB2Exception
      */
-    private function castObject(stdClass $sourceObject, $destinationClass, array $ctorArgs = [])
+    private function castObject(stdClass $sourceObject, $destinationClass, array $ctorArgs = []) : object
     {
         if (! is_string($destinationClass)) {
             if (! is_object($destinationClass)) {

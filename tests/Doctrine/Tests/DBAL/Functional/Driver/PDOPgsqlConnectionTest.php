@@ -28,13 +28,11 @@ class PDOPgsqlConnectionTest extends DbalFunctionalTestCase
     }
 
     /**
-     * @param string $charset
-     *
      * @group DBAL-1183
      * @group DBAL-1189
      * @dataProvider getValidCharsets
      */
-    public function testConnectsWithValidCharsetOption($charset)
+    public function testConnectsWithValidCharsetOption(string $charset) : void
     {
         $params            = $this->connection->getParams();
         $params['charset'] = $charset;
@@ -55,7 +53,7 @@ class PDOPgsqlConnectionTest extends DbalFunctionalTestCase
     /**
      * @return mixed[][]
      */
-    public function getValidCharsets()
+    public static function getValidCharsets() : iterable
     {
         return [
             ['UTF8'],

@@ -28,7 +28,7 @@ class OracleSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    public function dropDatabase($database)
+    public function dropDatabase(string $database) : void
     {
         try {
             parent::dropDatabase($database);
@@ -57,7 +57,7 @@ class OracleSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    protected function _getPortableViewDefinition($view)
+    protected function _getPortableViewDefinition(array $view) : View
     {
         $view = array_change_key_case($view, CASE_LOWER);
 
@@ -67,7 +67,7 @@ class OracleSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    protected function _getPortableUserDefinition($user)
+    protected function _getPortableUserDefinition(array $user) : array
     {
         $user = array_change_key_case($user, CASE_LOWER);
 
@@ -79,7 +79,7 @@ class OracleSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    protected function _getPortableTableDefinition($table)
+    protected function _getPortableTableDefinition($table) : string
     {
         $table = array_change_key_case($table, CASE_LOWER);
 
@@ -119,7 +119,7 @@ class OracleSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    protected function _getPortableTableColumnDefinition($tableColumn)
+    protected function _getPortableTableColumnDefinition(array $tableColumn) : Column
     {
         $tableColumn = array_change_key_case($tableColumn, CASE_LOWER);
 
@@ -132,7 +132,7 @@ class OracleSchemaManager extends AbstractSchemaManager
             }
         }
 
-        $unsigned = $fixed = $precision = $scale = $length = null;
+        $fixed = $precision = $scale = $length = null;
 
         if (! isset($tableColumn['column_name'])) {
             $tableColumn['column_name'] = '';
@@ -190,9 +190,7 @@ class OracleSchemaManager extends AbstractSchemaManager
         }
 
         $options = [
-            'notnull'    => (bool) ($tableColumn['nullable'] === 'N'),
-            'fixed'      => (bool) $fixed,
-            'unsigned'   => (bool) $unsigned,
+            'notnull'    => $tableColumn['nullable'] === 'N',
             'default'    => $tableColumn['data_default'],
             'length'     => $length,
             'precision'  => $precision,
@@ -202,13 +200,17 @@ class OracleSchemaManager extends AbstractSchemaManager
                 : null,
         ];
 
+        if ($fixed !== null) {
+            $options['fixed'] = $fixed;
+        }
+
         return new Column($this->getQuotedIdentifierName($tableColumn['column_name']), Type::getType($type), $options);
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function _getPortableTableForeignKeysList($tableForeignKeys)
+    protected function _getPortableTableForeignKeysList(array $tableForeignKeys) : array
     {
         $list = [];
         foreach ($tableForeignKeys as $value) {
@@ -251,7 +253,7 @@ class OracleSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    protected function _getPortableSequenceDefinition($sequence)
+    protected function _getPortableSequenceDefinition(array $sequence) : Sequence
     {
         $sequence = array_change_key_case($sequence, CASE_LOWER);
 
@@ -265,7 +267,7 @@ class OracleSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    protected function _getPortableFunctionDefinition($function)
+    protected function _getPortableFunctionDefinition(array $function)
     {
         $function = array_change_key_case($function, CASE_LOWER);
 
@@ -285,12 +287,8 @@ class OracleSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    public function createDatabase($database = null)
+    public function createDatabase(string $database) : void
     {
-        if ($database === null) {
-            $database = $this->_conn->getDatabase();
-        }
-
         $params   = $this->_conn->getParams();
         $username = $database;
         $password = $params['password'];
@@ -302,12 +300,7 @@ class OracleSchemaManager extends AbstractSchemaManager
         $this->_conn->executeUpdate($query);
     }
 
-    /**
-     * @param string $table
-     *
-     * @return bool
-     */
-    public function dropAutoincrement($table)
+    public function dropAutoincrement(string $table) : bool
     {
         assert($this->_platform instanceof OraclePlatform);
 
@@ -322,11 +315,11 @@ class OracleSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    public function dropTable($name)
+    public function dropTable(string $tableName) : void
     {
-        $this->tryMethod('dropAutoincrement', $name);
+        $this->tryMethod('dropAutoincrement', $tableName);
 
-        parent::dropTable($name);
+        parent::dropTable($tableName);
     }
 
     /**
@@ -339,7 +332,7 @@ class OracleSchemaManager extends AbstractSchemaManager
      *
      * @return string The quoted identifier.
      */
-    private function getQuotedIdentifierName($identifier)
+    private function getQuotedIdentifierName(string $identifier) : string
     {
         if (preg_match('/[a-z]/', $identifier)) {
             return $this->_platform->quoteIdentifier($identifier);
@@ -354,10 +347,8 @@ class OracleSchemaManager extends AbstractSchemaManager
      * This is useful to force DROP USER operations which could fail because of active user sessions.
      *
      * @param string $user The name of the user to kill sessions for.
-     *
-     * @return void
      */
-    private function killUserSessions($user)
+    private function killUserSessions(string $user) : void
     {
         $sql = <<<SQL
 SELECT

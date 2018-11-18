@@ -40,7 +40,7 @@ class BlobTest extends DbalFunctionalTestCase
         $sm->dropAndCreateTable($table);
     }
 
-    public function testInsert()
+    public function testInsert() : void
     {
         $ret = $this->connection->insert('blob_table', [
             'id'          => 1,
@@ -55,7 +55,7 @@ class BlobTest extends DbalFunctionalTestCase
         self::assertEquals(1, $ret);
     }
 
-    public function testInsertProcessesStream()
+    public function testInsertProcessesStream() : void
     {
         // https://github.com/doctrine/dbal/issues/3290
         if ($this->connection->getDriver() instanceof OCI8Driver) {
@@ -76,7 +76,7 @@ class BlobTest extends DbalFunctionalTestCase
         $this->assertBlobContains($longBlob);
     }
 
-    public function testSelect()
+    public function testSelect() : void
     {
         $this->connection->insert('blob_table', [
             'id'          => 1,
@@ -91,7 +91,7 @@ class BlobTest extends DbalFunctionalTestCase
         $this->assertBlobContains('test');
     }
 
-    public function testUpdate()
+    public function testUpdate() : void
     {
         $this->connection->insert('blob_table', [
             'id' => 1,
@@ -111,7 +111,7 @@ class BlobTest extends DbalFunctionalTestCase
         $this->assertBlobContains('test2');
     }
 
-    public function testUpdateProcessesStream()
+    public function testUpdateProcessesStream() : void
     {
         // https://github.com/doctrine/dbal/issues/3290
         if ($this->connection->getDriver() instanceof OCI8Driver) {
@@ -139,7 +139,7 @@ class BlobTest extends DbalFunctionalTestCase
         $this->assertBlobContains('test2');
     }
 
-    public function testBindParamProcessesStream()
+    public function testBindParamProcessesStream() : void
     {
         if ($this->connection->getDriver() instanceof OCI8Driver) {
             $this->markTestIncomplete('The oci8 driver does not support stream resources as parameters');
@@ -158,7 +158,7 @@ class BlobTest extends DbalFunctionalTestCase
         $this->assertBlobContains('test');
     }
 
-    private function assertBlobContains($text)
+    private function assertBlobContains(string $text) : void
     {
         $rows = $this->connection->query('SELECT blobfield FROM blob_table')->fetchAll(FetchMode::COLUMN);
 

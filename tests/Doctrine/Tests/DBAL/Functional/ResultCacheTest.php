@@ -6,6 +6,7 @@ namespace Doctrine\Tests\DBAL\Functional;
 
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\DBAL\Cache\QueryCacheProfile;
+use Doctrine\DBAL\Driver\ResultStatement;
 use Doctrine\DBAL\FetchMode;
 use Doctrine\DBAL\Logging\DebugStack;
 use Doctrine\DBAL\Schema\Table;
@@ -58,7 +59,7 @@ class ResultCacheTest extends DbalFunctionalTestCase
         parent::tearDown();
     }
 
-    public function testCacheFetchAssoc()
+    public function testCacheFetchAssoc() : void
     {
         self::assertCacheNonCacheSelectSameFetchModeAreEqual(
             $this->expectedResult,
@@ -66,7 +67,7 @@ class ResultCacheTest extends DbalFunctionalTestCase
         );
     }
 
-    public function testFetchNum()
+    public function testFetchNum() : void
     {
         $expectedResult = [];
         foreach ($this->expectedResult as $v) {
@@ -76,7 +77,7 @@ class ResultCacheTest extends DbalFunctionalTestCase
         self::assertCacheNonCacheSelectSameFetchModeAreEqual($expectedResult, FetchMode::NUMERIC);
     }
 
-    public function testFetchBoth()
+    public function testFetchBoth() : void
     {
         $expectedResult = [];
         foreach ($this->expectedResult as $v) {
@@ -86,7 +87,7 @@ class ResultCacheTest extends DbalFunctionalTestCase
         self::assertCacheNonCacheSelectSameFetchModeAreEqual($expectedResult, FetchMode::MIXED);
     }
 
-    public function testFetchColumn()
+    public function testFetchColumn() : void
     {
         $expectedResult = [];
         foreach ($this->expectedResult as $v) {
@@ -96,7 +97,7 @@ class ResultCacheTest extends DbalFunctionalTestCase
         self::assertCacheNonCacheSelectSameFetchModeAreEqual($expectedResult, FetchMode::COLUMN);
     }
 
-    public function testMixingFetch()
+    public function testMixingFetch() : void
     {
         $numExpectedResult = [];
         foreach ($this->expectedResult as $v) {
@@ -115,14 +116,14 @@ class ResultCacheTest extends DbalFunctionalTestCase
         self::assertEquals($numExpectedResult, $data);
     }
 
-    public function testIteratorFetch()
+    public function testIteratorFetch() : void
     {
         self::assertStandardAndIteratorFetchAreEqual(FetchMode::MIXED);
         self::assertStandardAndIteratorFetchAreEqual(FetchMode::ASSOCIATIVE);
         self::assertStandardAndIteratorFetchAreEqual(FetchMode::NUMERIC);
     }
 
-    public function assertStandardAndIteratorFetchAreEqual($fetchMode)
+    private function assertStandardAndIteratorFetchAreEqual(int $fetchMode) : void
     {
         $stmt = $this->connection->executeQuery('SELECT * FROM caching ORDER BY test_int ASC', [], [], new QueryCacheProfile(10, 'testcachekey'));
         $data = $this->hydrateStmt($stmt, $fetchMode);
@@ -133,7 +134,7 @@ class ResultCacheTest extends DbalFunctionalTestCase
         self::assertEquals($data, $data_iterator);
     }
 
-    public function testDontCloseNoCache()
+    public function testDontCloseNoCache() : void
     {
         $stmt = $this->connection->executeQuery('SELECT * FROM caching ORDER BY test_int ASC', [], [], new QueryCacheProfile(10, 'testcachekey'));
 
@@ -154,7 +155,7 @@ class ResultCacheTest extends DbalFunctionalTestCase
         self::assertCount(2, $this->sqlLogger->queries);
     }
 
-    public function testDontFinishNoCache()
+    public function testDontFinishNoCache() : void
     {
         $stmt = $this->connection->executeQuery('SELECT * FROM caching ORDER BY test_int ASC', [], [], new QueryCacheProfile(10, 'testcachekey'));
 
@@ -168,7 +169,7 @@ class ResultCacheTest extends DbalFunctionalTestCase
         self::assertCount(2, $this->sqlLogger->queries);
     }
 
-    public function testFetchAllAndFinishSavesCache()
+    public function testFetchAllAndFinishSavesCache() : void
     {
         $layerCache = new ArrayCache();
         $stmt       = $this->connection->executeQuery('SELECT * FROM caching WHERE test_int > 500', [], [], new QueryCacheProfile(10, 'testcachekey', $layerCache));
@@ -178,7 +179,10 @@ class ResultCacheTest extends DbalFunctionalTestCase
         self::assertCount(1, $layerCache->fetch('testcachekey'));
     }
 
-    public function assertCacheNonCacheSelectSameFetchModeAreEqual($expectedResult, $fetchMode)
+    /**
+     * @param mixed[][] $expectedResult
+     */
+    public function assertCacheNonCacheSelectSameFetchModeAreEqual(array $expectedResult, int $fetchMode) : void
     {
         $stmt = $this->connection->executeQuery('SELECT * FROM caching ORDER BY test_int ASC', [], [], new QueryCacheProfile(10, 'testcachekey'));
 
@@ -194,7 +198,7 @@ class ResultCacheTest extends DbalFunctionalTestCase
         self::assertCount(1, $this->sqlLogger->queries, 'just one dbal hit');
     }
 
-    public function testEmptyResultCache()
+    public function testEmptyResultCache() : void
     {
         $stmt = $this->connection->executeQuery('SELECT * FROM caching WHERE test_int > 500', [], [], new QueryCacheProfile(10, 'emptycachekey'));
         $data = $this->hydrateStmt($stmt);
@@ -205,7 +209,7 @@ class ResultCacheTest extends DbalFunctionalTestCase
         self::assertCount(1, $this->sqlLogger->queries, 'just one dbal hit');
     }
 
-    public function testChangeCacheImpl()
+    public function testChangeCacheImpl() : void
     {
         $stmt = $this->connection->executeQuery('SELECT * FROM caching WHERE test_int > 500', [], [], new QueryCacheProfile(10, 'emptycachekey'));
         $data = $this->hydrateStmt($stmt);
@@ -218,7 +222,10 @@ class ResultCacheTest extends DbalFunctionalTestCase
         self::assertCount(1, $secondCache->fetch('emptycachekey'));
     }
 
-    private function hydrateStmt($stmt, $fetchMode = FetchMode::ASSOCIATIVE)
+    /**
+     * @return mixed[]
+     */
+    private function hydrateStmt(ResultStatement $stmt, int $fetchMode = FetchMode::ASSOCIATIVE) : array
     {
         $data = [];
         while ($row = $stmt->fetch($fetchMode)) {
@@ -229,7 +236,10 @@ class ResultCacheTest extends DbalFunctionalTestCase
         return $data;
     }
 
-    private function hydrateStmtIterator($stmt, $fetchMode = FetchMode::ASSOCIATIVE)
+    /**
+     * @return mixed[]
+     */
+    private function hydrateStmtIterator(ResultStatement $stmt, int $fetchMode = FetchMode::ASSOCIATIVE) : array
     {
         $data = [];
         $stmt->setFetchMode($fetchMode);

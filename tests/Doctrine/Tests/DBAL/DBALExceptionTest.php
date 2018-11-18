@@ -17,7 +17,7 @@ use function sprintf;
 
 class DBALExceptionTest extends DbalTestCase
 {
-    public function testDriverExceptionDuringQueryAcceptsBinaryData()
+    public function testDriverExceptionDuringQueryAcceptsBinaryData() : void
     {
         /** @var Driver $driver */
         $driver = $this->createMock(Driver::class);
@@ -25,7 +25,7 @@ class DBALExceptionTest extends DbalTestCase
         self::assertStringContainsString('with params ["ABC", "\x80"]', $e->getMessage());
     }
 
-    public function testDriverExceptionDuringQueryAcceptsResource()
+    public function testDriverExceptionDuringQueryAcceptsResource() : void
     {
         /** @var Driver $driver */
         $driver = $this->createMock(Driver::class);
@@ -33,7 +33,7 @@ class DBALExceptionTest extends DbalTestCase
         self::assertStringContainsString('Resource', $e->getMessage());
     }
 
-    public function testAvoidOverWrappingOnDriverException()
+    public function testAvoidOverWrappingOnDriverException() : void
     {
         /** @var Driver $driver */
         $driver = $this->createMock(Driver::class);
@@ -51,7 +51,7 @@ class DBALExceptionTest extends DbalTestCase
         self::assertSame($ex, $e);
     }
 
-    public function testDriverRequiredWithUrl()
+    public function testDriverRequiredWithUrl() : void
     {
         $url       = 'mysql://localhost';
         $exception = DBALException::driverRequired($url);

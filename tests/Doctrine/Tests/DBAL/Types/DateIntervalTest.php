@@ -105,6 +105,8 @@ final class DateIntervalTest extends DbalTestCase
     }
 
     /**
+     * @param mixed $value
+     *
      * @dataProvider invalidPHPValuesProvider
      */
     public function testInvalidTypeConversionToDatabaseValue($value) : void
@@ -117,7 +119,7 @@ final class DateIntervalTest extends DbalTestCase
     /**
      * @return mixed[][]
      */
-    public function invalidPHPValuesProvider() : array
+    public static function invalidPHPValuesProvider() : iterable
     {
         return [
             [0],
@@ -127,7 +129,6 @@ final class DateIntervalTest extends DbalTestCase
             ['2015-01-31'],
             ['2015-01-31 10:11:12'],
             [new stdClass()],
-            [$this],
             [27],
             [-1],
             [1.2],

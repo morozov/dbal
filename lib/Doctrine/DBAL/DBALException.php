@@ -24,12 +24,7 @@ use function sprintf;
 
 class DBALException extends Exception
 {
-    /**
-     * @param string $method
-     *
-     * @return \Doctrine\DBAL\DBALException
-     */
-    public static function notSupported($method)
+    public static function notSupported(string $method) : self
     {
         return new self(sprintf("Operation '%s' is not supported by platform.", $method));
     }
@@ -70,10 +65,8 @@ class DBALException extends Exception
      *
      * @param string $version        The invalid platform version given.
      * @param string $expectedFormat The expected platform version format.
-     *
-     * @return DBALException
      */
-    public static function invalidPlatformVersionSpecified($version, $expectedFormat)
+    public static function invalidPlatformVersionSpecified(string $version, string $expectedFormat) : DBALException
     {
         return new self(
             sprintf(
@@ -85,10 +78,7 @@ class DBALException extends Exception
         );
     }
 
-    /**
-     * @return \Doctrine\DBAL\DBALException
-     */
-    public static function invalidPdoInstance()
+    public static function invalidPdoInstance() : self
     {
         return new self(
             "The 'pdo' option was used in DriverManager::getConnection() but no " .
@@ -98,10 +88,8 @@ class DBALException extends Exception
 
     /**
      * @param string|null $url The URL that was provided in the connection parameters (if any).
-     *
-     * @return \Doctrine\DBAL\DBALException
      */
-    public static function driverRequired($url = null)
+    public static function driverRequired(?string $url = null) : self
     {
         if ($url) {
             return new self(
@@ -118,24 +106,18 @@ class DBALException extends Exception
     }
 
     /**
-     * @param string   $unknownDriverName
      * @param string[] $knownDrivers
-     *
-     * @return \Doctrine\DBAL\DBALException
      */
-    public static function unknownDriver($unknownDriverName, array $knownDrivers)
+    public static function unknownDriver(string $unknownDriverName, array $knownDrivers) : self
     {
         return new self("The given 'driver' " . $unknownDriverName . ' is unknown, ' .
             'Doctrine currently supports only the following drivers: ' . implode(', ', $knownDrivers));
     }
 
     /**
-     * @param string  $sql
      * @param mixed[] $params
-     *
-     * @return self
      */
-    public static function driverExceptionDuringQuery(Driver $driver, Throwable $driverEx, $sql, array $params = [])
+    public static function driverExceptionDuringQuery(Driver $driver, Throwable $driverEx, string $sql, array $params = []) : self
     {
         $msg = "An exception occurred while executing '" . $sql . "'";
         if ($params) {
@@ -146,18 +128,12 @@ class DBALException extends Exception
         return static::wrapException($driver, $driverEx, $msg);
     }
 
-    /**
-     * @return self
-     */
-    public static function driverException(Driver $driver, Throwable $driverEx)
+    public static function driverException(Driver $driver, Throwable $driverEx) : self
     {
         return static::wrapException($driver, $driverEx, 'An exception occurred in driver: ' . $driverEx->getMessage());
     }
 
-    /**
-     * @return self
-     */
-    private static function wrapException(Driver $driver, Throwable $driverEx, $msg)
+    private static function wrapException(Driver $driver, Throwable $driverEx, string $msg) : self
     {
         if ($driverEx instanceof DriverException) {
             return $driverEx;
@@ -174,12 +150,10 @@ class DBALException extends Exception
      * This properly handles binary data by returning a hex representation.
      *
      * @param mixed[] $params
-     *
-     * @return string
      */
-    private static function formatParameters(array $params)
+    private static function formatParameters(array $params) : string
     {
-        return '[' . implode(', ', array_map(static function ($param) {
+        return '[' . implode(', ', array_map(static function ($param) : string {
             if (is_resource($param)) {
                 return (string) $param;
             }
@@ -195,71 +169,38 @@ class DBALException extends Exception
         }, $params)) . ']';
     }
 
-    /**
-     * @param string $wrapperClass
-     *
-     * @return \Doctrine\DBAL\DBALException
-     */
-    public static function invalidWrapperClass($wrapperClass)
+    public static function invalidWrapperClass(string $wrapperClass) : self
     {
         return new self("The given 'wrapperClass' " . $wrapperClass . ' has to be a ' .
             'subtype of \Doctrine\DBAL\Connection.');
     }
 
-    /**
-     * @param string $driverClass
-     *
-     * @return \Doctrine\DBAL\DBALException
-     */
-    public static function invalidDriverClass($driverClass)
+    public static function invalidDriverClass(string $driverClass) : self
     {
         return new self("The given 'driverClass' " . $driverClass . ' has to implement the ' . Driver::class . ' interface.');
     }
 
-    /**
-     * @param string $tableName
-     *
-     * @return \Doctrine\DBAL\DBALException
-     */
-    public static function invalidTableName($tableName)
+    public static function invalidTableName(string $tableName) : self
     {
         return new self('Invalid table name specified: ' . $tableName);
     }
 
-    /**
-     * @param string $tableName
-     *
-     * @return \Doctrine\DBAL\DBALException
-     */
-    public static function noColumnsSpecifiedForTable($tableName)
+    public static function noColumnsSpecifiedForTable(string $tableName) : self
     {
         return new self('No columns specified for table ' . $tableName);
     }
 
-    /**
-     * @return \Doctrine\DBAL\DBALException
-     */
-    public static function limitOffsetInvalid()
+    public static function limitOffsetInvalid() : self
     {
         return new self('Invalid Offset in Limit Query, it has to be larger than or equal to 0.');
     }
 
-    /**
-     * @param string $name
-     *
-     * @return \Doctrine\DBAL\DBALException
-     */
-    public static function typeExists($name)
+    public static function typeExists(string $name) : self
     {
         return new self('Type ' . $name . ' already exists.');
     }
 
-    /**
-     * @param string $name
-     *
-     * @return \Doctrine\DBAL\DBALException
-     */
-    public static function unknownColumnType($name)
+    public static function unknownColumnType(string $name) : self
     {
         return new self('Unknown column type "' . $name . '" requested. Any Doctrine type that you use has ' .
             'to be registered with \Doctrine\DBAL\Types\Type::addType(). You can get a list of all the ' .
@@ -270,12 +211,7 @@ class DBALException extends Exception
             'have a problem with the cache or forgot some mapping information.');
     }
 
-    /**
-     * @param string $name
-     *
-     * @return \Doctrine\DBAL\DBALException
-     */
-    public static function typeNotFound($name)
+    public static function typeNotFound(string $name) : self
     {
         return new self('Type to be overwritten ' . $name . ' does not exist.');
     }

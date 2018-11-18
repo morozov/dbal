@@ -30,10 +30,7 @@ class SchemaAlterTableRenameColumnEventArgs extends SchemaEventArgs
     /** @var string[] */
     private $sql = [];
 
-    /**
-     * @param string $oldColumnName
-     */
-    public function __construct($oldColumnName, Column $column, TableDiff $tableDiff, AbstractPlatform $platform)
+    public function __construct(string $oldColumnName, Column $column, TableDiff $tableDiff, AbstractPlatform $platform)
     {
         $this->oldColumnName = $oldColumnName;
         $this->column        = $column;
@@ -41,44 +38,30 @@ class SchemaAlterTableRenameColumnEventArgs extends SchemaEventArgs
         $this->platform      = $platform;
     }
 
-    /**
-     * @return string
-     */
-    public function getOldColumnName()
+    public function getOldColumnName() : string
     {
         return $this->oldColumnName;
     }
 
-    /**
-     * @return Column
-     */
-    public function getColumn()
+    public function getColumn() : Column
     {
         return $this->column;
     }
 
-    /**
-     * @return TableDiff
-     */
-    public function getTableDiff()
+    public function getTableDiff() : TableDiff
     {
         return $this->tableDiff;
     }
 
-    /**
-     * @return AbstractPlatform
-     */
-    public function getPlatform()
+    public function getPlatform() : AbstractPlatform
     {
         return $this->platform;
     }
 
     /**
      * @param string|string[] $sql
-     *
-     * @return \Doctrine\DBAL\Event\SchemaAlterTableRenameColumnEventArgs
      */
-    public function addSql($sql)
+    public function addSql($sql) : self
     {
         if (is_array($sql)) {
             $this->sql = array_merge($this->sql, $sql);
@@ -92,7 +75,7 @@ class SchemaAlterTableRenameColumnEventArgs extends SchemaEventArgs
     /**
      * @return string[]
      */
-    public function getSql()
+    public function getSql() : array
     {
         return $this->sql;
     }

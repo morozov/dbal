@@ -24,12 +24,9 @@ class ConversionException extends DBALException
     /**
      * Thrown when a Database to Doctrine Type Conversion fails.
      *
-     * @param mixed  $value
-     * @param string $toType
-     *
-     * @return \Doctrine\DBAL\Types\ConversionException
+     * @param mixed $value
      */
-    public static function conversionFailed($value, $toType)
+    public static function conversionFailed($value, string $toType) : self
     {
         $value = is_string($value) && strlen($value) > 32 ? substr($value, 0, 20) . '...' : $value;
 
@@ -40,13 +37,9 @@ class ConversionException extends DBALException
      * Thrown when a Database to Doctrine Type Conversion fails and we can make a statement
      * about the expected format.
      *
-     * @param mixed  $value
-     * @param string $toType
-     * @param string $expectedFormat
-     *
-     * @return \Doctrine\DBAL\Types\ConversionException
+     * @param mixed $value
      */
-    public static function conversionFailedFormat($value, $toType, $expectedFormat, ?Throwable $previous = null)
+    public static function conversionFailedFormat($value, string $toType, string $expectedFormat, ?Throwable $previous = null) : self
     {
         $value = is_string($value) && strlen($value) > 32 ? substr($value, 0, 20) . '...' : $value;
 
@@ -62,12 +55,9 @@ class ConversionException extends DBALException
      * Thrown when the PHP value passed to the converter was not of the expected type.
      *
      * @param mixed    $value
-     * @param string   $toType
      * @param string[] $possibleTypes
-     *
-     * @return \Doctrine\DBAL\Types\ConversionException
      */
-    public static function conversionFailedInvalidType($value, $toType, array $possibleTypes)
+    public static function conversionFailedInvalidType($value, string $toType, array $possibleTypes) : self
     {
         $actualType = is_object($value) ? get_class($value) : gettype($value);
 
@@ -89,7 +79,10 @@ class ConversionException extends DBALException
         ));
     }
 
-    public static function conversionFailedSerialization($value, $format, $error)
+    /**
+     * @param mixed $value
+     */
+    public static function conversionFailedSerialization($value, string $format, string $error) : self
     {
         $actualType = is_object($value) ? get_class($value) : gettype($value);
 

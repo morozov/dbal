@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Doctrine\Tests\DBAL\Functional\Driver\SQLSrv;
 
+use Doctrine\DBAL\Driver as DriverInterface;
 use Doctrine\DBAL\Driver\SQLSrv\Driver;
 use Doctrine\Tests\DBAL\Functional\Driver\AbstractDriverTest;
 use function extension_loaded;
@@ -28,7 +29,7 @@ class DriverTest extends AbstractDriverTest
     /**
      * {@inheritdoc}
      */
-    protected function createDriver()
+    protected function createDriver() : DriverInterface
     {
         return new Driver();
     }

@@ -10,7 +10,7 @@ use Doctrine\DBAL\Schema\View;
 
 class SQLAnywhereSchemaManagerTest extends SchemaManagerFunctionalTestCase
 {
-    public function testCreateAndListViews()
+    public function testCreateAndListViews() : void
     {
         $this->createTestTable('view_test_table');
 
@@ -29,7 +29,7 @@ class SQLAnywhereSchemaManagerTest extends SchemaManagerFunctionalTestCase
         self::assertRegExp('/^SELECT \* from "?DBA"?\."?view_test_table"?$/', $views[$name]->getSql());
     }
 
-    public function testDropAndCreateAdvancedIndex()
+    public function testDropAndCreateAdvancedIndex() : void
     {
         $table = $this->getTestTable('test_create_advanced_index');
         $this->schemaManager->dropAndCreateTable($table);
@@ -49,7 +49,7 @@ class SQLAnywhereSchemaManagerTest extends SchemaManagerFunctionalTestCase
         self::assertTrue($tableIndexes['test']->hasFlag('for_olap_workload'));
     }
 
-    public function testListTableColumnsWithFixedStringTypeColumn()
+    public function testListTableColumnsWithFixedStringTypeColumn() : void
     {
         $table = new Table('list_table_columns_char');
         $table->addColumn('id', 'integer', ['notnull' => true]);

@@ -31,7 +31,7 @@ class DBAL202Test extends DbalFunctionalTestCase
         }
     }
 
-    public function testStatementRollback()
+    public function testStatementRollback() : void
     {
         $stmt = $this->connection->prepare('INSERT INTO DBAL202 VALUES (8)');
         $this->connection->beginTransaction();
@@ -41,7 +41,7 @@ class DBAL202Test extends DbalFunctionalTestCase
         self::assertEquals(0, $this->connection->query('SELECT COUNT(1) FROM DBAL202')->fetchColumn());
     }
 
-    public function testStatementCommit()
+    public function testStatementCommit() : void
     {
         $stmt = $this->connection->prepare('INSERT INTO DBAL202 VALUES (8)');
         $this->connection->beginTransaction();

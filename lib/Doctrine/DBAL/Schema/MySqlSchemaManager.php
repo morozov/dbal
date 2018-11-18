@@ -29,7 +29,7 @@ class MySqlSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    protected function _getPortableViewDefinition($view)
+    protected function _getPortableViewDefinition(array $view) : View
     {
         return new View($view['TABLE_NAME'], $view['VIEW_DEFINITION']);
     }
@@ -37,7 +37,7 @@ class MySqlSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    protected function _getPortableTableDefinition($table)
+    protected function _getPortableTableDefinition($table) : string
     {
         return array_shift($table);
     }
@@ -45,7 +45,7 @@ class MySqlSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    protected function _getPortableUserDefinition($user)
+    protected function _getPortableUserDefinition(array $user) : array
     {
         return [
             'user' => $user['User'],
@@ -89,7 +89,7 @@ class MySqlSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    protected function _getPortableTableColumnDefinition($tableColumn)
+    protected function _getPortableTableColumnDefinition(array $tableColumn) : Column
     {
         $tableColumn = array_change_key_case($tableColumn, CASE_LOWER);
 
@@ -165,7 +165,6 @@ class MySqlSchemaManager extends AbstractSchemaManager
         $options = [
             'length'        => $length !== null ? (int) $length : null,
             'unsigned'      => strpos($tableColumn['type'], 'unsigned') !== false,
-            'fixed'         => (bool) $fixed,
             'default'       => $columnDefault,
             'notnull'       => $tableColumn['null'] !== 'YES',
             'scale'         => null,
@@ -175,6 +174,10 @@ class MySqlSchemaManager extends AbstractSchemaManager
                 ? $tableColumn['comment']
                 : null,
         ];
+
+        if ($fixed !== null) {
+            $options['fixed'] = $fixed;
+        }
 
         if ($scale !== null && $precision !== null) {
             $options['scale']     = (int) $scale;
@@ -234,7 +237,7 @@ class MySqlSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    protected function _getPortableTableForeignKeysList($tableForeignKeys)
+    protected function _getPortableTableForeignKeysList(array $tableForeignKeys) : array
     {
         $list = [];
         foreach ($tableForeignKeys as $value) {
@@ -277,7 +280,7 @@ class MySqlSchemaManager extends AbstractSchemaManager
         return $result;
     }
 
-    public function listTableDetails($tableName)
+    public function listTableDetails(string $tableName) : Table
     {
         $table = parent::listTableDetails($tableName);
 

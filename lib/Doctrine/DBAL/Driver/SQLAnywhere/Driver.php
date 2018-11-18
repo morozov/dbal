@@ -6,6 +6,7 @@ namespace Doctrine\DBAL\Driver\SQLAnywhere;
 
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Driver\AbstractSQLAnywhereDriver;
+use Doctrine\DBAL\Driver\Connection;
 use function array_keys;
 use function array_map;
 use function implode;
@@ -20,7 +21,7 @@ class Driver extends AbstractSQLAnywhereDriver
      *
      * @throws DBALException If there was a problem establishing the connection.
      */
-    public function connect(array $params, $username = null, $password = null, array $driverOptions = [])
+    public function connect(array $params, ?string $username = null, ?string $password = null, array $driverOptions = []) : Connection
     {
         try {
             return new SQLAnywhereConnection(
@@ -43,7 +44,7 @@ class Driver extends AbstractSQLAnywhereDriver
     /**
      * {@inheritdoc}
      */
-    public function getName()
+    public function getName() : string
     {
         return 'sqlanywhere';
     }
@@ -60,10 +61,8 @@ class Driver extends AbstractSQLAnywhereDriver
      * @param string  $username      User name to use for connection authentication.
      * @param string  $password      Password to use for connection authentication.
      * @param mixed[] $driverOptions Additional parameters to use for the connection.
-     *
-     * @return string
      */
-    private function buildDsn($host, $port, $server, $dbname, $username = null, $password = null, array $driverOptions = [])
+    private function buildDsn(string $host, int $port, string $server, string $dbname, ?string $username = null, ?string $password = null, array $driverOptions = []) : string
     {
         $host = $host ?: 'localhost';
         $port = $port ?: 2638;
@@ -79,7 +78,7 @@ class Driver extends AbstractSQLAnywhereDriver
             ';PWD=' . $password .
             ';' . implode(
                 ';',
-                array_map(static function ($key, $value) {
+                array_map(static function ($key, $value) : string {
                     return $key . '=' . $value;
                 }, array_keys($driverOptions), $driverOptions)
             );

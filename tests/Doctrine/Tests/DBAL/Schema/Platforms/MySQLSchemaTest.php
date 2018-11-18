@@ -24,7 +24,7 @@ class MySQLSchemaTest extends TestCase
         $this->platform   = new MySqlPlatform();
     }
 
-    public function testSwitchPrimaryKeyOrder()
+    public function testSwitchPrimaryKeyOrder() : void
     {
         $tableOld = new Table('test');
         $tableOld->addColumn('foo_id', 'integer');
@@ -49,7 +49,7 @@ class MySQLSchemaTest extends TestCase
     /**
      * @group DBAL-132
      */
-    public function testGenerateForeignKeySQL()
+    public function testGenerateForeignKeySQL() : void
     {
         $tableOld = new Table('test');
         $tableOld->addColumn('foo_id', 'integer');
@@ -66,7 +66,7 @@ class MySQLSchemaTest extends TestCase
     /**
      * @group DDC-1737
      */
-    public function testClobNoAlterTable()
+    public function testClobNoAlterTable() : void
     {
         $tableOld = new Table('test');
         $tableOld->addColumn('id', 'integer');

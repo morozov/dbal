@@ -34,10 +34,8 @@ class SchemaColumnDefinitionEventArgs extends SchemaEventArgs
 
     /**
      * @param mixed[] $tableColumn
-     * @param string  $table
-     * @param string  $database
      */
-    public function __construct(array $tableColumn, $table, $database, Connection $connection)
+    public function __construct(array $tableColumn, string $table, ?string $database, Connection $connection)
     {
         $this->tableColumn = $tableColumn;
         $this->table       = $table;
@@ -48,20 +46,15 @@ class SchemaColumnDefinitionEventArgs extends SchemaEventArgs
     /**
      * Allows to clear the column which means the column will be excluded from
      * tables column list.
-     *
-     * @return \Doctrine\DBAL\Event\SchemaColumnDefinitionEventArgs
      */
-    public function setColumn(?Column $column = null)
+    public function setColumn(?Column $column = null) : self
     {
         $this->column = $column;
 
         return $this;
     }
 
-    /**
-     * @return Column|null
-     */
-    public function getColumn()
+    public function getColumn() : ?Column
     {
         return $this->column;
     }
@@ -69,39 +62,27 @@ class SchemaColumnDefinitionEventArgs extends SchemaEventArgs
     /**
      * @return mixed[]
      */
-    public function getTableColumn()
+    public function getTableColumn() : array
     {
         return $this->tableColumn;
     }
 
-    /**
-     * @return string
-     */
-    public function getTable()
+    public function getTable() : string
     {
         return $this->table;
     }
 
-    /**
-     * @return string
-     */
-    public function getDatabase()
+    public function getDatabase() : string
     {
         return $this->database;
     }
 
-    /**
-     * @return Connection
-     */
-    public function getConnection()
+    public function getConnection() : Connection
     {
         return $this->connection;
     }
 
-    /**
-     * @return AbstractPlatform
-     */
-    public function getDatabasePlatform()
+    public function getDatabasePlatform() : AbstractPlatform
     {
         return $this->connection->getDatabasePlatform();
     }

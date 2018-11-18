@@ -21,7 +21,7 @@ class SQLAzurePlatformTest extends DbalTestCase
         $this->platform = new SQLAzurePlatform();
     }
 
-    public function testCreateFederatedOnTable()
+    public function testCreateFederatedOnTable() : void
     {
         $table = new Table('tbl');
         $table->addColumn('id', 'integer');

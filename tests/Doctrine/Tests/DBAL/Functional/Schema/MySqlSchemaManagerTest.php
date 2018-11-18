@@ -30,7 +30,7 @@ class MySqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
         Type::addType('point', MySqlPointType::class);
     }
 
-    public function testSwitchPrimaryKeyColumns()
+    public function testSwitchPrimaryKeyColumns() : void
     {
         $tableOld = new Table('switch_primary_key_columns');
         $tableOld->addColumn('foo_id', 'integer');
@@ -52,7 +52,7 @@ class MySqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
         self::assertContains('foo_id', $primaryKey);
     }
 
-    public function testDiffTableBug()
+    public function testDiffTableBug() : void
     {
         $schema = new Schema();
         $table  = $schema->createTable('diffbug_routing_translations');
@@ -75,7 +75,7 @@ class MySqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
         self::assertFalse($diff, 'no changes expected.');
     }
 
-    public function testFulltextIndex()
+    public function testFulltextIndex() : void
     {
         $table = new Table('fulltext_index');
         $table->addColumn('text', 'text');
@@ -92,7 +92,7 @@ class MySqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
         self::assertTrue($indexes['f_index']->hasFlag('fulltext'));
     }
 
-    public function testSpatialIndex()
+    public function testSpatialIndex() : void
     {
         $table = new Table('spatial_index');
         $table->addColumn('point', 'point');
@@ -125,7 +125,7 @@ class MySqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
     /**
      * @group DBAL-400
      */
-    public function testAlterTableAddPrimaryKey()
+    public function testAlterTableAddPrimaryKey() : void
     {
         $table = new Table('alter_table_add_pk');
         $table->addColumn('id', 'integer');
@@ -151,7 +151,7 @@ class MySqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
     /**
      * @group DBAL-464
      */
-    public function testDropPrimaryKeyWithAutoincrementColumn()
+    public function testDropPrimaryKeyWithAutoincrementColumn() : void
     {
         $table = new Table('drop_primary_key');
         $table->addColumn('id', 'integer', ['autoincrement' => true]);
@@ -177,7 +177,7 @@ class MySqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
     /**
      * @group DBAL-789
      */
-    public function testDoesNotPropagateDefaultValuesForUnsupportedColumnTypes()
+    public function testDoesNotPropagateDefaultValuesForUnsupportedColumnTypes() : void
     {
         if ($this->schemaManager->getDatabasePlatform() instanceof MariaDb1027Platform) {
             $this->markTestSkipped(
@@ -216,7 +216,7 @@ class MySqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
         self::assertFalse($onlineTable->getColumn('def_blob_null')->getNotnull());
     }
 
-    public function testColumnCharset()
+    public function testColumnCharset() : void
     {
         $table = new Table('test_column_charset');
         $table->addColumn('id', 'integer');
@@ -233,7 +233,7 @@ class MySqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
         self::assertEquals('latin1', $columns['bar']->getPlatformOption('charset'));
     }
 
-    public function testAlterColumnCharset()
+    public function testAlterColumnCharset() : void
     {
         $tableName = 'test_alter_column_charset';
 
@@ -254,7 +254,7 @@ class MySqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
         self::assertEquals('ascii', $table->getColumn('col_text')->getPlatformOption('charset'));
     }
 
-    public function testColumnCharsetChange()
+    public function testColumnCharsetChange() : void
     {
         $table = new Table('test_column_charset_change');
         $table->addColumn('col_string', 'string')->setLength(100)->setNotnull(true)->setPlatformOption('charset', 'utf8');
@@ -269,7 +269,7 @@ class MySqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
         self::assertContains('ALTER TABLE test_column_charset_change CHANGE col_string col_string VARCHAR(100) CHARACTER SET ascii NOT NULL', $diff);
     }
 
-    public function testColumnCollation()
+    public function testColumnCollation() : void
     {
         $table                                  = new Table('test_collation');
         $table->addOption('collate', $collation = 'latin1_swedish_ci');
@@ -291,7 +291,7 @@ class MySqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
     /**
      * @group DBAL-843
      */
-    public function testListLobTypeColumns()
+    public function testListLobTypeColumns() : void
     {
         $tableName = 'lob_type_columns';
         $table     = new Table($tableName);
@@ -350,7 +350,7 @@ class MySqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
     /**
      * @group DBAL-423
      */
-    public function testDiffListGuidTableColumn()
+    public function testDiffListGuidTableColumn() : void
     {
         $offlineTable = new Table('list_guid_table_column');
         $offlineTable->addColumn('col_guid', 'guid');
@@ -370,7 +370,7 @@ class MySqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
     /**
      * @group DBAL-1082
      */
-    public function testListDecimalTypeColumns()
+    public function testListDecimalTypeColumns() : void
     {
         $tableName = 'test_list_decimal_columns';
         $table     = new Table($tableName);
@@ -391,7 +391,7 @@ class MySqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
     /**
      * @group DBAL-1082
      */
-    public function testListFloatTypeColumns()
+    public function testListFloatTypeColumns() : void
     {
         $tableName = 'test_list_float_columns';
         $table     = new Table($tableName);
@@ -443,7 +443,7 @@ class MySqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
         self::assertFalse($diff, 'Tables should be identical with column defaults.');
     }
 
-    public function testColumnDefaultsAreValid()
+    public function testColumnDefaultsAreValid() : void
     {
         $table = new Table('test_column_defaults_are_valid');
 

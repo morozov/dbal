@@ -14,14 +14,18 @@ class TimeImmutableType extends TimeType
 {
     /**
      * {@inheritdoc}
+     *
+     * @return string
      */
-    public function getName()
+    public function getName() : string
     {
         return Type::TIME_IMMUTABLE;
     }
 
     /**
      * {@inheritdoc}
+     *
+     * @return string|false|null
      */
     public function convertToDatabaseValue($value, AbstractPlatform $platform)
     {
@@ -42,6 +46,8 @@ class TimeImmutableType extends TimeType
 
     /**
      * {@inheritdoc}
+     *
+     * @return DateTimeImmutable|null
      */
     public function convertToPHPValue($value, AbstractPlatform $platform)
     {
@@ -65,7 +71,7 @@ class TimeImmutableType extends TimeType
     /**
      * {@inheritdoc}
      */
-    public function requiresSQLCommentHint(AbstractPlatform $platform)
+    public function requiresSQLCommentHint(AbstractPlatform $platform) : bool
     {
         return true;
     }

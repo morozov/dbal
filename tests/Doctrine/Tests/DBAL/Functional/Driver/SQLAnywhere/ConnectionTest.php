@@ -26,7 +26,7 @@ class ConnectionTest extends DbalFunctionalTestCase
         $this->markTestSkipped('sqlanywhere only test.');
     }
 
-    public function testNonPersistentConnection()
+    public function testNonPersistentConnection() : void
     {
         $params               = $this->connection->getParams();
         $params['persistent'] = false;
@@ -38,7 +38,7 @@ class ConnectionTest extends DbalFunctionalTestCase
         self::assertTrue($conn->isConnected(), 'No SQLAnywhere-nonpersistent connection established');
     }
 
-    public function testPersistentConnection()
+    public function testPersistentConnection() : void
     {
         $params               = $this->connection->getParams();
         $params['persistent'] = true;

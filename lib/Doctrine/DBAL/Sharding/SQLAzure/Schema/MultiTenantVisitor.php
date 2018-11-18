@@ -53,11 +53,9 @@ class MultiTenantVisitor implements Visitor
     private $distributionName;
 
     /**
-     * @param string[]    $excludedTables
-     * @param string      $tenantColumnName
-     * @param string|null $distributionName
+     * @param string[] $excludedTables
      */
-    public function __construct(array $excludedTables = [], $tenantColumnName = 'tenant_id', $distributionName = null)
+    public function __construct(array $excludedTables = [], string $tenantColumnName = 'tenant_id', ?string $distributionName = null)
     {
         $this->excludedTables   = $excludedTables;
         $this->tenantColumnName = $tenantColumnName;
@@ -67,7 +65,7 @@ class MultiTenantVisitor implements Visitor
     /**
      * {@inheritdoc}
      */
-    public function acceptTable(Table $table)
+    public function acceptTable(Table $table) : void
     {
         if (in_array($table->getName(), $this->excludedTables)) {
             return;
@@ -93,13 +91,9 @@ class MultiTenantVisitor implements Visitor
     }
 
     /**
-     * @param Table $table
-     *
-     * @return Index
-     *
      * @throws RuntimeException
      */
-    private function getClusteredIndex($table)
+    private function getClusteredIndex(Table $table) : Index
     {
         foreach ($table->getIndexes() as $index) {
             if ($index->isPrimary() && ! $index->hasFlag('nonclustered')) {
@@ -116,35 +110,35 @@ class MultiTenantVisitor implements Visitor
     /**
      * {@inheritdoc}
      */
-    public function acceptSchema(Schema $schema)
+    public function acceptSchema(Schema $schema) : void
     {
     }
 
     /**
      * {@inheritdoc}
      */
-    public function acceptColumn(Table $table, Column $column)
+    public function acceptColumn(Table $table, Column $column) : void
     {
     }
 
     /**
      * {@inheritdoc}
      */
-    public function acceptForeignKey(Table $localTable, ForeignKeyConstraint $fkConstraint)
+    public function acceptForeignKey(Table $localTable, ForeignKeyConstraint $fkConstraint) : void
     {
     }
 
     /**
      * {@inheritdoc}
      */
-    public function acceptIndex(Table $table, Index $index)
+    public function acceptIndex(Table $table, Index $index) : void
     {
     }
 
     /**
      * {@inheritdoc}
      */
-    public function acceptSequence(Sequence $sequence)
+    public function acceptSequence(Sequence $sequence) : void
     {
     }
 }

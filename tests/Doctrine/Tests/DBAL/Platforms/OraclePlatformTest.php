@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Doctrine\Tests\DBAL\Platforms;
 
 use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Platforms\OraclePlatform;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ColumnDiff;
@@ -23,7 +24,10 @@ use function uniqid;
 
 class OraclePlatformTest extends AbstractPlatformTestCase
 {
-    public static function dataValidIdentifiers()
+    /**
+     * @return mixed[][]
+     */
+    public static function dataValidIdentifiers() : iterable
     {
         return [
             ['a'],
@@ -41,7 +45,7 @@ class OraclePlatformTest extends AbstractPlatformTestCase
     /**
      * @dataProvider dataValidIdentifiers
      */
-    public function testValidIdentifiers($identifier)
+    public function testValidIdentifiers(string $identifier) : void
     {
         $platform = $this->createPlatform();
         $platform->assertValidIdentifier($identifier);
@@ -49,7 +53,10 @@ class OraclePlatformTest extends AbstractPlatformTestCase
         $this->addToAssertionCount(1);
     }
 
-    public static function dataInvalidIdentifiers()
+    /**
+     * @return mixed[][]
+     */
+    public static function dataInvalidIdentifiers() : iterable
     {
         return [
             ['1'],
@@ -63,7 +70,7 @@ class OraclePlatformTest extends AbstractPlatformTestCase
     /**
      * @dataProvider dataInvalidIdentifiers
      */
-    public function testInvalidIdentifiers($identifier)
+    public function testInvalidIdentifiers(string $identifier) : void
     {
         $this->expectException(DBALException::class);
 
@@ -71,17 +78,20 @@ class OraclePlatformTest extends AbstractPlatformTestCase
         $platform->assertValidIdentifier($identifier);
     }
 
-    public function createPlatform()
+    public function createPlatform() : AbstractPlatform
     {
         return new OraclePlatform();
     }
 
-    public function getGenerateTableSql()
+    public function getGenerateTableSql() : string
     {
         return 'CREATE TABLE test (id NUMBER(10) NOT NULL, test VARCHAR2(255) DEFAULT NULL NULL, PRIMARY KEY(id))';
     }
 
-    public function getGenerateTableWithMultiColumnUniqueIndexSql()
+    /**
+     * @return mixed[]
+     */
+    public function getGenerateTableWithMultiColumnUniqueIndexSql() : array
     {
         return [
             'CREATE TABLE test (foo VARCHAR2(255) DEFAULT NULL NULL, bar VARCHAR2(255) DEFAULT NULL NULL)',
@@ -89,7 +99,10 @@ class OraclePlatformTest extends AbstractPlatformTestCase
         ];
     }
 
-    public function getGenerateAlterTableSql()
+    /**
+     * {@inheritDoc}
+     */
+    public function getGenerateAlterTableSql() : array
     {
         return [
             'ALTER TABLE mytable ADD (quota NUMBER(10) DEFAULT NULL NULL)',
@@ -99,20 +112,20 @@ class OraclePlatformTest extends AbstractPlatformTestCase
         ];
     }
 
-    public function testRLike()
+    public function testRLike() : void
     {
         $this->expectException(DBALException::class);
 
         self::assertEquals('RLIKE', $this->platform->getRegexpExpression(), 'Regular expression operator is not correct');
     }
 
-    public function testGeneratesSqlSnippets()
+    public function testGeneratesSqlSnippets() : void
     {
         self::assertEquals('"', $this->platform->getIdentifierQuoteCharacter(), 'Identifier quote character is not correct');
         self::assertEquals('column1 || column2 || column3', $this->platform->getConcatExpression('column1', 'column2', 'column3'), 'Concatenation expression is not correct');
     }
 
-    public function testGeneratesTransactionsCommands()
+    public function testGeneratesTransactionsCommands() : void
     {
         self::assertEquals(
             'SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED',
@@ -132,24 +145,24 @@ class OraclePlatformTest extends AbstractPlatformTestCase
         );
     }
 
-    public function testCreateDatabaseThrowsException()
+    public function testCreateDatabaseThrowsException() : void
     {
         $this->expectException(DBALException::class);
 
         self::assertEquals('CREATE DATABASE foobar', $this->platform->getCreateDatabaseSQL('foobar'));
     }
 
-    public function testDropDatabaseThrowsException()
+    public function testDropDatabaseThrowsException() : void
     {
         self::assertEquals('DROP USER foobar CASCADE', $this->platform->getDropDatabaseSQL('foobar'));
     }
 
-    public function testDropTable()
+    public function testDropTable() : void
     {
         self::assertEquals('DROP TABLE foobar', $this->platform->getDropTableSQL('foobar'));
     }
 
-    public function testGeneratesTypeDeclarationForIntegers()
+    public function testGeneratesTypeDeclarationForIntegers() : void
     {
         self::assertEquals(
             'NUMBER(10)',
@@ -167,7 +180,7 @@ class OraclePlatformTest extends AbstractPlatformTestCase
         );
     }
 
-    public function testGeneratesTypeDeclarationsForStrings()
+    public function testGeneratesTypeDeclarationsForStrings() : void
     {
         self::assertEquals(
             'CHAR(10)',
@@ -187,17 +200,17 @@ class OraclePlatformTest extends AbstractPlatformTestCase
         );
     }
 
-    public function testPrefersIdentityColumns()
+    public function testPrefersIdentityColumns() : void
     {
         self::assertFalse($this->platform->prefersIdentityColumns());
     }
 
-    public function testSupportsIdentityColumns()
+    public function testSupportsIdentityColumns() : void
     {
         self::assertFalse($this->platform->supportsIdentityColumns());
     }
 
-    public function testSupportsSavePoints()
+    public function testSupportsSavePoints() : void
     {
         self::assertTrue($this->platform->supportsSavepoints());
     }
@@ -205,22 +218,22 @@ class OraclePlatformTest extends AbstractPlatformTestCase
     /**
      * {@inheritdoc}
      */
-    protected function supportsCommentOnStatement()
+    protected function supportsCommentOnStatement() : bool
     {
         return true;
     }
 
-    public function getGenerateIndexSql()
+    public function getGenerateIndexSql() : string
     {
         return 'CREATE INDEX my_idx ON mytable (user_name, last_login)';
     }
 
-    public function getGenerateUniqueIndexSql()
+    public function getGenerateUniqueIndexSql() : string
     {
         return 'CREATE UNIQUE INDEX index_name ON test (test, test2)';
     }
 
-    public function getGenerateForeignKeySql()
+    public function getGenerateForeignKeySql() : string
     {
         return 'ALTER TABLE test ADD FOREIGN KEY (fk_name_id) REFERENCES other_table (id)';
     }
@@ -231,7 +244,7 @@ class OraclePlatformTest extends AbstractPlatformTestCase
      * @group DBAL-1097
      * @dataProvider getGeneratesAdvancedForeignKeyOptionsSQLData
      */
-    public function testGeneratesAdvancedForeignKeyOptionsSQL(array $options, $expectedSql)
+    public function testGeneratesAdvancedForeignKeyOptionsSQL(array $options, string $expectedSql) : void
     {
         $foreignKey = new ForeignKeyConstraint(['foo'], 'foreign_table', ['bar'], null, $options);
 
@@ -239,9 +252,9 @@ class OraclePlatformTest extends AbstractPlatformTestCase
     }
 
     /**
-     * @return mixed[]
+     * @return mixed[][]
      */
-    public function getGeneratesAdvancedForeignKeyOptionsSQLData()
+    public static function getGeneratesAdvancedForeignKeyOptionsSQLData() : iterable
     {
         return [
             [[], ''],
@@ -256,7 +269,7 @@ class OraclePlatformTest extends AbstractPlatformTestCase
     /**
      * {@inheritdoc}
      */
-    public function getReturnsForeignKeyReferentialActionSQL()
+    public static function getReturnsForeignKeyReferentialActionSQL() : iterable
     {
         return [
             ['CASCADE', 'CASCADE'],
@@ -267,43 +280,43 @@ class OraclePlatformTest extends AbstractPlatformTestCase
         ];
     }
 
-    public function testModifyLimitQuery()
+    public function testModifyLimitQuery() : void
     {
         $sql = $this->platform->modifyLimitQuery('SELECT * FROM user', 10, 0);
         self::assertEquals('SELECT a.* FROM (SELECT * FROM user) a WHERE ROWNUM <= 10', $sql);
     }
 
-    public function testModifyLimitQueryWithEmptyOffset()
+    public function testModifyLimitQueryWithEmptyOffset() : void
     {
         $sql = $this->platform->modifyLimitQuery('SELECT * FROM user', 10);
         self::assertEquals('SELECT a.* FROM (SELECT * FROM user) a WHERE ROWNUM <= 10', $sql);
     }
 
-    public function testModifyLimitQueryWithNonEmptyOffset()
+    public function testModifyLimitQueryWithNonEmptyOffset() : void
     {
         $sql = $this->platform->modifyLimitQuery('SELECT * FROM user', 10, 10);
         self::assertEquals('SELECT * FROM (SELECT a.*, ROWNUM AS doctrine_rownum FROM (SELECT * FROM user) a WHERE ROWNUM <= 20) WHERE doctrine_rownum >= 11', $sql);
     }
 
-    public function testModifyLimitQueryWithEmptyLimit()
+    public function testModifyLimitQueryWithEmptyLimit() : void
     {
         $sql = $this->platform->modifyLimitQuery('SELECT * FROM user', null, 10);
         self::assertEquals('SELECT * FROM (SELECT a.*, ROWNUM AS doctrine_rownum FROM (SELECT * FROM user) a) WHERE doctrine_rownum >= 11', $sql);
     }
 
-    public function testModifyLimitQueryWithAscOrderBy()
+    public function testModifyLimitQueryWithAscOrderBy() : void
     {
         $sql = $this->platform->modifyLimitQuery('SELECT * FROM user ORDER BY username ASC', 10);
         self::assertEquals('SELECT a.* FROM (SELECT * FROM user ORDER BY username ASC) a WHERE ROWNUM <= 10', $sql);
     }
 
-    public function testModifyLimitQueryWithDescOrderBy()
+    public function testModifyLimitQueryWithDescOrderBy() : void
     {
         $sql = $this->platform->modifyLimitQuery('SELECT * FROM user ORDER BY username DESC', 10);
         self::assertEquals('SELECT a.* FROM (SELECT * FROM user ORDER BY username DESC) a WHERE ROWNUM <= 10', $sql);
     }
 
-    public function testGenerateTableWithAutoincrement()
+    public function testGenerateTableWithAutoincrement() : void
     {
         $columnName = strtoupper('id' . uniqid());
         $tableName  = strtoupper('table' . uniqid());
@@ -337,7 +350,7 @@ class OraclePlatformTest extends AbstractPlatformTestCase
         ];
         $statements = $this->platform->getCreateTableSQL($table);
         //strip all the whitespace from the statements
-        array_walk($statements, static function (&$value) {
+        array_walk($statements, static function (&$value) : void {
             $value = preg_replace('/\s+/', ' ', $value);
         });
         foreach ($targets as $key => $sql) {
@@ -346,7 +359,10 @@ class OraclePlatformTest extends AbstractPlatformTestCase
         }
     }
 
-    public function getCreateTableColumnCommentsSQL()
+    /**
+     * {@inheritDoc}
+     */
+    public function getCreateTableColumnCommentsSQL() : array
     {
         return [
             'CREATE TABLE test (id NUMBER(10) NOT NULL, PRIMARY KEY(id))',
@@ -354,7 +370,10 @@ class OraclePlatformTest extends AbstractPlatformTestCase
         ];
     }
 
-    public function getCreateTableColumnTypeCommentsSQL()
+    /**
+     * {@inheritDoc}
+     */
+    public function getCreateTableColumnTypeCommentsSQL() : array
     {
         return [
             'CREATE TABLE test (id NUMBER(10) NOT NULL, data CLOB NOT NULL, PRIMARY KEY(id))',
@@ -362,7 +381,10 @@ class OraclePlatformTest extends AbstractPlatformTestCase
         ];
     }
 
-    public function getAlterTableColumnCommentsSQL()
+    /**
+     * {@inheritDoc}
+     */
+    public function getAlterTableColumnCommentsSQL() : array
     {
         return [
             'ALTER TABLE mytable ADD (quota NUMBER(10) NOT NULL)',
@@ -372,24 +394,30 @@ class OraclePlatformTest extends AbstractPlatformTestCase
         ];
     }
 
-    public function getBitAndComparisonExpressionSql($value1, $value2)
+    public function getBitAndComparisonExpressionSql(string $value1, string $value2) : string
     {
         return 'BITAND(' . $value1 . ', ' . $value2 . ')';
     }
 
-    public function getBitOrComparisonExpressionSql($value1, $value2)
+    public function getBitOrComparisonExpressionSql(string $value1, string $value2) : string
     {
         return '(' . $value1 . '-' .
         $this->getBitAndComparisonExpressionSql($value1, $value2)
         . '+' . $value2 . ')';
     }
 
-    protected function getQuotedColumnInPrimaryKeySQL()
+    /**
+     * @return mixed[]
+     */
+    protected function getQuotedColumnInPrimaryKeySQL() : array
     {
         return ['CREATE TABLE "quoted" ("create" VARCHAR2(255) NOT NULL, PRIMARY KEY("create"))'];
     }
 
-    protected function getQuotedColumnInIndexSQL()
+    /**
+     * @return mixed[]
+     */
+    protected function getQuotedColumnInIndexSQL() : array
     {
         return [
             'CREATE TABLE "quoted" ("create" VARCHAR2(255) NOT NULL)',
@@ -397,7 +425,10 @@ class OraclePlatformTest extends AbstractPlatformTestCase
         ];
     }
 
-    protected function getQuotedNameInIndexSQL()
+    /**
+     * @return mixed[]
+     */
+    protected function getQuotedNameInIndexSQL() : array
     {
         return [
             'CREATE TABLE test (column1 VARCHAR2(255) NOT NULL)',
@@ -405,7 +436,10 @@ class OraclePlatformTest extends AbstractPlatformTestCase
         ];
     }
 
-    protected function getQuotedColumnInForeignKeySQL()
+    /**
+     * @return mixed[]
+     */
+    protected function getQuotedColumnInForeignKeySQL() : array
     {
         return [
             'CREATE TABLE "quoted" ("create" VARCHAR2(255) NOT NULL, foo VARCHAR2(255) NOT NULL, "bar" VARCHAR2(255) NOT NULL)',
@@ -419,7 +453,7 @@ class OraclePlatformTest extends AbstractPlatformTestCase
      * @group DBAL-472
      * @group DBAL-1001
      */
-    public function testAlterTableNotNULL()
+    public function testAlterTableNotNULL() : void
     {
         $tableDiff                          = new TableDiff('mytable');
         $tableDiff->changedColumns['foo']   = new ColumnDiff(
@@ -457,7 +491,7 @@ class OraclePlatformTest extends AbstractPlatformTestCase
     /**
      * @group DBAL-2555
      */
-    public function testInitializesDoctrineTypeMappings()
+    public function testInitializesDoctrineTypeMappings() : void
     {
         self::assertTrue($this->platform->hasDoctrineTypeMappingFor('long raw'));
         self::assertSame('blob', $this->platform->getDoctrineTypeMapping('long raw'));
@@ -469,12 +503,12 @@ class OraclePlatformTest extends AbstractPlatformTestCase
         self::assertSame('date', $this->platform->getDoctrineTypeMapping('date'));
     }
 
-    protected function getBinaryMaxLength()
+    protected function getBinaryMaxLength() : int
     {
         return 2000;
     }
 
-    public function testReturnsBinaryTypeDeclarationSQL()
+    public function testReturnsBinaryTypeDeclarationSQL() : void
     {
         self::assertSame('RAW(255)', $this->platform->getBinaryTypeDeclarationSQL([]));
         self::assertSame('RAW(2000)', $this->platform->getBinaryTypeDeclarationSQL(['length' => 0]));
@@ -491,7 +525,7 @@ class OraclePlatformTest extends AbstractPlatformTestCase
         ]));
     }
 
-    public function testDoesNotPropagateUnnecessaryTableAlterationOnBinaryType()
+    public function testDoesNotPropagateUnnecessaryTableAlterationOnBinaryType() : void
     {
         $table1 = new Table('mytable');
         $table1->addColumn('column_varbinary', 'binary');
@@ -511,7 +545,7 @@ class OraclePlatformTest extends AbstractPlatformTestCase
     /**
      * @group DBAL-563
      */
-    public function testUsesSequenceEmulatedIdentityColumns()
+    public function testUsesSequenceEmulatedIdentityColumns() : void
     {
         self::assertTrue($this->platform->usesSequenceEmulatedIdentityColumns());
     }
@@ -520,7 +554,7 @@ class OraclePlatformTest extends AbstractPlatformTestCase
      * @group DBAL-563
      * @group DBAL-831
      */
-    public function testReturnsIdentitySequenceName()
+    public function testReturnsIdentitySequenceName() : void
     {
         self::assertSame('MYTABLE_SEQ', $this->platform->getIdentitySequenceName('mytable', 'mycolumn'));
         self::assertSame('"mytable_SEQ"', $this->platform->getIdentitySequenceName('"mytable"', 'mycolumn'));
@@ -532,13 +566,16 @@ class OraclePlatformTest extends AbstractPlatformTestCase
      * @dataProvider dataCreateSequenceWithCache
      * @group DBAL-139
      */
-    public function testCreateSequenceWithCache($cacheSize, $expectedSql)
+    public function testCreateSequenceWithCache(int $cacheSize, string $expectedSql) : void
     {
         $sequence = new Sequence('foo', 1, 1, $cacheSize);
         self::assertStringContainsString($expectedSql, $this->platform->getCreateSequenceSQL($sequence));
     }
 
-    public function dataCreateSequenceWithCache()
+    /**
+     * @return mixed[][]
+     */
+    public static function dataCreateSequenceWithCache() : iterable
     {
         return [
             [1, 'NOCACHE'],
@@ -548,17 +585,21 @@ class OraclePlatformTest extends AbstractPlatformTestCase
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @group DBAL-234
      */
-    protected function getAlterTableRenameIndexSQL()
+    protected function getAlterTableRenameIndexSQL() : array
     {
         return ['ALTER INDEX idx_foo RENAME TO idx_bar'];
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @group DBAL-234
      */
-    protected function getQuotedAlterTableRenameIndexSQL()
+    protected function getQuotedAlterTableRenameIndexSQL() : array
     {
         return [
             'ALTER INDEX "create" RENAME TO "select"',
@@ -569,7 +610,7 @@ class OraclePlatformTest extends AbstractPlatformTestCase
     /**
      * {@inheritdoc}
      */
-    protected function getQuotedAlterTableRenameColumnSQL()
+    protected function getQuotedAlterTableRenameColumnSQL() : array
     {
         return [
             'ALTER TABLE mytable RENAME COLUMN unquoted1 TO unquoted',
@@ -587,23 +628,27 @@ class OraclePlatformTest extends AbstractPlatformTestCase
     /**
      * {@inheritdoc}
      */
-    protected function getQuotedAlterTableChangeColumnLengthSQL()
+    protected function getQuotedAlterTableChangeColumnLengthSQL() : array
     {
         $this->markTestIncomplete('Not implemented yet');
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @group DBAL-807
      */
-    protected function getAlterTableRenameIndexInSchemaSQL()
+    protected function getAlterTableRenameIndexInSchemaSQL() : array
     {
         return ['ALTER INDEX myschema.idx_foo RENAME TO idx_bar'];
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @group DBAL-807
      */
-    protected function getQuotedAlterTableRenameIndexInSchemaSQL()
+    protected function getQuotedAlterTableRenameIndexInSchemaSQL() : array
     {
         return [
             'ALTER INDEX "schema"."create" RENAME TO "select"',
@@ -611,7 +656,7 @@ class OraclePlatformTest extends AbstractPlatformTestCase
         ];
     }
 
-    protected function getQuotesDropForeignKeySQL()
+    protected function getQuotesDropForeignKeySQL() : string
     {
         return 'ALTER TABLE "table" DROP CONSTRAINT "select"';
     }
@@ -619,7 +664,7 @@ class OraclePlatformTest extends AbstractPlatformTestCase
     /**
      * @group DBAL-423
      */
-    public function testReturnsGuidTypeDeclarationSQL()
+    public function testReturnsGuidTypeDeclarationSQL() : void
     {
         self::assertSame('CHAR(36)', $this->platform->getGuidTypeDeclarationSQL([]));
     }
@@ -627,21 +672,26 @@ class OraclePlatformTest extends AbstractPlatformTestCase
     /**
      * {@inheritdoc}
      */
-    public function getAlterTableRenameColumnSQL()
+    public function getAlterTableRenameColumnSQL() : array
     {
         return ['ALTER TABLE foo RENAME COLUMN bar TO baz'];
     }
 
     /**
+     * @param string[] $expectedSql
+     *
      * @dataProvider getReturnsDropAutoincrementSQL
      * @group DBAL-831
      */
-    public function testReturnsDropAutoincrementSQL($table, $expectedSql)
+    public function testReturnsDropAutoincrementSQL(string $table, array $expectedSql) : void
     {
         self::assertSame($expectedSql, $this->platform->getDropAutoincrementSql($table));
     }
 
-    public function getReturnsDropAutoincrementSQL()
+    /**
+     * @return mixed[][]
+     */
+    public static function getReturnsDropAutoincrementSQL() : iterable
     {
         return [
             [
@@ -674,7 +724,7 @@ class OraclePlatformTest extends AbstractPlatformTestCase
     /**
      * {@inheritdoc}
      */
-    protected function getQuotesTableIdentifiersInAlterTableSQL()
+    protected function getQuotesTableIdentifiersInAlterTableSQL() : array
     {
         return [
             'ALTER TABLE "foo" DROP CONSTRAINT fk1',
@@ -692,7 +742,7 @@ class OraclePlatformTest extends AbstractPlatformTestCase
     /**
      * {@inheritdoc}
      */
-    protected function getCommentOnColumnSQL()
+    protected function getCommentOnColumnSQL() : array
     {
         return [
             'COMMENT ON COLUMN foo.bar IS \'comment\'',
@@ -704,7 +754,7 @@ class OraclePlatformTest extends AbstractPlatformTestCase
     /**
      * @group DBAL-1004
      */
-    public function testAltersTableColumnCommentWithExplicitlyQuotedIdentifiers()
+    public function testAltersTableColumnCommentWithExplicitlyQuotedIdentifiers() : void
     {
         $table1 = new Table('"foo"', [new Column('"bar"', Type::getType('integer'))]);
         $table2 = new Table('"foo"', [new Column('"bar"', Type::getType('integer'), ['comment' => 'baz'])]);
@@ -720,7 +770,7 @@ class OraclePlatformTest extends AbstractPlatformTestCase
         );
     }
 
-    public function testQuotedTableNames()
+    public function testQuotedTableNames() : void
     {
         $table = new Table('"test"');
         $table->addColumn('"id"', 'integer', ['autoincrement' => true]);
@@ -764,7 +814,7 @@ EOD;
      * @dataProvider getReturnsGetListTableColumnsSQL
      * @group DBAL-831
      */
-    public function testReturnsGetListTableColumnsSQL($database, $expectedSql)
+    public function testReturnsGetListTableColumnsSQL(?string $database, string $expectedSql) : void
     {
         // note: this assertion is a bit strict, as it compares a full SQL string.
         // Should this break in future, then please try to reduce the matching to substring matching while reworking
@@ -772,7 +822,10 @@ EOD;
         self::assertEquals($expectedSql, $this->platform->getListTableColumnsSQL('"test"', $database));
     }
 
-    public function getReturnsGetListTableColumnsSQL()
+    /**
+     * @return mixed[][]
+     */
+    public static function getReturnsGetListTableColumnsSQL() : iterable
     {
         return [
             [
@@ -829,7 +882,7 @@ SQL
     /**
      * {@inheritdoc}
      */
-    protected function getQuotesReservedKeywordInUniqueConstraintDeclarationSQL()
+    protected function getQuotesReservedKeywordInUniqueConstraintDeclarationSQL() : string
     {
         return 'CONSTRAINT "select" UNIQUE (foo)';
     }
@@ -837,7 +890,7 @@ SQL
     /**
      * {@inheritdoc}
      */
-    protected function getQuotesReservedKeywordInIndexDeclarationSQL()
+    protected function getQuotesReservedKeywordInIndexDeclarationSQL() : string
     {
         return 'INDEX "select" (foo)';
     }
@@ -845,7 +898,7 @@ SQL
     /**
      * {@inheritdoc}
      */
-    protected function getQuotesReservedKeywordInTruncateTableSQL()
+    protected function getQuotesReservedKeywordInTruncateTableSQL() : string
     {
         return 'TRUNCATE TABLE "select"';
     }
@@ -853,7 +906,7 @@ SQL
     /**
      * {@inheritdoc}
      */
-    protected function getAlterStringToFixedStringSQL()
+    protected function getAlterStringToFixedStringSQL() : array
     {
         return ['ALTER TABLE mytable MODIFY (name CHAR(2) DEFAULT NULL)'];
     }
@@ -861,7 +914,7 @@ SQL
     /**
      * {@inheritdoc}
      */
-    protected function getGeneratesAlterTableRenameIndexUsedByForeignKeySQL()
+    protected function getGeneratesAlterTableRenameIndexUsedByForeignKeySQL() : array
     {
         return ['ALTER INDEX idx_foo RENAME TO idx_foo_renamed'];
     }
@@ -869,7 +922,7 @@ SQL
     /**
      * @group DBAL-2436
      */
-    public function testQuotesDatabaseNameInListSequencesSQL()
+    public function testQuotesDatabaseNameInListSequencesSQL() : void
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\'",
@@ -880,7 +933,7 @@ SQL
     /**
      * @group DBAL-2436
      */
-    public function testQuotesTableNameInListTableIndexesSQL()
+    public function testQuotesTableNameInListTableIndexesSQL() : void
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\'",
@@ -891,7 +944,7 @@ SQL
     /**
      * @group DBAL-2436
      */
-    public function testQuotesTableNameInListTableForeignKeysSQL()
+    public function testQuotesTableNameInListTableForeignKeysSQL() : void
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\'",
@@ -902,7 +955,7 @@ SQL
     /**
      * @group DBAL-2436
      */
-    public function testQuotesTableNameInListTableConstraintsSQL()
+    public function testQuotesTableNameInListTableConstraintsSQL() : void
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\'",
@@ -913,7 +966,7 @@ SQL
     /**
      * @group DBAL-2436
      */
-    public function testQuotesTableNameInListTableColumnsSQL()
+    public function testQuotesTableNameInListTableColumnsSQL() : void
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\'",
@@ -924,7 +977,7 @@ SQL
     /**
      * @group DBAL-2436
      */
-    public function testQuotesDatabaseNameInListTableColumnsSQL()
+    public function testQuotesDatabaseNameInListTableColumnsSQL() : void
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\'",

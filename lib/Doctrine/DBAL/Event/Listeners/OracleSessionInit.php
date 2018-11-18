@@ -42,10 +42,7 @@ class OracleSessionInit implements EventSubscriber
         $this->_defaultSessionVars = array_merge($this->_defaultSessionVars, $oracleSessionVars);
     }
 
-    /**
-     * @return void
-     */
-    public function postConnect(ConnectionEventArgs $args)
+    public function postConnect(ConnectionEventArgs $args) : void
     {
         if (! count($this->_defaultSessionVars)) {
             return;

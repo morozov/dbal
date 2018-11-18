@@ -17,10 +17,7 @@ class TableGeneratorSchemaVisitor implements Visitor
     /** @var string */
     private $generatorTableName;
 
-    /**
-     * @param string $generatorTableName
-     */
-    public function __construct($generatorTableName = 'sequences')
+    public function __construct(string $generatorTableName = 'sequences')
     {
         $this->generatorTableName = $generatorTableName;
     }
@@ -28,7 +25,7 @@ class TableGeneratorSchemaVisitor implements Visitor
     /**
      * {@inheritdoc}
      */
-    public function acceptSchema(Schema $schema)
+    public function acceptSchema(Schema $schema) : void
     {
         $table = $schema->createTable($this->generatorTableName);
         $table->addColumn('sequence_name', 'string');
@@ -39,35 +36,35 @@ class TableGeneratorSchemaVisitor implements Visitor
     /**
      * {@inheritdoc}
      */
-    public function acceptTable(Table $table)
+    public function acceptTable(Table $table) : void
     {
     }
 
     /**
      * {@inheritdoc}
      */
-    public function acceptColumn(Table $table, Column $column)
+    public function acceptColumn(Table $table, Column $column) : void
     {
     }
 
     /**
      * {@inheritdoc}
      */
-    public function acceptForeignKey(Table $localTable, ForeignKeyConstraint $fkConstraint)
+    public function acceptForeignKey(Table $localTable, ForeignKeyConstraint $fkConstraint) : void
     {
     }
 
     /**
      * {@inheritdoc}
      */
-    public function acceptIndex(Table $table, Index $index)
+    public function acceptIndex(Table $table, Index $index) : void
     {
     }
 
     /**
      * {@inheritdoc}
      */
-    public function acceptSequence(Sequence $sequence)
+    public function acceptSequence(Sequence $sequence) : void
     {
     }
 }

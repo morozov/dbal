@@ -62,11 +62,9 @@ class TableGenerator
     private $sequences = [];
 
     /**
-     * @param string $generatorTableName
-     *
      * @throws DBALException
      */
-    public function __construct(Connection $conn, $generatorTableName = 'sequences')
+    public function __construct(Connection $conn, string $generatorTableName = 'sequences')
     {
         $params = $conn->getParams();
         if ($params['driver'] === 'pdo_sqlite') {
@@ -79,13 +77,9 @@ class TableGenerator
     /**
      * Generates the next unused value for the given sequence name.
      *
-     * @param string $sequenceName
-     *
-     * @return int
-     *
      * @throws DBALException
      */
-    public function nextValue($sequenceName)
+    public function nextValue(string $sequenceName) : int
     {
         if (isset($this->sequences[$sequenceName])) {
             $value = $this->sequences[$sequenceName]['value'];

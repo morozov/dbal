@@ -34,8 +34,10 @@ class CreateSchemaSqlCollector extends AbstractVisitor
 
     /**
      * {@inheritdoc}
+     *
+     * @return void
      */
-    public function acceptNamespace($namespaceName)
+    public function acceptNamespace(string $namespaceName) : void
     {
         if (! $this->platform->supportsSchemas()) {
             return;
@@ -47,7 +49,7 @@ class CreateSchemaSqlCollector extends AbstractVisitor
     /**
      * {@inheritdoc}
      */
-    public function acceptTable(Table $table)
+    public function acceptTable(Table $table) : void
     {
         $this->createTableQueries = array_merge($this->createTableQueries, $this->platform->getCreateTableSQL($table));
     }
@@ -55,7 +57,7 @@ class CreateSchemaSqlCollector extends AbstractVisitor
     /**
      * {@inheritdoc}
      */
-    public function acceptForeignKey(Table $localTable, ForeignKeyConstraint $fkConstraint)
+    public function acceptForeignKey(Table $localTable, ForeignKeyConstraint $fkConstraint) : void
     {
         if (! $this->platform->supportsForeignKeyConstraints()) {
             return;
@@ -67,15 +69,12 @@ class CreateSchemaSqlCollector extends AbstractVisitor
     /**
      * {@inheritdoc}
      */
-    public function acceptSequence(Sequence $sequence)
+    public function acceptSequence(Sequence $sequence) : void
     {
         $this->createSequenceQueries[] = $this->platform->getCreateSequenceSQL($sequence);
     }
 
-    /**
-     * @return void
-     */
-    public function resetQueries()
+    public function resetQueries() : void
     {
         $this->createNamespaceQueries    = [];
         $this->createTableQueries        = [];
@@ -88,7 +87,7 @@ class CreateSchemaSqlCollector extends AbstractVisitor
      *
      * @return string[]
      */
-    public function getQueries()
+    public function getQueries() : array
     {
         return array_merge(
             $this->createNamespaceQueries,

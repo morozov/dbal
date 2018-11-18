@@ -10,12 +10,9 @@ use function implode;
 class QueryException extends DBALException
 {
     /**
-     * @param string   $alias
      * @param string[] $registeredAliases
-     *
-     * @return \Doctrine\DBAL\Query\QueryException
      */
-    public static function unknownAlias($alias, $registeredAliases)
+    public static function unknownAlias(string $alias, array $registeredAliases) : self
     {
         return new self("The given alias '" . $alias . "' is not part of " .
             'any FROM or JOIN clause table. The currently registered ' .
@@ -23,12 +20,9 @@ class QueryException extends DBALException
     }
 
     /**
-     * @param string   $alias
      * @param string[] $registeredAliases
-     *
-     * @return \Doctrine\DBAL\Query\QueryException
      */
-    public static function nonUniqueAlias($alias, $registeredAliases)
+    public static function nonUniqueAlias(string $alias, array $registeredAliases) : self
     {
         return new self("The given alias '" . $alias . "' is not unique " .
             'in FROM and JOIN clause table. The currently registered ' .

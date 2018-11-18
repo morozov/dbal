@@ -21,48 +21,30 @@ class SchemaConfig
     /** @var mixed[] */
     protected $defaultTableOptions = [];
 
-    /**
-     * @return bool
-     */
-    public function hasExplicitForeignKeyIndexes()
+    public function hasExplicitForeignKeyIndexes() : bool
     {
         return $this->hasExplicitForeignKeyIndexes;
     }
 
-    /**
-     * @param bool $flag
-     *
-     * @return void
-     */
-    public function setExplicitForeignKeyIndexes($flag)
+    public function setExplicitForeignKeyIndexes(bool $flag) : void
     {
-        $this->hasExplicitForeignKeyIndexes = (bool) $flag;
+        $this->hasExplicitForeignKeyIndexes = $flag;
     }
 
-    /**
-     * @param int $length
-     *
-     * @return void
-     */
-    public function setMaxIdentifierLength($length)
+    public function setMaxIdentifierLength(int $length) : void
     {
-        $this->maxIdentifierLength = (int) $length;
+        $this->maxIdentifierLength = $length;
     }
 
-    /**
-     * @return int
-     */
-    public function getMaxIdentifierLength()
+    public function getMaxIdentifierLength() : int
     {
         return $this->maxIdentifierLength;
     }
 
     /**
      * Gets the default namespace of schema objects.
-     *
-     * @return string
      */
-    public function getName()
+    public function getName() : ?string
     {
         return $this->name;
     }
@@ -71,10 +53,8 @@ class SchemaConfig
      * Sets the default namespace name of schema objects.
      *
      * @param string $name The value to set.
-     *
-     * @return void
      */
-    public function setName($name)
+    public function setName(string $name) : void
     {
         $this->name = $name;
     }
@@ -85,17 +65,15 @@ class SchemaConfig
      *
      * @return mixed[]
      */
-    public function getDefaultTableOptions()
+    public function getDefaultTableOptions() : array
     {
         return $this->defaultTableOptions;
     }
 
     /**
      * @param mixed[] $defaultTableOptions
-     *
-     * @return void
      */
-    public function setDefaultTableOptions(array $defaultTableOptions)
+    public function setDefaultTableOptions(array $defaultTableOptions) : void
     {
         $this->defaultTableOptions = $defaultTableOptions;
     }

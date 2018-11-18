@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 
 class ColumnTest extends TestCase
 {
-    public function testGet()
+    public function testGet() : void
     {
         $column = $this->createColumn();
 
@@ -39,7 +39,7 @@ class ColumnTest extends TestCase
         self::assertFalse($column->hasCustomSchemaOption('foo'));
     }
 
-    public function testToArray()
+    public function testToArray() : void
     {
         $expected = [
             'name' => 'foo',
@@ -83,10 +83,7 @@ class ColumnTest extends TestCase
         self::assertFalse($col2->getNotnull());
     }
 
-    /**
-     * @return Column
-     */
-    public function createColumn()
+    public function createColumn() : Column
     {
         $options = [
             'length' => 200,
@@ -109,7 +106,7 @@ class ColumnTest extends TestCase
      * @group DBAL-64
      * @group DBAL-830
      */
-    public function testQuotedColumnName()
+    public function testQuotedColumnName() : void
     {
         $string = Type::getType('string');
         $column = new Column('`bar`', $string, []);
@@ -133,7 +130,7 @@ class ColumnTest extends TestCase
      * @dataProvider getIsQuoted
      * @group DBAL-830
      */
-    public function testIsQuoted($columnName, $isQuoted)
+    public function testIsQuoted(string $columnName, bool $isQuoted) : void
     {
         $type   = Type::getType('string');
         $column = new Column($columnName, $type);
@@ -141,7 +138,10 @@ class ColumnTest extends TestCase
         self::assertSame($isQuoted, $column->isQuoted());
     }
 
-    public function getIsQuoted()
+    /**
+     * @return mixed[][]
+     */
+    public static function getIsQuoted() : iterable
     {
         return [
             ['bar', false],
@@ -154,7 +154,7 @@ class ColumnTest extends TestCase
     /**
      * @group DBAL-42
      */
-    public function testColumnComment()
+    public function testColumnComment() : void
     {
         $column = new Column('bar', Type::getType('string'));
         self::assertNull($column->getComment());

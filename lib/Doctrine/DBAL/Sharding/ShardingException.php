@@ -11,50 +11,27 @@ use Doctrine\DBAL\DBALException;
  */
 class ShardingException extends DBALException
 {
-    /**
-     * @return \Doctrine\DBAL\Sharding\ShardingException
-     */
-    public static function notImplemented()
+    public static function notImplemented() : self
     {
         return new self('This functionality is not implemented with this sharding provider.', 1331557937);
     }
 
-    /**
-     * @return \Doctrine\DBAL\Sharding\ShardingException
-     */
-    public static function missingDefaultFederationName()
+    public static function missingDefaultFederationName() : self
     {
         return new self('SQLAzure requires a federation name to be set during sharding configuration.', 1332141280);
     }
 
-    /**
-     * @return \Doctrine\DBAL\Sharding\ShardingException
-     */
-    public static function missingDefaultDistributionKey()
+    public static function missingDefaultDistributionKey() : self
     {
         return new self('SQLAzure requires a distribution key to be set during sharding configuration.', 1332141329);
     }
 
-    /**
-     * @return \Doctrine\DBAL\Sharding\ShardingException
-     */
-    public static function activeTransaction()
+    public static function activeTransaction() : self
     {
         return new self('Cannot switch shard during an active transaction.', 1332141766);
     }
 
-    /**
-     * @return \Doctrine\DBAL\Sharding\ShardingException
-     */
-    public static function noShardDistributionValue()
-    {
-        return new self('You have to specify a string or integer as shard distribution value.', 1332142103);
-    }
-
-    /**
-     * @return \Doctrine\DBAL\Sharding\ShardingException
-     */
-    public static function missingDistributionType()
+    public static function missingDistributionType() : self
     {
         return new self("You have to specify a sharding distribution type such as 'integer', 'string', 'guid'.");
     }

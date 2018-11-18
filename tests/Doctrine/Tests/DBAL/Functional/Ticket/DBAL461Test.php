@@ -16,7 +16,7 @@ use ReflectionMethod;
  */
 class DBAL461Test extends TestCase
 {
-    public function testIssue()
+    public function testIssue() : void
     {
         $conn     = $this->createMock(Connection::class);
         $platform = $this->getMockForAbstractClass(AbstractPlatform::class);
@@ -35,7 +35,7 @@ class DBAL461Test extends TestCase
             'precision' => 0,
             'autoincrement' => false,
             'collation' => 'foo',
-            'comment' => null,
+            'comment' => '',
         ]);
 
         $this->assertInstanceOf(DecimalType::class, $column->getType());

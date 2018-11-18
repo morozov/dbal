@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Doctrine\Tests\DBAL\Platforms;
 
 use Doctrine\DBAL\Platforms\AbstractPlatform;
-use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Schema\Comparator;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Index;
@@ -19,13 +18,13 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     /** @var MySqlPlatform */
     protected $platform;
 
-    public function testModifyLimitQueryWitoutLimit()
+    public function testModifyLimitQueryWitoutLimit() : void
     {
         $sql = $this->platform->modifyLimitQuery('SELECT n FROM Foo', null, 10);
         self::assertEquals('SELECT n FROM Foo LIMIT 18446744073709551615 OFFSET 10', $sql);
     }
 
-    public function testGenerateMixedCaseTableCreate()
+    public function testGenerateMixedCaseTableCreate() : void
     {
         $table = new Table('Foo');
         $table->addColumn('Bar', 'integer');
@@ -34,29 +33,35 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
         self::assertEquals('CREATE TABLE Foo (Bar INT NOT NULL) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = InnoDB', array_shift($sql));
     }
 
-    public function getGenerateTableSql()
+    public function getGenerateTableSql() : string
     {
         return 'CREATE TABLE test (id INT AUTO_INCREMENT NOT NULL, test VARCHAR(255) DEFAULT NULL, PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = InnoDB';
     }
 
-    public function getGenerateTableWithMultiColumnUniqueIndexSql()
+    /**
+     * @return string[]
+     */
+    public function getGenerateTableWithMultiColumnUniqueIndexSql() : array
     {
         return ['CREATE TABLE test (foo VARCHAR(255) DEFAULT NULL, bar VARCHAR(255) DEFAULT NULL, UNIQUE INDEX UNIQ_D87F7E0C8C73652176FF8CAA (foo, bar)) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = InnoDB'];
     }
 
-    public function getGenerateAlterTableSql()
+    /**
+     * {@inheritDoc}
+     */
+    public function getGenerateAlterTableSql() : array
     {
         return ["ALTER TABLE mytable RENAME TO userlist, ADD quota INT DEFAULT NULL, DROP foo, CHANGE bar baz VARCHAR(255) DEFAULT 'def' NOT NULL, CHANGE bloo bloo TINYINT(1) DEFAULT '0' NOT NULL"];
     }
 
-    public function testGeneratesSqlSnippets()
+    public function testGeneratesSqlSnippets() : void
     {
         self::assertEquals('RLIKE', $this->platform->getRegexpExpression(), 'Regular expression operator is not correct');
         self::assertEquals('`', $this->platform->getIdentifierQuoteCharacter(), 'Quote character is not correct');
         self::assertEquals('CONCAT(column1, column2, column3)', $this->platform->getConcatExpression('column1', 'column2', 'column3'), 'Concatenation function is not correct');
     }
 
-    public function testGeneratesTransactionsCommands()
+    public function testGeneratesTransactionsCommands() : void
     {
         self::assertEquals(
             'SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED',
@@ -77,7 +82,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
         );
     }
 
-    public function testGeneratesDDLSnippets()
+    public function testGeneratesDDLSnippets() : void
     {
         self::assertEquals('SHOW DATABASES', $this->platform->getListDatabasesSQL());
         self::assertEquals('CREATE DATABASE foobar', $this->platform->getCreateDatabaseSQL('foobar'));
@@ -85,7 +90,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
         self::assertEquals('DROP TABLE foobar', $this->platform->getDropTableSQL('foobar'));
     }
 
-    public function testGeneratesTypeDeclarationForIntegers()
+    public function testGeneratesTypeDeclarationForIntegers() : void
     {
         self::assertEquals(
             'INT',
@@ -103,7 +108,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
         );
     }
 
-    public function testGeneratesTypeDeclarationForStrings()
+    public function testGeneratesTypeDeclarationForStrings() : void
     {
         self::assertEquals(
             'CHAR(10)',
@@ -123,32 +128,32 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
         );
     }
 
-    public function testPrefersIdentityColumns()
+    public function testPrefersIdentityColumns() : void
     {
         self::assertTrue($this->platform->prefersIdentityColumns());
     }
 
-    public function testSupportsIdentityColumns()
+    public function testSupportsIdentityColumns() : void
     {
         self::assertTrue($this->platform->supportsIdentityColumns());
     }
 
-    public function testDoesSupportSavePoints()
+    public function testDoesSupportSavePoints() : void
     {
         self::assertTrue($this->platform->supportsSavepoints());
     }
 
-    public function getGenerateIndexSql()
+    public function getGenerateIndexSql() : string
     {
         return 'CREATE INDEX my_idx ON mytable (user_name, last_login)';
     }
 
-    public function getGenerateUniqueIndexSql()
+    public function getGenerateUniqueIndexSql() : string
     {
         return 'CREATE UNIQUE INDEX index_name ON test (test, test2)';
     }
 
-    public function getGenerateForeignKeySql()
+    public function getGenerateForeignKeySql() : string
     {
         return 'ALTER TABLE test ADD FOREIGN KEY (fk_name_id) REFERENCES other_table (id)';
     }
@@ -156,7 +161,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     /**
      * @group DBAL-126
      */
-    public function testUniquePrimaryKey()
+    public function testUniquePrimaryKey() : void
     {
         $keyTable = new Table('foo');
         $keyTable->addColumn('bar', 'integer');
@@ -179,13 +184,13 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
         ], $sql);
     }
 
-    public function testModifyLimitQuery()
+    public function testModifyLimitQuery() : void
     {
         $sql = $this->platform->modifyLimitQuery('SELECT * FROM user', 10, 0);
         self::assertEquals('SELECT * FROM user LIMIT 10', $sql);
     }
 
-    public function testModifyLimitQueryWithEmptyOffset()
+    public function testModifyLimitQueryWithEmptyOffset() : void
     {
         $sql = $this->platform->modifyLimitQuery('SELECT * FROM user', 10);
         self::assertEquals('SELECT * FROM user LIMIT 10', $sql);
@@ -194,24 +199,33 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     /**
      * @group DDC-118
      */
-    public function testGetDateTimeTypeDeclarationSql()
+    public function testGetDateTimeTypeDeclarationSql() : void
     {
         self::assertEquals('DATETIME', $this->platform->getDateTimeTypeDeclarationSQL(['version' => false]));
         self::assertEquals('TIMESTAMP', $this->platform->getDateTimeTypeDeclarationSQL(['version' => true]));
         self::assertEquals('DATETIME', $this->platform->getDateTimeTypeDeclarationSQL([]));
     }
 
-    public function getCreateTableColumnCommentsSQL()
+    /**
+     * {@inheritDoc}
+     */
+    public function getCreateTableColumnCommentsSQL() : array
     {
         return ["CREATE TABLE test (id INT NOT NULL COMMENT 'This is a comment', PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = InnoDB"];
     }
 
-    public function getAlterTableColumnCommentsSQL()
+    /**
+     * {@inheritDoc}
+     */
+    public function getAlterTableColumnCommentsSQL() : array
     {
         return ["ALTER TABLE mytable ADD quota INT NOT NULL COMMENT 'A comment', CHANGE foo foo VARCHAR(255) NOT NULL, CHANGE bar baz VARCHAR(255) NOT NULL COMMENT 'B comment'"];
     }
 
-    public function getCreateTableColumnTypeCommentsSQL()
+    /**
+     * {@inheritDoc}
+     */
+    public function getCreateTableColumnTypeCommentsSQL() : array
     {
         return ["CREATE TABLE test (id INT NOT NULL, data LONGTEXT NOT NULL COMMENT '(DC2Type:array)', PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = InnoDB"];
     }
@@ -219,7 +233,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     /**
      * @group DBAL-237
      */
-    public function testChangeIndexWithForeignKeys()
+    public function testChangeIndexWithForeignKeys() : void
     {
         $index  = new Index('idx', ['col'], false);
         $unique = new Index('uniq', ['col'], true);
@@ -233,22 +247,34 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
         self::assertEquals(['ALTER TABLE test DROP INDEX uniq, ADD INDEX idx (col)'], $sql);
     }
 
-    protected function getQuotedColumnInPrimaryKeySQL()
+    /**
+     * @return string[]
+     */
+    protected function getQuotedColumnInPrimaryKeySQL() : array
     {
         return ['CREATE TABLE `quoted` (`create` VARCHAR(255) NOT NULL, PRIMARY KEY(`create`)) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = InnoDB'];
     }
 
-    protected function getQuotedColumnInIndexSQL()
+    /**
+     * @return string[]
+     */
+    protected function getQuotedColumnInIndexSQL() : array
     {
         return ['CREATE TABLE `quoted` (`create` VARCHAR(255) NOT NULL, INDEX IDX_22660D028FD6E0FB (`create`)) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = InnoDB'];
     }
 
-    protected function getQuotedNameInIndexSQL()
+    /**
+     * @return string[]
+     */
+    protected function getQuotedNameInIndexSQL() : array
     {
         return ['CREATE TABLE test (column1 VARCHAR(255) NOT NULL, INDEX `key` (column1)) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = InnoDB'];
     }
 
-    protected function getQuotedColumnInForeignKeySQL()
+    /**
+     * @return string[]
+     */
+    protected function getQuotedColumnInForeignKeySQL() : array
     {
         return [
             'CREATE TABLE `quoted` (`create` VARCHAR(255) NOT NULL, foo VARCHAR(255) NOT NULL, `bar` VARCHAR(255) NOT NULL) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = InnoDB',
@@ -258,7 +284,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
         ];
     }
 
-    public function testCreateTableWithFulltextIndex()
+    public function testCreateTableWithFulltextIndex() : void
     {
         $table = new Table('fulltext_table');
         $table->addOption('engine', 'MyISAM');
@@ -272,7 +298,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
         self::assertEquals(['CREATE TABLE fulltext_table (text LONGTEXT NOT NULL, FULLTEXT INDEX fulltext_text (text)) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = MyISAM'], $sql);
     }
 
-    public function testCreateTableWithSpatialIndex()
+    public function testCreateTableWithSpatialIndex() : void
     {
         $table = new Table('spatial_table');
         $table->addOption('engine', 'MyISAM');
@@ -286,7 +312,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
         self::assertEquals(['CREATE TABLE spatial_table (point LONGTEXT NOT NULL, SPATIAL INDEX spatial_text (point)) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = MyISAM'], $sql);
     }
 
-    public function testClobTypeDeclarationSQL()
+    public function testClobTypeDeclarationSQL() : void
     {
         self::assertEquals('TINYTEXT', $this->platform->getClobTypeDeclarationSQL(['length' => 1]));
         self::assertEquals('TINYTEXT', $this->platform->getClobTypeDeclarationSQL(['length' => 255]));
@@ -298,7 +324,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
         self::assertEquals('LONGTEXT', $this->platform->getClobTypeDeclarationSQL([]));
     }
 
-    public function testBlobTypeDeclarationSQL()
+    public function testBlobTypeDeclarationSQL() : void
     {
         self::assertEquals('TINYBLOB', $this->platform->getBlobTypeDeclarationSQL(['length' => 1]));
         self::assertEquals('TINYBLOB', $this->platform->getBlobTypeDeclarationSQL(['length' => 255]));
@@ -313,7 +339,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     /**
      * @group DBAL-400
      */
-    public function testAlterTableAddPrimaryKey()
+    public function testAlterTableAddPrimaryKey() : void
     {
         $table = new Table('alter_table_add_pk');
         $table->addColumn('id', 'integer');
@@ -335,7 +361,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     /**
      * @group DBAL-1132
      */
-    public function testAlterPrimaryKeyWithAutoincrementColumn()
+    public function testAlterPrimaryKeyWithAutoincrementColumn() : void
     {
         $table = new Table('alter_primary_key');
         $table->addColumn('id', 'integer', ['autoincrement' => true]);
@@ -361,7 +387,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     /**
      * @group DBAL-464
      */
-    public function testDropPrimaryKeyWithAutoincrementColumn()
+    public function testDropPrimaryKeyWithAutoincrementColumn() : void
     {
         $table = new Table('drop_primary_key');
         $table->addColumn('id', 'integer', ['autoincrement' => true]);
@@ -386,7 +412,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     /**
      * @group DBAL-2302
      */
-    public function testDropNonAutoincrementColumnFromCompositePrimaryKeyWithAutoincrementColumn()
+    public function testDropNonAutoincrementColumnFromCompositePrimaryKeyWithAutoincrementColumn() : void
     {
         $table = new Table('tbl');
         $table->addColumn('id', 'integer', ['autoincrement' => true]);
@@ -413,7 +439,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     /**
      * @group DBAL-2302
      */
-    public function testAddNonAutoincrementColumnToPrimaryKeyWithAutoincrementColumn()
+    public function testAddNonAutoincrementColumnToPrimaryKeyWithAutoincrementColumn() : void
     {
         $table = new Table('tbl');
         $table->addColumn('id', 'integer', ['autoincrement' => true]);
@@ -440,7 +466,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     /**
      * @group DBAL-586
      */
-    public function testAddAutoIncrementPrimaryKey()
+    public function testAddAutoIncrementPrimaryKey() : void
     {
         $keyTable = new Table('foo');
         $keyTable->addColumn('id', 'integer', ['autoincrement' => true]);
@@ -458,7 +484,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
         self::assertEquals(['ALTER TABLE foo ADD id INT AUTO_INCREMENT NOT NULL, ADD PRIMARY KEY (id)'], $sql);
     }
 
-    public function testNamedPrimaryKey()
+    public function testNamedPrimaryKey() : void
     {
         $diff                              = new TableDiff('mytable');
         $diff->changedIndexes['foo_index'] = new Index('foo_index', ['foo'], true, true);
@@ -471,7 +497,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
         ], $sql);
     }
 
-    public function testAlterPrimaryKeyWithNewColumn()
+    public function testAlterPrimaryKeyWithNewColumn() : void
     {
         $table = new Table('yolo');
         $table->addColumn('pkc1', 'integer');
@@ -495,7 +521,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
         );
     }
 
-    public function testInitializesDoctrineTypeMappings()
+    public function testInitializesDoctrineTypeMappings() : void
     {
         self::assertTrue($this->platform->hasDoctrineTypeMappingFor('binary'));
         self::assertSame('binary', $this->platform->getDoctrineTypeMapping('binary'));
@@ -504,12 +530,12 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
         self::assertSame('binary', $this->platform->getDoctrineTypeMapping('varbinary'));
     }
 
-    protected function getBinaryMaxLength()
+    protected function getBinaryMaxLength() : int
     {
         return 65535;
     }
 
-    public function testReturnsBinaryTypeDeclarationSQL()
+    public function testReturnsBinaryTypeDeclarationSQL() : void
     {
         self::assertSame('VARBINARY(255)', $this->platform->getBinaryTypeDeclarationSQL([]));
         self::assertSame('VARBINARY(255)', $this->platform->getBinaryTypeDeclarationSQL(['length' => 0]));
@@ -531,7 +557,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
         ]));
     }
 
-    public function testDoesNotPropagateForeignKeyCreationForNonSupportingEngines()
+    public function testDoesNotPropagateForeignKeyCreationForNonSupportingEngines() : void
     {
         $table = new Table('foreign_table');
         $table->addColumn('id', 'integer');
@@ -563,7 +589,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
         );
     }
 
-    public function testDoesNotPropagateForeignKeyAlterationForNonSupportingEngines()
+    public function testDoesNotPropagateForeignKeyAlterationForNonSupportingEngines() : void
     {
         $table = new Table('foreign_table');
         $table->addColumn('id', 'integer');
@@ -604,9 +630,11 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     }
 
     /**
+     * @return string[]
+     *
      * @group DBAL-234
      */
-    protected function getAlterTableRenameIndexSQL()
+    protected function getAlterTableRenameIndexSQL() : array
     {
         return [
             'DROP INDEX idx_foo ON mytable',
@@ -615,9 +643,11 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     }
 
     /**
+     * @return string[]
+     *
      * @group DBAL-234
      */
-    protected function getQuotedAlterTableRenameIndexSQL()
+    protected function getQuotedAlterTableRenameIndexSQL() : array
     {
         return [
             'DROP INDEX `create` ON `table`',
@@ -628,9 +658,11 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     }
 
     /**
+     * @return string[]
+     *
      * @group DBAL-807
      */
-    protected function getAlterTableRenameIndexInSchemaSQL()
+    protected function getAlterTableRenameIndexInSchemaSQL() : array
     {
         return [
             'DROP INDEX idx_foo ON myschema.mytable',
@@ -639,9 +671,11 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     }
 
     /**
+     * @return string[]
+     *
      * @group DBAL-807
      */
-    protected function getQuotedAlterTableRenameIndexInSchemaSQL()
+    protected function getQuotedAlterTableRenameIndexInSchemaSQL() : array
     {
         return [
             'DROP INDEX `create` ON `schema`.`table`',
@@ -651,17 +685,17 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
         ];
     }
 
-    protected function getQuotesDropForeignKeySQL()
+    protected function getQuotesDropForeignKeySQL() : string
     {
         return 'ALTER TABLE `table` DROP FOREIGN KEY `select`';
     }
 
-    protected function getQuotesDropConstraintSQL()
+    protected function getQuotesDropConstraintSQL() : string
     {
         return 'ALTER TABLE `table` DROP CONSTRAINT `select`';
     }
 
-    public function testDoesNotPropagateDefaultValuesForUnsupportedColumnTypes()
+    public function testDoesNotPropagateDefaultValuesForUnsupportedColumnTypes() : void
     {
         $table = new Table('text_blob_default_value');
         $table->addColumn('def_text', 'text', ['default' => 'def']);
@@ -688,7 +722,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     /**
      * {@inheritdoc}
      */
-    protected function getQuotedAlterTableRenameColumnSQL()
+    protected function getQuotedAlterTableRenameColumnSQL() : array
     {
         return ['ALTER TABLE mytable ' .
             "CHANGE unquoted1 unquoted INT NOT NULL COMMENT 'Unquoted 1', " .
@@ -706,7 +740,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     /**
      * {@inheritdoc}
      */
-    protected function getQuotedAlterTableChangeColumnLengthSQL()
+    protected function getQuotedAlterTableChangeColumnLengthSQL() : array
     {
         return ['ALTER TABLE mytable ' .
             "CHANGE unquoted1 unquoted1 VARCHAR(255) NOT NULL COMMENT 'Unquoted 1', " .
@@ -721,7 +755,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     /**
      * @group DBAL-423
      */
-    public function testReturnsGuidTypeDeclarationSQL()
+    public function testReturnsGuidTypeDeclarationSQL() : void
     {
         self::assertSame('CHAR(36)', $this->platform->getGuidTypeDeclarationSQL([]));
     }
@@ -729,7 +763,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     /**
      * {@inheritdoc}
      */
-    public function getAlterTableRenameColumnSQL()
+    public function getAlterTableRenameColumnSQL() : array
     {
         return ["ALTER TABLE foo CHANGE bar baz INT DEFAULT 666 NOT NULL COMMENT 'rename test'"];
     }
@@ -737,7 +771,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     /**
      * {@inheritdoc}
      */
-    protected function getQuotesTableIdentifiersInAlterTableSQL()
+    protected function getQuotesTableIdentifiersInAlterTableSQL() : array
     {
         return [
             'ALTER TABLE `foo` DROP FOREIGN KEY fk1',
@@ -752,7 +786,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     /**
      * {@inheritdoc}
      */
-    protected function getCommentOnColumnSQL()
+    protected function getCommentOnColumnSQL() : array
     {
         return [
             "COMMENT ON COLUMN foo.bar IS 'comment'",
@@ -764,7 +798,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     /**
      * {@inheritdoc}
      */
-    protected function getQuotesReservedKeywordInUniqueConstraintDeclarationSQL()
+    protected function getQuotesReservedKeywordInUniqueConstraintDeclarationSQL() : string
     {
         return 'CONSTRAINT `select` UNIQUE (foo)';
     }
@@ -772,7 +806,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     /**
      * {@inheritdoc}
      */
-    protected function getQuotesReservedKeywordInIndexDeclarationSQL()
+    protected function getQuotesReservedKeywordInIndexDeclarationSQL() : string
     {
         return 'INDEX `select` (foo)';
     }
@@ -780,7 +814,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     /**
      * {@inheritdoc}
      */
-    protected function getQuotesReservedKeywordInTruncateTableSQL()
+    protected function getQuotesReservedKeywordInTruncateTableSQL() : string
     {
         return 'TRUNCATE `select`';
     }
@@ -788,7 +822,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     /**
      * {@inheritdoc}
      */
-    protected function getAlterStringToFixedStringSQL()
+    protected function getAlterStringToFixedStringSQL() : array
     {
         return ['ALTER TABLE mytable CHANGE name name CHAR(2) NOT NULL'];
     }
@@ -796,7 +830,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     /**
      * {@inheritdoc}
      */
-    protected function getGeneratesAlterTableRenameIndexUsedByForeignKeySQL()
+    protected function getGeneratesAlterTableRenameIndexUsedByForeignKeySQL() : array
     {
         return [
             'ALTER TABLE mytable DROP FOREIGN KEY fk_foo',
@@ -809,7 +843,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     /**
      * {@inheritdoc}
      */
-    public function getGeneratesDecimalTypeDeclarationSQL()
+    public static function getGeneratesDecimalTypeDeclarationSQL() : iterable
     {
         return [
             [[], 'NUMERIC(10, 0)'],
@@ -824,7 +858,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     /**
      * {@inheritdoc}
      */
-    public function getGeneratesFloatDeclarationSQL()
+    public static function getGeneratesFloatDeclarationSQL() : iterable
     {
         return [
             [[], 'DOUBLE PRECISION'],
@@ -839,7 +873,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     /**
      * @group DBAL-2436
      */
-    public function testQuotesTableNameInListTableIndexesSQL()
+    public function testQuotesTableNameInListTableIndexesSQL() : void
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\\\'",
@@ -850,7 +884,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     /**
      * @group DBAL-2436
      */
-    public function testQuotesDatabaseNameInListTableIndexesSQL()
+    public function testQuotesDatabaseNameInListTableIndexesSQL() : void
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\\\'",
@@ -861,7 +895,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     /**
      * @group DBAL-2436
      */
-    public function testQuotesDatabaseNameInListViewsSQL()
+    public function testQuotesDatabaseNameInListViewsSQL() : void
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\\\'",
@@ -872,7 +906,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     /**
      * @group DBAL-2436
      */
-    public function testQuotesTableNameInListTableForeignKeysSQL()
+    public function testQuotesTableNameInListTableForeignKeysSQL() : void
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\\\'",
@@ -883,7 +917,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     /**
      * @group DBAL-2436
      */
-    public function testQuotesDatabaseNameInListTableForeignKeysSQL()
+    public function testQuotesDatabaseNameInListTableForeignKeysSQL() : void
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\\\'",
@@ -894,7 +928,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     /**
      * @group DBAL-2436
      */
-    public function testQuotesTableNameInListTableColumnsSQL()
+    public function testQuotesTableNameInListTableColumnsSQL() : void
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\\\'",
@@ -905,7 +939,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     /**
      * @group DBAL-2436
      */
-    public function testQuotesDatabaseNameInListTableColumnsSQL()
+    public function testQuotesDatabaseNameInListTableColumnsSQL() : void
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\\\'",
@@ -913,7 +947,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
         );
     }
 
-    public function testListTableForeignKeysSQLEvaluatesDatabase()
+    public function testListTableForeignKeysSQLEvaluatesDatabase() : void
     {
         $sql = $this->platform->getListTableForeignKeysSQL('foo');
 

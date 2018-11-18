@@ -69,7 +69,7 @@ class SchemaDiff
      * @param TableDiff[] $changedTables
      * @param Table[]     $removedTables
      */
-    public function __construct($newTables = [], $changedTables = [], $removedTables = [], ?Schema $fromSchema = null)
+    public function __construct(array $newTables = [], array $changedTables = [], array $removedTables = [], ?Schema $fromSchema = null)
     {
         $this->newTables     = $newTables;
         $this->changedTables = $changedTables;
@@ -88,7 +88,7 @@ class SchemaDiff
      *
      * @return string[]
      */
-    public function toSaveSql(AbstractPlatform $platform)
+    public function toSaveSql(AbstractPlatform $platform) : array
     {
         return $this->_toSql($platform, true);
     }
@@ -96,17 +96,15 @@ class SchemaDiff
     /**
      * @return string[]
      */
-    public function toSql(AbstractPlatform $platform)
+    public function toSql(AbstractPlatform $platform) : array
     {
         return $this->_toSql($platform, false);
     }
 
     /**
-     * @param bool $saveMode
-     *
      * @return string[]
      */
-    protected function _toSql(AbstractPlatform $platform, $saveMode = false)
+    protected function _toSql(AbstractPlatform $platform, bool $saveMode = false) : array
     {
         $sql = [];
 

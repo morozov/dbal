@@ -41,30 +41,19 @@ class SchemaDropTableEventArgs extends SchemaEventArgs
         return $this->table;
     }
 
-    /**
-     * @return AbstractPlatform
-     */
-    public function getPlatform()
+    public function getPlatform() : AbstractPlatform
     {
         return $this->platform;
     }
 
-    /**
-     * @param string $sql
-     *
-     * @return \Doctrine\DBAL\Event\SchemaDropTableEventArgs
-     */
-    public function setSql($sql)
+    public function setSql(string $sql) : self
     {
         $this->sql = $sql;
 
         return $this;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getSql()
+    public function getSql() : ?string
     {
         return $this->sql;
     }

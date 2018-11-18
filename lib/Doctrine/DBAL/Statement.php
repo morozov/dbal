@@ -43,7 +43,7 @@ class Statement implements IteratorAggregate, DriverStatement
     /**
      * The underlying driver statement.
      *
-     * @var \Doctrine\DBAL\Driver\Statement
+     * @var DriverStatement
      */
     protected $stmt;
 
@@ -67,7 +67,7 @@ class Statement implements IteratorAggregate, DriverStatement
      * @param string     $sql  The SQL of the statement.
      * @param Connection $conn The connection on which the statement should be executed.
      */
-    public function __construct($sql, Connection $conn)
+    public function __construct(string $sql, Connection $conn)
     {
         $this->sql      = $sql;
         $this->stmt     = $conn->getWrappedConnection()->prepare($sql);
@@ -83,17 +83,17 @@ class Statement implements IteratorAggregate, DriverStatement
      * type and the value undergoes the conversion routines of the mapping type before
      * being bound.
      *
-     * @param string|int $name  The name or position of the parameter.
+     * @param string|int $param The name or position of the parameter.
      * @param mixed      $value The value of the parameter.
      * @param mixed      $type  Either a PDO binding type or a DBAL mapping type name or instance.
      *
      * @throws DBALException
      * @throws DriverException
      */
-    public function bindValue($name, $value, $type = ParameterType::STRING) : void
+    public function bindValue($param, $value, $type = ParameterType::STRING) : void
     {
-        $this->params[$name] = $value;
-        $this->types[$name]  = $type;
+        $this->params[$param] = $value;
+        $this->types[$param]  = $type;
 
         if (is_string($type)) {
             $type = Type::getType($type);
@@ -106,7 +106,7 @@ class Statement implements IteratorAggregate, DriverStatement
             $bindingType = $type;
         }
 
-        $this->stmt->bindValue($name, $value, $bindingType);
+        $this->stmt->bindValue($param, $value, $bindingType);
     }
 
     /**
@@ -114,20 +114,20 @@ class Statement implements IteratorAggregate, DriverStatement
      *
      * Binding a parameter by reference does not support DBAL mapping types.
      *
-     * @param string|int $name   The name or position of the parameter.
-     * @param mixed      $var    The reference to the variable to bind.
-     * @param int        $type   The PDO binding type.
-     * @param int|null   $length Must be specified when using an OUT bind
-     *                           so that PHP allocates enough memory to hold the returned value.
+     * @param string|int $column   The name or position of the parameter.
+     * @param mixed      $variable The reference to the variable to bind.
+     * @param int        $type     The PDO binding type.
+     * @param int|null   $length   Must be specified when using an OUT bind
+     *                               so that PHP allocates enough memory to hold the returned value.
      *
      * @throws DriverException
      */
-    public function bindParam($name, &$var, $type = ParameterType::STRING, $length = null) : void
+    public function bindParam($column, &$variable, int $type = ParameterType::STRING, ?int $length = null) : void
     {
-        $this->params[$name] = $var;
-        $this->types[$name]  = $type;
+        $this->params[$column] = $variable;
+        $this->types[$column]  = $type;
 
-        $this->stmt->bindParam($name, $var, $type, $length);
+        $this->stmt->bindParam($column, $variable, $type, $length);
     }
 
     /**
@@ -135,7 +135,7 @@ class Statement implements IteratorAggregate, DriverStatement
      *
      * @throws DBALException
      */
-    public function execute($params = null) : void
+    public function execute(?array $params = null) : void
     {
         if (is_array($params)) {
             $this->params = $params;
@@ -171,10 +171,8 @@ class Statement implements IteratorAggregate, DriverStatement
 
     /**
      * Returns the number of columns in the result set.
-     *
-     * @return int
      */
-    public function columnCount()
+    public function columnCount() : int
     {
         return $this->stmt->columnCount();
     }
@@ -182,7 +180,7 @@ class Statement implements IteratorAggregate, DriverStatement
     /**
      * {@inheritdoc}
      */
-    public function setFetchMode($fetchMode, ...$args) : void
+    public function setFetchMode(int $fetchMode, ...$args) : void
     {
         $this->stmt->setFetchMode($fetchMode, ...$args);
     }
@@ -200,7 +198,7 @@ class Statement implements IteratorAggregate, DriverStatement
     /**
      * {@inheritdoc}
      */
-    public function fetch($fetchMode = null, ...$args)
+    public function fetch(?int $fetchMode = null, ...$args)
     {
         return $this->stmt->fetch($fetchMode, ...$args);
     }
@@ -208,7 +206,7 @@ class Statement implements IteratorAggregate, DriverStatement
     /**
      * {@inheritdoc}
      */
-    public function fetchAll($fetchMode = null, ...$args)
+    public function fetchAll(?int $fetchMode = null, ...$args) : array
     {
         return $this->stmt->fetchAll($fetchMode, ...$args);
     }
@@ -216,7 +214,7 @@ class Statement implements IteratorAggregate, DriverStatement
     /**
      * {@inheritDoc}
      */
-    public function fetchColumn($columnIndex = 0)
+    public function fetchColumn(int $columnIndex = 0)
     {
         return $this->stmt->fetchColumn($columnIndex);
     }
@@ -233,10 +231,8 @@ class Statement implements IteratorAggregate, DriverStatement
 
     /**
      * Gets the wrapped driver statement.
-     *
-     * @return \Doctrine\DBAL\Driver\Statement
      */
-    public function getWrappedStatement()
+    public function getWrappedStatement() : DriverStatement
     {
         return $this->stmt;
     }

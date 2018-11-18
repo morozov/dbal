@@ -23,7 +23,7 @@ abstract class AbstractSchemaSynchronizer implements SchemaSynchronizer
     /**
      * @param string[] $sql
      */
-    protected function processSqlSafely(array $sql)
+    protected function processSqlSafely(array $sql) : void
     {
         foreach ($sql as $s) {
             try {
@@ -36,7 +36,7 @@ abstract class AbstractSchemaSynchronizer implements SchemaSynchronizer
     /**
      * @param string[] $sql
      */
-    protected function processSql(array $sql)
+    protected function processSql(array $sql) : void
     {
         foreach ($sql as $s) {
             $this->conn->exec($s);

@@ -18,7 +18,10 @@ use function array_change_key_case;
  */
 class NamedParametersTest extends DbalFunctionalTestCase
 {
-    public function ticketProvider()
+    /**
+     * @return mixed[][]
+     */
+    public static function ticketProvider() : iterable
     {
         return [
             [
@@ -203,14 +206,13 @@ class NamedParametersTest extends DbalFunctionalTestCase
     }
 
     /**
-     * @param string  $query
      * @param mixed[] $params
      * @param int[]   $types
      * @param int[]   $expected
      *
      * @dataProvider ticketProvider
      */
-    public function testTicket($query, $params, $types, $expected)
+    public function testTicket(string $query, array $params, array $types, array $expected) : void
     {
         $stmt   = $this->connection->executeQuery($query, $params, $types);
         $result = $stmt->fetchAll(FetchMode::ASSOCIATIVE);

@@ -118,7 +118,7 @@ class PoolingShardConnection extends Connection
     /**
      * {@inheritdoc}
      */
-    public function getParams()
+    public function getParams() : array
     {
         return $this->activeShardId ? $this->connectionParameters[$this->activeShardId] : $this->connectionParameters[0];
     }
@@ -126,7 +126,7 @@ class PoolingShardConnection extends Connection
     /**
      * {@inheritdoc}
      */
-    public function getHost()
+    public function getHost() : ?string
     {
         $params = $this->getParams();
 
@@ -146,7 +146,7 @@ class PoolingShardConnection extends Connection
     /**
      * {@inheritdoc}
      */
-    public function getUsername()
+    public function getUsername() : ?string
     {
         $params = $this->getParams();
 
@@ -156,7 +156,7 @@ class PoolingShardConnection extends Connection
     /**
      * {@inheritdoc}
      */
-    public function getPassword()
+    public function getPassword() : ?string
     {
         $params = $this->getParams();
 
@@ -206,10 +206,8 @@ class PoolingShardConnection extends Connection
      * Connects to a specific connection.
      *
      * @param string|int $shardId
-     *
-     * @return \Doctrine\DBAL\Driver\Connection
      */
-    protected function connectTo($shardId)
+    protected function connectTo(string $shardId) : DriverConnection
     {
         $params = $this->getParams();
 
@@ -225,10 +223,8 @@ class PoolingShardConnection extends Connection
 
     /**
      * @param string|int|null $shardId
-     *
-     * @return bool
      */
-    public function isConnected($shardId = null)
+    public function isConnected($shardId = null) : bool
     {
         if ($shardId === null) {
             return $this->_conn !== null;
@@ -237,10 +233,7 @@ class PoolingShardConnection extends Connection
         return isset($this->activeConnections[$shardId]);
     }
 
-    /**
-     * @return void
-     */
-    public function close()
+    public function close() : void
     {
         $this->_conn             = null;
         $this->activeConnections = [];

@@ -26,7 +26,7 @@ class StatementTest extends DbalFunctionalTestCase
         self::markTestSkipped('sqlsrv only test');
     }
 
-    public function testFailureToPrepareResultsInException()
+    public function testFailureToPrepareResultsInException() : void
     {
         // use the driver connection directly to avoid having exception wrapped
         $stmt = $this->connection->getWrappedConnection()->prepare('');

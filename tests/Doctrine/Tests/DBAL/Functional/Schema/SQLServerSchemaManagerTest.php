@@ -13,7 +13,7 @@ use function current;
 
 class SQLServerSchemaManagerTest extends SchemaManagerFunctionalTestCase
 {
-    protected function getPlatformName()
+    protected function getPlatformName() : string
     {
         return 'mssql';
     }
@@ -21,7 +21,7 @@ class SQLServerSchemaManagerTest extends SchemaManagerFunctionalTestCase
     /**
      * @group DBAL-255
      */
-    public function testDropColumnConstraints()
+    public function testDropColumnConstraints() : void
     {
         $table = new Table('sqlsrv_drop_column');
         $table->addColumn('id', 'integer');
@@ -36,7 +36,7 @@ class SQLServerSchemaManagerTest extends SchemaManagerFunctionalTestCase
         self::assertCount(1, $columns);
     }
 
-    public function testColumnCollation()
+    public function testColumnCollation() : void
     {
         $table  = new Table($tableName = 'test_collation');
         $column = $table->addColumn($columnName = 'test', 'string');
@@ -54,7 +54,7 @@ class SQLServerSchemaManagerTest extends SchemaManagerFunctionalTestCase
         self::assertEquals($collation, $columns[$columnName]->getPlatformOption('collation'));
     }
 
-    public function testDefaultConstraints()
+    public function testDefaultConstraints() : void
     {
         $platform = $this->schemaManager->getDatabasePlatform();
         $table    = new Table('sqlsrv_default_constraints');
@@ -172,7 +172,7 @@ class SQLServerSchemaManagerTest extends SchemaManagerFunctionalTestCase
     /**
      * @group DBAL-543
      */
-    public function testColumnComments()
+    public function testColumnComments() : void
     {
         $table = new Table('sqlsrv_column_comment');
         $table->addColumn('id', 'integer', ['autoincrement' => true]);
@@ -334,7 +334,7 @@ class SQLServerSchemaManagerTest extends SchemaManagerFunctionalTestCase
         self::assertEquals('666', $columns['added_commented_type_with_comment']->getComment());
     }
 
-    public function testPkOrdering()
+    public function testPkOrdering() : void
     {
         // SQL Server stores index column information in a system table with two
         // columns that almost always have the same value: index_column_id and key_ordinal.

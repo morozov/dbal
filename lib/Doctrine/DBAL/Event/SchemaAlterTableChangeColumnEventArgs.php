@@ -34,36 +34,25 @@ class SchemaAlterTableChangeColumnEventArgs extends SchemaEventArgs
         $this->platform   = $platform;
     }
 
-    /**
-     * @return ColumnDiff
-     */
-    public function getColumnDiff()
+    public function getColumnDiff() : ColumnDiff
     {
         return $this->columnDiff;
     }
 
-    /**
-     * @return TableDiff
-     */
-    public function getTableDiff()
+    public function getTableDiff() : TableDiff
     {
         return $this->tableDiff;
     }
 
-    /**
-     * @return AbstractPlatform
-     */
-    public function getPlatform()
+    public function getPlatform() : AbstractPlatform
     {
         return $this->platform;
     }
 
     /**
      * @param string|string[] $sql
-     *
-     * @return \Doctrine\DBAL\Event\SchemaAlterTableChangeColumnEventArgs
      */
-    public function addSql($sql)
+    public function addSql($sql) : self
     {
         if (is_array($sql)) {
             $this->sql = array_merge($this->sql, $sql);
@@ -77,7 +66,7 @@ class SchemaAlterTableChangeColumnEventArgs extends SchemaEventArgs
     /**
      * @return string[]
      */
-    public function getSql()
+    public function getSql() : array
     {
         return $this->sql;
     }

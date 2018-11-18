@@ -41,7 +41,7 @@ class PostgreSqlSchemaManager extends AbstractSchemaManager
      *
      * @return string[]
      */
-    public function getSchemaNames()
+    public function getSchemaNames() : array
     {
         $statement = $this->_conn->executeQuery("SELECT nspname FROM pg_namespace WHERE nspname !~ '^pg_.*' AND nspname != 'information_schema'");
 
@@ -55,7 +55,7 @@ class PostgreSqlSchemaManager extends AbstractSchemaManager
      *
      * @return string[]
      */
-    public function getSchemaSearchPaths()
+    public function getSchemaSearchPaths() : array
     {
         $params = $this->_conn->getParams();
         $schema = explode(',', $this->_conn->fetchColumn('SHOW search_path'));
@@ -74,7 +74,7 @@ class PostgreSqlSchemaManager extends AbstractSchemaManager
      *
      * @return string[]
      */
-    public function getExistingSchemaSearchPaths()
+    public function getExistingSchemaSearchPaths() : array
     {
         if ($this->existingSchemaPaths === null) {
             $this->determineExistingSchemaSearchPaths();
@@ -87,15 +87,13 @@ class PostgreSqlSchemaManager extends AbstractSchemaManager
      * Sets or resets the order of the existing schemas in the current search path of the user.
      *
      * This is a PostgreSQL only function.
-     *
-     * @return void
      */
-    public function determineExistingSchemaSearchPaths()
+    public function determineExistingSchemaSearchPaths() : void
     {
         $names = $this->getSchemaNames();
         $paths = $this->getSchemaSearchPaths();
 
-        $this->existingSchemaPaths = array_filter($paths, static function ($v) use ($names) {
+        $this->existingSchemaPaths = array_filter($paths, static function ($v) use ($names) : bool {
             return in_array($v, $names);
         });
     }
@@ -103,7 +101,7 @@ class PostgreSqlSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    public function dropDatabase($database)
+    public function dropDatabase(string $database) : void
     {
         try {
             parent::dropDatabase($database);
@@ -132,7 +130,7 @@ class PostgreSqlSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    protected function _getPortableTableForeignKeyDefinition($tableForeignKey)
+    protected function _getPortableTableForeignKeyDefinition($tableForeignKey) : ForeignKeyConstraint
     {
         $onUpdate       = null;
         $onDelete       = null;
@@ -167,7 +165,7 @@ class PostgreSqlSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    protected function _getPortableTriggerDefinition($trigger)
+    protected function _getPortableTriggerDefinition(array $trigger)
     {
         return $trigger['trigger_name'];
     }
@@ -175,7 +173,7 @@ class PostgreSqlSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    protected function _getPortableViewDefinition($view)
+    protected function _getPortableViewDefinition(array $view) : View
     {
         return new View($view['schemaname'] . '.' . $view['viewname'], $view['definition']);
     }
@@ -183,7 +181,7 @@ class PostgreSqlSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    protected function _getPortableUserDefinition($user)
+    protected function _getPortableUserDefinition(array $user) : array
     {
         return [
             'user' => $user['usename'],
@@ -194,7 +192,7 @@ class PostgreSqlSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    protected function _getPortableTableDefinition($table)
+    protected function _getPortableTableDefinition($table) : string
     {
         $schemas     = $this->getExistingSchemaSearchPaths();
         $firstSchema = array_shift($schemas);
@@ -257,7 +255,7 @@ class PostgreSqlSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    protected function _getPortableSequencesList($sequences)
+    protected function _getPortableSequencesList(array $sequences) : array
     {
         $sequenceDefinitions = [];
 
@@ -291,7 +289,7 @@ class PostgreSqlSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    protected function _getPortableSequenceDefinition($sequence)
+    protected function _getPortableSequenceDefinition(array $sequence) : Sequence
     {
         if ($sequence['schemaname'] !== 'public') {
             $sequenceName = $sequence['schemaname'] . '.' . $sequence['relname'];
@@ -312,7 +310,7 @@ class PostgreSqlSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    protected function _getPortableTableColumnDefinition($tableColumn)
+    protected function _getPortableTableColumnDefinition(array $tableColumn) : Column
     {
         $tableColumn = array_change_key_case($tableColumn, CASE_LOWER);
 
@@ -446,13 +444,16 @@ class PostgreSqlSchemaManager extends AbstractSchemaManager
             'default'       => $tableColumn['default'],
             'precision'     => $precision,
             'scale'         => $scale,
-            'fixed'         => $fixed,
             'unsigned'      => false,
             'autoincrement' => $autoincrement,
             'comment'       => isset($tableColumn['comment']) && $tableColumn['comment'] !== ''
                 ? $tableColumn['comment']
                 : null,
         ];
+
+        if ($fixed !== null) {
+            $options['fixed'] = $fixed;
+        }
 
         $column = new Column($tableColumn['field'], Type::getType($type), $options);
 

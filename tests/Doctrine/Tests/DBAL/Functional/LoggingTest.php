@@ -9,7 +9,7 @@ use Doctrine\Tests\DbalFunctionalTestCase;
 
 class LoggingTest extends DbalFunctionalTestCase
 {
-    public function testLogExecuteQuery()
+    public function testLogExecuteQuery() : void
     {
         $sql = $this->connection->getDatabasePlatform()->getDummySelectSQL();
 
@@ -23,7 +23,7 @@ class LoggingTest extends DbalFunctionalTestCase
         $this->connection->executeQuery($sql, []);
     }
 
-    public function testLogExecuteUpdate()
+    public function testLogExecuteUpdate() : void
     {
         $this->markTestSkipped('Test breaks MySQL but works on all other platforms (Unbuffered Queries stuff).');
 
@@ -39,7 +39,7 @@ class LoggingTest extends DbalFunctionalTestCase
         $this->connection->executeUpdate($sql, []);
     }
 
-    public function testLogPrepareExecute()
+    public function testLogPrepareExecute() : void
     {
         $sql = $this->connection->getDatabasePlatform()->getDummySelectSQL();
 

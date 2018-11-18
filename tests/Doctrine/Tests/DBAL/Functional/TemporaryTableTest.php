@@ -34,11 +34,9 @@ class TemporaryTableTest extends DbalFunctionalTestCase
     }
 
     /**
-     * @return void
-     *
      * @group DDC-1337
      */
-    public function testDropTemporaryTableNotAutoCommitTransaction()
+    public function testDropTemporaryTableNotAutoCommitTransaction() : void
     {
         if ($this->connection->getDatabasePlatform()->getName() === 'sqlanywhere' ||
             $this->connection->getDatabasePlatform()->getName() === 'oracle') {
@@ -71,11 +69,9 @@ class TemporaryTableTest extends DbalFunctionalTestCase
     }
 
     /**
-     * @return void
-     *
      * @group DDC-1337
      */
-    public function testCreateTemporaryTableNotAutoCommitTransaction()
+    public function testCreateTemporaryTableNotAutoCommitTransaction() : void
     {
         if ($this->connection->getDatabasePlatform()->getName() === 'sqlanywhere' ||
             $this->connection->getDatabasePlatform()->getName() === 'oracle') {

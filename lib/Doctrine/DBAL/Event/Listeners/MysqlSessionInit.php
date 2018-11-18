@@ -35,16 +35,13 @@ class MysqlSessionInit implements EventSubscriber
      * @param string      $charset   The charset.
      * @param string|bool $collation The collation, or FALSE if no collation.
      */
-    public function __construct($charset = 'utf8', $collation = false)
+    public function __construct(string $charset = 'utf8', $collation = false)
     {
         $this->charset   = $charset;
         $this->collation = $collation;
     }
 
-    /**
-     * @return void
-     */
-    public function postConnect(ConnectionEventArgs $args)
+    public function postConnect(ConnectionEventArgs $args) : void
     {
         $collation = $this->collation ? ' COLLATE ' . $this->collation : '';
         $args->getConnection()->executeUpdate('SET NAMES ' . $this->charset . $collation);

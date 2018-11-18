@@ -40,14 +40,15 @@ class UniqueConstraint extends AbstractAsset implements Constraint
     private $options = [];
 
     /**
-     * @param string   $indexName
      * @param string[] $columns
      * @param string[] $flags
      * @param mixed[]  $options
      */
-    public function __construct($indexName, array $columns, array $flags = [], array $options = [])
+    public function __construct(?string $indexName, array $columns, array $flags = [], array $options = [])
     {
-        $this->_setName($indexName);
+        if ($indexName !== null) {
+            $this->_setName($indexName);
+        }
 
         $this->options = $options;
 
@@ -63,7 +64,7 @@ class UniqueConstraint extends AbstractAsset implements Constraint
     /**
      * {@inheritdoc}
      */
-    public function getColumns()
+    public function getColumns() : array
     {
         return array_keys($this->columns);
     }
@@ -71,7 +72,7 @@ class UniqueConstraint extends AbstractAsset implements Constraint
     /**
      * {@inheritdoc}
      */
-    public function getQuotedColumns(AbstractPlatform $platform)
+    public function getQuotedColumns(AbstractPlatform $platform) : array
     {
         $columns = [];
 
@@ -85,7 +86,7 @@ class UniqueConstraint extends AbstractAsset implements Constraint
     /**
      * @return string[]
      */
-    public function getUnquotedColumns()
+    public function getUnquotedColumns() : array
     {
         return array_map([$this, 'trimQuotes'], $this->getColumns());
     }
@@ -95,7 +96,7 @@ class UniqueConstraint extends AbstractAsset implements Constraint
      *
      * @return string[]
      */
-    public function getFlags()
+    public function getFlags() : array
     {
         return array_keys($this->flags);
     }
@@ -103,13 +104,9 @@ class UniqueConstraint extends AbstractAsset implements Constraint
     /**
      * Adds flag for a unique constraint that translates to platform specific handling.
      *
-     * @param string $flag
-     *
-     * @return self
-     *
      * @example $uniqueConstraint->addFlag('CLUSTERED')
      */
-    public function addFlag($flag)
+    public function addFlag(string $flag) : self
     {
         $this->flags[strtolower($flag)] = true;
 
@@ -118,44 +115,29 @@ class UniqueConstraint extends AbstractAsset implements Constraint
 
     /**
      * Does this unique constraint have a specific flag?
-     *
-     * @param string $flag
-     *
-     * @return bool
      */
-    public function hasFlag($flag)
+    public function hasFlag(string $flag) : bool
     {
         return isset($this->flags[strtolower($flag)]);
     }
 
     /**
      * Removes a flag.
-     *
-     * @param string $flag
-     *
-     * @return void
      */
-    public function removeFlag($flag)
+    public function removeFlag(string $flag) : void
     {
         unset($this->flags[strtolower($flag)]);
     }
 
-    /**
-     * @param string $name
-     *
-     * @return bool
-     */
-    public function hasOption($name)
+    public function hasOption(string $name) : bool
     {
         return isset($this->options[strtolower($name)]);
     }
 
     /**
-     * @param string $name
-     *
      * @return mixed
      */
-    public function getOption($name)
+    public function getOption(string $name)
     {
         return $this->options[strtolower($name)];
     }
@@ -163,19 +145,15 @@ class UniqueConstraint extends AbstractAsset implements Constraint
     /**
      * @return mixed[]
      */
-    public function getOptions()
+    public function getOptions() : array
     {
         return $this->options;
     }
 
     /**
-     * @param string $column
-     *
-     * @return void
-     *
      * @throws InvalidArgumentException
      */
-    protected function _addColumn($column)
+    protected function _addColumn(string $column) : void
     {
         if (! is_string($column)) {
             throw new InvalidArgumentException('Expecting a string as Index Column');

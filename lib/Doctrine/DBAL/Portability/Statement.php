@@ -75,7 +75,7 @@ class Statement implements IteratorAggregate, DriverStatement
     /**
      * {@inheritdoc}
      */
-    public function columnCount()
+    public function columnCount() : int
     {
         return $this->stmt->columnCount();
     }
@@ -83,7 +83,7 @@ class Statement implements IteratorAggregate, DriverStatement
     /**
      * {@inheritdoc}
      */
-    public function execute($params = null) : void
+    public function execute(?array $params = null) : void
     {
         assert($this->stmt instanceof DriverStatement);
 
@@ -93,7 +93,7 @@ class Statement implements IteratorAggregate, DriverStatement
     /**
      * {@inheritdoc}
      */
-    public function setFetchMode($fetchMode, ...$args) : void
+    public function setFetchMode(int $fetchMode, ...$args) : void
     {
         $this->defaultFetchMode = $fetchMode;
 
@@ -111,7 +111,7 @@ class Statement implements IteratorAggregate, DriverStatement
     /**
      * {@inheritdoc}
      */
-    public function fetch($fetchMode = null, ...$args)
+    public function fetch(?int $fetchMode = null, ...$args)
     {
         $fetchMode = $fetchMode ?: $this->defaultFetchMode;
 
@@ -130,7 +130,7 @@ class Statement implements IteratorAggregate, DriverStatement
     /**
      * {@inheritdoc}
      */
-    public function fetchAll($fetchMode = null, ...$args)
+    public function fetchAll(?int $fetchMode = null, ...$args) : array
     {
         $fetchMode = $fetchMode ?: $this->defaultFetchMode;
 
@@ -166,12 +166,10 @@ class Statement implements IteratorAggregate, DriverStatement
 
     /**
      * @param mixed $row
-     * @param int   $iterateRow
-     * @param bool  $fixCase
      *
      * @return mixed
      */
-    protected function fixRow($row, $iterateRow, $fixCase)
+    protected function fixRow($row, int $iterateRow, bool $fixCase)
     {
         if (! $row) {
             return $row;
@@ -197,7 +195,7 @@ class Statement implements IteratorAggregate, DriverStatement
     /**
      * {@inheritdoc}
      */
-    public function fetchColumn($columnIndex = 0)
+    public function fetchColumn(int $columnIndex = 0)
     {
         $value = $this->stmt->fetchColumn($columnIndex);
 

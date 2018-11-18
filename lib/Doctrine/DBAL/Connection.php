@@ -227,27 +227,23 @@ class Connection implements DriverConnection
      *
      * @return mixed[]
      */
-    public function getParams()
+    public function getParams() : array
     {
         return $this->params;
     }
 
     /**
      * Gets the name of the database this Connection is connected to.
-     *
-     * @return string
      */
-    public function getDatabase()
+    public function getDatabase() : ?string
     {
         return $this->_driver->getDatabase($this);
     }
 
     /**
      * Gets the hostname of the currently connected database.
-     *
-     * @return string|null
      */
-    public function getHost()
+    public function getHost() : ?string
     {
         return $this->params['host'] ?? null;
     }
@@ -264,50 +260,40 @@ class Connection implements DriverConnection
 
     /**
      * Gets the username used by this connection.
-     *
-     * @return string|null
      */
-    public function getUsername()
+    public function getUsername() : ?string
     {
         return $this->params['user'] ?? null;
     }
 
     /**
      * Gets the password used by this connection.
-     *
-     * @return string|null
      */
-    public function getPassword()
+    public function getPassword() : ?string
     {
         return $this->params['password'] ?? null;
     }
 
     /**
      * Gets the DBAL driver instance.
-     *
-     * @return Driver
      */
-    public function getDriver()
+    public function getDriver() : Driver
     {
         return $this->_driver;
     }
 
     /**
      * Gets the Configuration used by the Connection.
-     *
-     * @return Configuration
      */
-    public function getConfiguration()
+    public function getConfiguration() : Configuration
     {
         return $this->_config;
     }
 
     /**
      * Gets the EventManager used by the Connection.
-     *
-     * @return EventManager
      */
-    public function getEventManager()
+    public function getEventManager() : EventManager
     {
         return $this->_eventManager;
     }
@@ -315,11 +301,9 @@ class Connection implements DriverConnection
     /**
      * Gets the DatabasePlatform for the connection.
      *
-     * @return AbstractPlatform
-     *
      * @throws DBALException
      */
-    public function getDatabasePlatform()
+    public function getDatabasePlatform() : AbstractPlatform
     {
         if ($this->platform === null) {
             $this->detectDatabasePlatform();
@@ -330,10 +314,8 @@ class Connection implements DriverConnection
 
     /**
      * Gets the ExpressionBuilder for the connection.
-     *
-     * @return ExpressionBuilder
      */
-    public function getExpressionBuilder()
+    public function getExpressionBuilder() : ExpressionBuilder
     {
         return $this->_expr;
     }
@@ -375,7 +357,7 @@ class Connection implements DriverConnection
      *
      * @throws DBALException If an invalid platform was specified for this connection.
      */
-    private function detectDatabasePlatform()
+    private function detectDatabasePlatform() : void
     {
         $version = $this->getDatabasePlatformVersion();
 
@@ -398,11 +380,9 @@ class Connection implements DriverConnection
      * or the underlying driver connection cannot determine the platform
      * version without having to query it (performance reasons).
      *
-     * @return string|null
-     *
      * @throws Exception
      */
-    private function getDatabasePlatformVersion()
+    private function getDatabasePlatformVersion() : ?string
     {
         // Driver does not support version specific platforms.
         if (! $this->_driver instanceof VersionAwarePlatformDriver) {
@@ -455,10 +435,8 @@ class Connection implements DriverConnection
 
     /**
      * Returns the database server version if the underlying driver supports it.
-     *
-     * @return string|null
      */
-    private function getServerVersion()
+    private function getServerVersion() : ?string
     {
         $connection = $this->getWrappedConnection();
 
@@ -478,7 +456,7 @@ class Connection implements DriverConnection
      *
      * @return bool True if auto-commit mode is currently enabled for this connection, false otherwise.
      */
-    public function isAutoCommit()
+    public function isAutoCommit() : bool
     {
         return $this->autoCommit === true;
     }
@@ -493,7 +471,7 @@ class Connection implements DriverConnection
      * NOTE: If this method is called during a transaction and the auto-commit mode is changed, the transaction is
      * committed. If this method is called and the auto-commit mode is not changed, the call is a no-op.
      *
-     * @see   isAutoCommit
+     * @see isAutoCommit
      *
      * @throws ConnectionException
      * @throws DriverException
@@ -517,10 +495,8 @@ class Connection implements DriverConnection
 
     /**
      * Sets the fetch mode.
-     *
-     * @param int $fetchMode
      */
-    public function setFetchMode($fetchMode) : void
+    public function setFetchMode(int $fetchMode) : void
     {
         $this->defaultFetchMode = $fetchMode;
     }
@@ -537,7 +513,7 @@ class Connection implements DriverConnection
      *
      * @throws DBALException
      */
-    public function fetchAssoc($statement, array $params = [], array $types = [])
+    public function fetchAssoc(string $statement, array $params = [], array $types = [])
     {
         return $this->executeQuery($statement, $params, $types)->fetch(FetchMode::ASSOCIATIVE);
     }
@@ -552,7 +528,7 @@ class Connection implements DriverConnection
      *
      * @return mixed[]|false False is returned if no rows are found.
      */
-    public function fetchArray($statement, array $params = [], array $types = [])
+    public function fetchArray(string $statement, array $params = [], array $types = [])
     {
         return $this->executeQuery($statement, $params, $types)->fetch(FetchMode::NUMERIC);
     }
@@ -570,17 +546,15 @@ class Connection implements DriverConnection
      *
      * @throws DBALException
      */
-    public function fetchColumn($statement, array $params = [], $column = 0, array $types = [])
+    public function fetchColumn(string $statement, array $params = [], int $column = 0, array $types = [])
     {
         return $this->executeQuery($statement, $params, $types)->fetchColumn($column);
     }
 
     /**
      * Whether an actual connection to the database is established.
-     *
-     * @return bool
      */
-    public function isConnected()
+    public function isConnected() : bool
     {
         return $this->isConnected;
     }
@@ -590,7 +564,7 @@ class Connection implements DriverConnection
      *
      * @return bool TRUE if a transaction is currently active, FALSE otherwise.
      */
-    public function isTransactionActive()
+    public function isTransactionActive() : bool
     {
         return $this->transactionNestingLevel > 0;
     }
@@ -639,7 +613,7 @@ class Connection implements DriverConnection
      * @throws DBALException
      * @throws InvalidArgumentException
      */
-    public function delete($tableExpression, array $identifier, array $types = [])
+    public function delete(string $tableExpression, array $identifier, array $types = []) : int
     {
         if (empty($identifier)) {
             throw InvalidArgumentException::fromEmptyCriteria();
@@ -658,10 +632,8 @@ class Connection implements DriverConnection
 
     /**
      * Closes the connection.
-     *
-     * @return void
      */
-    public function close()
+    public function close() : void
     {
         $this->_conn = null;
 
@@ -672,14 +644,12 @@ class Connection implements DriverConnection
      * Sets the transaction isolation level.
      *
      * @param int $level The level to set.
-     *
-     * @return int
      */
-    public function setTransactionIsolation($level)
+    public function setTransactionIsolation(int $level) : void
     {
         $this->transactionIsolationLevel = $level;
 
-        return $this->executeUpdate($this->getDatabasePlatform()->getSetTransactionIsolationSQL($level));
+        $this->executeUpdate($this->getDatabasePlatform()->getSetTransactionIsolationSQL($level));
     }
 
     /**
@@ -687,7 +657,7 @@ class Connection implements DriverConnection
      *
      * @return int The current transaction isolation level.
      */
-    public function getTransactionIsolation()
+    public function getTransactionIsolation() : int
     {
         if ($this->transactionIsolationLevel === null) {
             $this->transactionIsolationLevel = $this->getDatabasePlatform()->getDefaultTransactionIsolationLevel();
@@ -710,7 +680,7 @@ class Connection implements DriverConnection
      *
      * @throws DBALException
      */
-    public function update($tableExpression, array $data, array $identifier, array $types = [])
+    public function update(string $tableExpression, array $data, array $identifier, array $types = []) : int
     {
         $columns = $values = $conditions = $set = [];
 
@@ -745,7 +715,7 @@ class Connection implements DriverConnection
      *
      * @throws DBALException
      */
-    public function insert($tableExpression, array $data, array $types = [])
+    public function insert(string $tableExpression, array $data, array $types = []) : int
     {
         if (empty($data)) {
             return $this->executeUpdate('INSERT INTO ' . $tableExpression . ' () VALUES ()');
@@ -802,7 +772,7 @@ class Connection implements DriverConnection
      *
      * @return string The quoted name.
      */
-    public function quoteIdentifier($str)
+    public function quoteIdentifier(string $str) : string
     {
         return $this->getDatabasePlatform()->quoteIdentifier($str);
     }
@@ -824,7 +794,7 @@ class Connection implements DriverConnection
      *
      * @return mixed[]
      */
-    public function fetchAll($sql, array $params = [], $types = [])
+    public function fetchAll(string $sql, array $params = [], array $types = []) : array
     {
         return $this->executeQuery($sql, $params, $types)->fetchAll();
     }
@@ -910,7 +880,7 @@ class Connection implements DriverConnection
      *
      * @throws CacheException
      */
-    public function executeCacheQuery($query, $params, $types, QueryCacheProfile $qcp) : ResultStatement
+    public function executeCacheQuery(string $query, array $params, array $types, QueryCacheProfile $qcp) : ResultStatement
     {
         $resultCache = $qcp->getResultCacheDriver() ?? $this->_config->getResultCacheImpl();
 
@@ -953,7 +923,7 @@ class Connection implements DriverConnection
      *
      * @return mixed[] The projected result of the query.
      */
-    public function project($query, array $params, Closure $function)
+    public function project(string $query, array $params, Closure $function) : array
     {
         $result = [];
         $stmt   = $this->executeQuery($query, $params);
@@ -1060,7 +1030,7 @@ class Connection implements DriverConnection
      *
      * @return int The nesting level. A value of 0 means there's no active transaction.
      */
-    public function getTransactionNestingLevel()
+    public function getTransactionNestingLevel() : int
     {
         return $this->transactionNestingLevel;
     }
@@ -1073,13 +1043,13 @@ class Connection implements DriverConnection
      * because the underlying database may not even support the notion of AUTO_INCREMENT/IDENTITY
      * columns or sequences.
      *
-     * @param string|null $seqName Name of the sequence object from which the ID should be returned.
+     * @param string|null $name Name of the sequence object from which the ID should be returned.
      *
      * @return string A string representation of the last inserted ID.
      */
-    public function lastInsertId($seqName = null)
+    public function lastInsertId(?string $name = null) : string
     {
-        return $this->getWrappedConnection()->lastInsertId($seqName);
+        return $this->getWrappedConnection()->lastInsertId($name);
     }
 
     /**
@@ -1113,13 +1083,9 @@ class Connection implements DriverConnection
     /**
      * Sets if nested transactions should use savepoints.
      *
-     * @param bool $nestTransactionsWithSavepoints
-     *
-     * @return void
-     *
      * @throws ConnectionException
      */
-    public function setNestTransactionsWithSavepoints($nestTransactionsWithSavepoints)
+    public function setNestTransactionsWithSavepoints(bool $nestTransactionsWithSavepoints) : void
     {
         if ($this->transactionNestingLevel > 0) {
             throw ConnectionException::mayNotAlterNestedTransactionWithSavepointsInTransaction();
@@ -1129,15 +1095,13 @@ class Connection implements DriverConnection
             throw ConnectionException::savepointsNotSupported();
         }
 
-        $this->nestTransactionsWithSavepoints = (bool) $nestTransactionsWithSavepoints;
+        $this->nestTransactionsWithSavepoints = $nestTransactionsWithSavepoints;
     }
 
     /**
      * Gets if nested transactions should use savepoints.
-     *
-     * @return bool
      */
-    public function getNestTransactionsWithSavepoints()
+    public function getNestTransactionsWithSavepoints() : bool
     {
         return $this->nestTransactionsWithSavepoints;
     }
@@ -1288,11 +1252,9 @@ class Connection implements DriverConnection
      *
      * @param string $savepoint The name of the savepoint to create.
      *
-     * @return void
-     *
      * @throws ConnectionException
      */
-    public function createSavepoint($savepoint)
+    public function createSavepoint(string $savepoint) : void
     {
         if (! $this->getDatabasePlatform()->supportsSavepoints()) {
             throw ConnectionException::savepointsNotSupported();
@@ -1306,11 +1268,9 @@ class Connection implements DriverConnection
      *
      * @param string $savepoint The name of the savepoint to release.
      *
-     * @return void
-     *
      * @throws ConnectionException
      */
-    public function releaseSavepoint($savepoint)
+    public function releaseSavepoint(string $savepoint) : void
     {
         if (! $this->getDatabasePlatform()->supportsSavepoints()) {
             throw ConnectionException::savepointsNotSupported();
@@ -1328,11 +1288,9 @@ class Connection implements DriverConnection
      *
      * @param string $savepoint The name of the savepoint to rollback to.
      *
-     * @return void
-     *
      * @throws ConnectionException
      */
-    public function rollbackSavepoint($savepoint)
+    public function rollbackSavepoint(string $savepoint) : void
     {
         if (! $this->getDatabasePlatform()->supportsSavepoints()) {
             throw ConnectionException::savepointsNotSupported();
@@ -1343,10 +1301,8 @@ class Connection implements DriverConnection
 
     /**
      * Gets the wrapped driver connection.
-     *
-     * @return DriverConnection
      */
-    public function getWrappedConnection()
+    public function getWrappedConnection() : DriverConnection
     {
         $this->connect();
         assert($this->_conn instanceof DriverConnection);
@@ -1357,10 +1313,8 @@ class Connection implements DriverConnection
     /**
      * Gets the SchemaManager that can be used to inspect or change the
      * database schema through the connection.
-     *
-     * @return AbstractSchemaManager
      */
-    public function getSchemaManager()
+    public function getSchemaManager() : AbstractSchemaManager
     {
         if ($this->_schemaManager === null) {
             $this->_schemaManager = $this->_driver->getSchemaManager($this);
@@ -1373,11 +1327,9 @@ class Connection implements DriverConnection
      * Marks the current transaction so that the only possible
      * outcome for the transaction to be rolled back.
      *
-     * @return void
-     *
      * @throws ConnectionException If no transaction is active.
      */
-    public function setRollbackOnly()
+    public function setRollbackOnly() : void
     {
         if ($this->transactionNestingLevel === 0) {
             throw ConnectionException::noActiveTransaction();
@@ -1388,11 +1340,9 @@ class Connection implements DriverConnection
     /**
      * Checks whether the current transaction is marked for rollback only.
      *
-     * @return bool
-     *
      * @throws ConnectionException If no transaction is active.
      */
-    public function isRollbackOnly()
+    public function isRollbackOnly() : bool
     {
         if ($this->transactionNestingLevel === 0) {
             throw ConnectionException::noActiveTransaction();
@@ -1410,7 +1360,7 @@ class Connection implements DriverConnection
      *
      * @return mixed The converted value.
      */
-    public function convertToDatabaseValue($value, $type)
+    public function convertToDatabaseValue($value, string $type)
     {
         return Type::getType($type)->convertToDatabaseValue($value, $this->getDatabasePlatform());
     }
@@ -1424,7 +1374,7 @@ class Connection implements DriverConnection
      *
      * @return mixed The converted type.
      */
-    public function convertToPHPValue($value, $type)
+    public function convertToPHPValue($value, string $type)
     {
         return Type::getType($type)->convertToPHPValue($value, $this->getDatabasePlatform());
     }
@@ -1480,7 +1430,7 @@ class Connection implements DriverConnection
      *
      * @return mixed[] [0] => the (escaped) value, [1] => the binding type.
      */
-    private function getBindingInfo($value, $type)
+    private function getBindingInfo($value, $type) : array
     {
         if (is_string($type)) {
             $type = Type::getType($type);
@@ -1506,7 +1456,7 @@ class Connection implements DriverConnection
      *
      * @return mixed[]
      */
-    public function resolveParams(array $params, array $types)
+    public function resolveParams(array $params, array $types) : array
     {
         $resolvedParams = [];
 
@@ -1544,10 +1494,8 @@ class Connection implements DriverConnection
 
     /**
      * Creates a new instance of a SQL query builder.
-     *
-     * @return QueryBuilder
      */
-    public function createQueryBuilder()
+    public function createQueryBuilder() : QueryBuilder
     {
         return new Query\QueryBuilder($this);
     }
@@ -1558,8 +1506,6 @@ class Connection implements DriverConnection
      * When the server is not available the method returns FALSE.
      * It is responsibility of the developer to handle this case
      * and abort the request or reconnect manually:
-     *
-     * @return bool
      *
      * @example
      *
@@ -1573,7 +1519,7 @@ class Connection implements DriverConnection
      * as long it returns TRUE when a reconnect succeeded and
      * FALSE when the connection was dropped.
      */
-    public function ping()
+    public function ping() : bool
     {
         $connection = $this->getWrappedConnection();
 

@@ -42,7 +42,7 @@ abstract class DbalPerformanceTestCase extends DbalFunctionalTestCase
     /**
      * begin timing
      */
-    protected function startTiming()
+    protected function startTiming() : void
     {
         $this->startTime = microtime(true);
     }
@@ -50,7 +50,7 @@ abstract class DbalPerformanceTestCase extends DbalFunctionalTestCase
     /**
      * end timing
      */
-    protected function stopTiming()
+    protected function stopTiming() : void
     {
         $this->runTime = microtime(true) - $this->startTime;
     }
@@ -58,7 +58,7 @@ abstract class DbalPerformanceTestCase extends DbalFunctionalTestCase
     /**
      * @return float elapsed test execution time
      */
-    public function getTime()
+    public function getTime() : float
     {
         return $this->runTime;
     }

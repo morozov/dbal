@@ -8,18 +8,12 @@ use Doctrine\DBAL\DBALException;
 
 class CacheException extends DBALException
 {
-    /**
-     * @return \Doctrine\DBAL\Cache\CacheException
-     */
-    public static function noCacheKey()
+    public static function noCacheKey() : self
     {
         return new self('No cache key was set.');
     }
 
-    /**
-     * @return \Doctrine\DBAL\Cache\CacheException
-     */
-    public static function noResultDriverConfigured()
+    public static function noResultDriverConfigured() : self
     {
         return new self('Trying to cache a query but no result driver is configured.');
     }

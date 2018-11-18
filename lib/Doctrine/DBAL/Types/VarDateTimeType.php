@@ -19,6 +19,8 @@ class VarDateTimeType extends DateTimeType
 {
     /**
      * {@inheritdoc}
+     *
+     * @return DateTime|null
      */
     public function convertToPHPValue($value, AbstractPlatform $platform)
     {

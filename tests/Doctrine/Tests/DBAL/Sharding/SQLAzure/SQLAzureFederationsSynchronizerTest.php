@@ -8,7 +8,7 @@ use Doctrine\DBAL\Sharding\SQLAzure\SQLAzureFederationsSynchronizer;
 
 class SQLAzureFederationsSynchronizerTest extends AbstractTestCase
 {
-    public function testCreateSchema()
+    public function testCreateSchema() : void
     {
         $schema = $this->createShopSchema();
 
@@ -25,7 +25,7 @@ class SQLAzureFederationsSynchronizerTest extends AbstractTestCase
         ], $sql);
     }
 
-    public function testUpdateSchema()
+    public function testUpdateSchema() : void
     {
         $schema = $this->createShopSchema();
 
@@ -37,7 +37,7 @@ class SQLAzureFederationsSynchronizerTest extends AbstractTestCase
         self::assertEquals([], $sql);
     }
 
-    public function testDropSchema()
+    public function testDropSchema() : void
     {
         $schema = $this->createShopSchema();
 

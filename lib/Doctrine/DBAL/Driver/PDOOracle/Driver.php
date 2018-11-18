@@ -6,6 +6,7 @@ namespace Doctrine\DBAL\Driver\PDOOracle;
 
 use Doctrine\DBAL\DBALException;
 use Doctrine\DBAL\Driver\AbstractOracleDriver;
+use Doctrine\DBAL\Driver\Connection;
 use Doctrine\DBAL\Driver\PDOConnection;
 use Doctrine\DBAL\Driver\PDOException;
 
@@ -22,7 +23,7 @@ class Driver extends AbstractOracleDriver
     /**
      * {@inheritdoc}
      */
-    public function connect(array $params, $username = null, $password = null, array $driverOptions = [])
+    public function connect(array $params, ?string $username = null, ?string $password = null, array $driverOptions = []) : Connection
     {
         try {
             return new PDOConnection(
@@ -43,7 +44,7 @@ class Driver extends AbstractOracleDriver
      *
      * @return string The DSN.
      */
-    private function constructPdoDsn(array $params)
+    private function constructPdoDsn(array $params) : string
     {
         $dsn = 'oci:dbname=' . $this->getEasyConnectString($params);
 
@@ -57,7 +58,7 @@ class Driver extends AbstractOracleDriver
     /**
      * {@inheritdoc}
      */
-    public function getName()
+    public function getName() : string
     {
         return 'pdo_oracle';
     }

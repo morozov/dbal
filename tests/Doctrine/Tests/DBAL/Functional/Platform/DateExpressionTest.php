@@ -34,7 +34,7 @@ class DateExpressionTest extends DbalFunctionalTestCase
     }
 
     /**
-     * @return string[][]|int[][]
+     * @return mixed[][]
      */
     public static function differenceProvider() : iterable
     {

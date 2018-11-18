@@ -41,10 +41,7 @@ class SchemaCreateTableEventArgs extends SchemaEventArgs
         $this->platform = $platform;
     }
 
-    /**
-     * @return Table
-     */
-    public function getTable()
+    public function getTable() : Table
     {
         return $this->table;
     }
@@ -52,7 +49,7 @@ class SchemaCreateTableEventArgs extends SchemaEventArgs
     /**
      * @return mixed[][]
      */
-    public function getColumns()
+    public function getColumns() : array
     {
         return $this->columns;
     }
@@ -60,25 +57,20 @@ class SchemaCreateTableEventArgs extends SchemaEventArgs
     /**
      * @return mixed[]
      */
-    public function getOptions()
+    public function getOptions() : array
     {
         return $this->options;
     }
 
-    /**
-     * @return AbstractPlatform
-     */
-    public function getPlatform()
+    public function getPlatform() : AbstractPlatform
     {
         return $this->platform;
     }
 
     /**
      * @param string|string[] $sql
-     *
-     * @return \Doctrine\DBAL\Event\SchemaCreateTableEventArgs
      */
-    public function addSql($sql)
+    public function addSql($sql) : self
     {
         if (is_array($sql)) {
             $this->sql = array_merge($this->sql, $sql);
@@ -92,7 +84,7 @@ class SchemaCreateTableEventArgs extends SchemaEventArgs
     /**
      * @return string[]
      */
-    public function getSql()
+    public function getSql() : array
     {
         return $this->sql;
     }

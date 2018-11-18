@@ -35,7 +35,7 @@ class MySqlSchemaManagerTest extends TestCase
         $this->manager = new MySqlSchemaManager($this->conn);
     }
 
-    public function testCompositeForeignKeys()
+    public function testCompositeForeignKeys() : void
     {
         $this->conn->expects($this->once())->method('fetchAll')->will($this->returnValue($this->getFKDefinition()));
         $fkeys = $this->manager->listTableForeignKeys('dummy');
@@ -46,7 +46,10 @@ class MySqlSchemaManagerTest extends TestCase
         self::assertEquals(['column_1', 'column_2', 'column_3'], array_map('strtolower', $fkeys[0]->getForeignColumns()));
     }
 
-    public function getFKDefinition()
+    /**
+     * @return string[][]
+     */
+    public function getFKDefinition() : array
     {
         return [
             [

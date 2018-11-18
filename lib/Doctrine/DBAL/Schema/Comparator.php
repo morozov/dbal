@@ -21,10 +21,7 @@ use function strtolower;
  */
 class Comparator
 {
-    /**
-     * @return SchemaDiff
-     */
-    public static function compareSchemas(Schema $fromSchema, Schema $toSchema)
+    public static function compareSchemas(Schema $fromSchema, Schema $toSchema) : SchemaDiff
     {
         $c = new self();
 
@@ -37,10 +34,8 @@ class Comparator
      * The returned differences are returned in such a way that they contain the
      * operations to change the schema stored in $fromSchema to the schema that is
      * stored in $toSchema.
-     *
-     * @return SchemaDiff
      */
-    public function compare(Schema $fromSchema, Schema $toSchema)
+    public function compare(Schema $fromSchema, Schema $toSchema) : SchemaDiff
     {
         $diff             = new SchemaDiff();
         $diff->fromSchema = $fromSchema;
@@ -152,13 +147,7 @@ class Comparator
         return $diff;
     }
 
-    /**
-     * @param Schema   $schema
-     * @param Sequence $sequence
-     *
-     * @return bool
-     */
-    private function isAutoIncrementSequenceInSchema($schema, $sequence)
+    private function isAutoIncrementSequenceInSchema(Schema $schema, Sequence $sequence) : bool
     {
         foreach ($schema->getTables() as $table) {
             if ($sequence->isAutoIncrementsFor($table)) {
@@ -169,10 +158,7 @@ class Comparator
         return false;
     }
 
-    /**
-     * @return bool
-     */
-    public function diffSequence(Sequence $sequence1, Sequence $sequence2)
+    public function diffSequence(Sequence $sequence1, Sequence $sequence2) : bool
     {
         if ($sequence1->getAllocationSize() !== $sequence2->getAllocationSize()) {
             return true;
@@ -300,10 +286,8 @@ class Comparator
     /**
      * Try to find columns that only changed their name, rename operations maybe cheaper than add/drop
      * however ambiguities between different possibilities should not lead to renaming at all.
-     *
-     * @return void
      */
-    private function detectColumnRenamings(TableDiff $tableDifferences)
+    private function detectColumnRenamings(TableDiff $tableDifferences) : void
     {
         $renameCandidates = [];
         foreach ($tableDifferences->addedColumns as $addedColumnName => $addedColumn) {
@@ -340,10 +324,8 @@ class Comparator
     /**
      * Try to find indexes that only changed their name, rename operations maybe cheaper than add/drop
      * however ambiguities between different possibilities should not lead to renaming at all.
-     *
-     * @return void
      */
-    private function detectIndexRenamings(TableDiff $tableDifferences)
+    private function detectIndexRenamings(TableDiff $tableDifferences) : void
     {
         $renameCandidates = [];
 
@@ -384,10 +366,7 @@ class Comparator
         }
     }
 
-    /**
-     * @return bool
-     */
-    public function diffForeignKey(ForeignKeyConstraint $key1, ForeignKeyConstraint $key2)
+    public function diffForeignKey(ForeignKeyConstraint $key1, ForeignKeyConstraint $key2) : bool
     {
         if (array_map('strtolower', $key1->getUnquotedLocalColumns()) !== array_map('strtolower', $key2->getUnquotedLocalColumns())) {
             return true;
@@ -416,7 +395,7 @@ class Comparator
      *
      * @return string[]
      */
-    public function diffColumn(Column $column1, Column $column2)
+    public function diffColumn(Column $column1, Column $column2) : array
     {
         $properties1 = $column1->toArray();
         $properties2 = $column2->toArray();
@@ -520,10 +499,8 @@ class Comparator
      *
      * Compares $index1 with $index2 and returns $index2 if there are any
      * differences or false in case there are no differences.
-     *
-     * @return bool
      */
-    public function diffIndex(Index $index1, Index $index2)
+    public function diffIndex(Index $index1, Index $index2) : bool
     {
         return ! ($index1->isFullfilledBy($index2) && $index2->isFullfilledBy($index1));
     }

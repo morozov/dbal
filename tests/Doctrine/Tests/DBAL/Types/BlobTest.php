@@ -27,7 +27,7 @@ class BlobTest extends DbalTestCase
         $this->type     = Type::getType('blob');
     }
 
-    public function testBlobNullConvertsToPHPValue()
+    public function testBlobNullConvertsToPHPValue() : void
     {
         self::assertNull($this->type->convertToPHPValue(null, $this->platform));
     }

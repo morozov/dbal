@@ -26,7 +26,7 @@ class StatementTest extends DbalFunctionalTestCase
         $this->markTestSkipped('sqlanywhere only test.');
     }
 
-    public function testNonPersistentStatement()
+    public function testNonPersistentStatement() : void
     {
         $params               = $this->connection->getParams();
         $params['persistent'] = false;
@@ -41,7 +41,7 @@ class StatementTest extends DbalFunctionalTestCase
         self::assertTrue($prepStmt->execute(), ' Statement non-persistent failed');
     }
 
-    public function testPersistentStatement()
+    public function testPersistentStatement() : void
     {
         $params               = $this->connection->getParams();
         $params['persistent'] = true;

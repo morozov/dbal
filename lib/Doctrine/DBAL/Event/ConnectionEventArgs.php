@@ -23,34 +23,22 @@ class ConnectionEventArgs extends EventArgs
         $this->connection = $connection;
     }
 
-    /**
-     * @return Connection
-     */
-    public function getConnection()
+    public function getConnection() : Connection
     {
         return $this->connection;
     }
 
-    /**
-     * @return Driver
-     */
-    public function getDriver()
+    public function getDriver() : Driver
     {
         return $this->connection->getDriver();
     }
 
-    /**
-     * @return AbstractPlatform
-     */
-    public function getDatabasePlatform()
+    public function getDatabasePlatform() : AbstractPlatform
     {
         return $this->connection->getDatabasePlatform();
     }
 
-    /**
-     * @return AbstractSchemaManager
-     */
-    public function getSchemaManager()
+    public function getSchemaManager() : AbstractSchemaManager
     {
         return $this->connection->getSchemaManager();
     }

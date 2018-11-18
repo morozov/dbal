@@ -28,7 +28,10 @@ class SqliteSchemaManagerTest extends TestCase
         self::assertSame($collation, $ref->invoke($manager, $column, $sql));
     }
 
-    public function getDataColumnCollation()
+    /**
+     * @return mixed[][]
+     */
+    public static function getDataColumnCollation() : iterable
     {
         return [
             ['RTRIM', 'a', 'CREATE TABLE "a" ("a" text DEFAULT "aa" COLLATE "RTRIM" NOT NULL)'],
@@ -66,7 +69,10 @@ class SqliteSchemaManagerTest extends TestCase
         self::assertSame($comment, $ref->invoke($manager, $column, $sql));
     }
 
-    public function getDataColumnComment()
+    /**
+     * @return mixed[][]
+     */
+    public static function getDataColumnComment() : iterable
     {
         return [
             'Single column with no comment' => [

@@ -23,22 +23,12 @@ class SchemaException extends DBALException
     public const CONSTRAINT_DOESNT_EXIST  = 110;
     public const NAMESPACE_ALREADY_EXISTS = 120;
 
-    /**
-     * @param string $tableName
-     *
-     * @return \Doctrine\DBAL\Schema\SchemaException
-     */
-    public static function tableDoesNotExist($tableName)
+    public static function tableDoesNotExist(string $tableName) : self
     {
         return new self("There is no table with name '" . $tableName . "' in the schema.", self::TABLE_DOESNT_EXIST);
     }
 
-    /**
-     * @param string $indexName
-     *
-     * @return \Doctrine\DBAL\Schema\SchemaException
-     */
-    public static function indexNameInvalid($indexName)
+    public static function indexNameInvalid(string $indexName) : self
     {
         return new self(
             sprintf('Invalid index-name %s given, has to be [a-zA-Z0-9_]', $indexName),
@@ -46,13 +36,7 @@ class SchemaException extends DBALException
         );
     }
 
-    /**
-     * @param string $indexName
-     * @param string $table
-     *
-     * @return \Doctrine\DBAL\Schema\SchemaException
-     */
-    public static function indexDoesNotExist($indexName, $table)
+    public static function indexDoesNotExist(string $indexName, string $table) : self
     {
         return new self(
             sprintf("Index '%s' does not exist on table '%s'.", $indexName, $table),
@@ -60,13 +44,7 @@ class SchemaException extends DBALException
         );
     }
 
-    /**
-     * @param string $indexName
-     * @param string $table
-     *
-     * @return \Doctrine\DBAL\Schema\SchemaException
-     */
-    public static function indexAlreadyExists($indexName, $table)
+    public static function indexAlreadyExists(string $indexName, string $table) : self
     {
         return new self(
             sprintf("An index with name '%s' was already defined on table '%s'.", $indexName, $table),
@@ -74,13 +52,7 @@ class SchemaException extends DBALException
         );
     }
 
-    /**
-     * @param string $columnName
-     * @param string $table
-     *
-     * @return \Doctrine\DBAL\Schema\SchemaException
-     */
-    public static function columnDoesNotExist($columnName, $table)
+    public static function columnDoesNotExist(string $columnName, string $table) : self
     {
         return new self(
             sprintf("There is no column with name '%s' on table '%s'.", $columnName, $table),
@@ -88,12 +60,7 @@ class SchemaException extends DBALException
         );
     }
 
-    /**
-     * @param string $namespaceName
-     *
-     * @return \Doctrine\DBAL\Schema\SchemaException
-     */
-    public static function namespaceAlreadyExists($namespaceName)
+    public static function namespaceAlreadyExists(string $namespaceName) : self
     {
         return new self(
             sprintf("The namespace with name '%s' already exists.", $namespaceName),
@@ -101,23 +68,12 @@ class SchemaException extends DBALException
         );
     }
 
-    /**
-     * @param string $tableName
-     *
-     * @return \Doctrine\DBAL\Schema\SchemaException
-     */
-    public static function tableAlreadyExists($tableName)
+    public static function tableAlreadyExists(string $tableName) : self
     {
         return new self("The table with name '" . $tableName . "' already exists.", self::TABLE_ALREADY_EXISTS);
     }
 
-    /**
-     * @param string $tableName
-     * @param string $columnName
-     *
-     * @return \Doctrine\DBAL\Schema\SchemaException
-     */
-    public static function columnAlreadyExists($tableName, $columnName)
+    public static function columnAlreadyExists(string $tableName, string $columnName) : self
     {
         return new self(
             "The column '" . $columnName . "' on table '" . $tableName . "' already exists.",
@@ -125,33 +81,17 @@ class SchemaException extends DBALException
         );
     }
 
-    /**
-     * @param string $sequenceName
-     *
-     * @return \Doctrine\DBAL\Schema\SchemaException
-     */
-    public static function sequenceAlreadyExists($sequenceName)
+    public static function sequenceAlreadyExists(string $sequenceName) : self
     {
         return new self("The sequence '" . $sequenceName . "' already exists.", self::SEQUENCE_ALREADY_EXISTS);
     }
 
-    /**
-     * @param string $sequenceName
-     *
-     * @return \Doctrine\DBAL\Schema\SchemaException
-     */
-    public static function sequenceDoesNotExist($sequenceName)
+    public static function sequenceDoesNotExist(string $sequenceName) : self
     {
         return new self("There exists no sequence with the name '" . $sequenceName . "'.", self::SEQUENCE_DOENST_EXIST);
     }
 
-    /**
-     * @param string $constraintName
-     * @param string $table
-     *
-     * @return self
-     */
-    public static function uniqueConstraintDoesNotExist($constraintName, $table)
+    public static function uniqueConstraintDoesNotExist(string $constraintName, string $table) : self
     {
         return new self(sprintf(
             'There exists no unique constraint with the name "%s" on table "%s".',
@@ -160,13 +100,7 @@ class SchemaException extends DBALException
         ), self::CONSTRAINT_DOESNT_EXIST);
     }
 
-    /**
-     * @param string $fkName
-     * @param string $table
-     *
-     * @return \Doctrine\DBAL\Schema\SchemaException
-     */
-    public static function foreignKeyDoesNotExist($fkName, $table)
+    public static function foreignKeyDoesNotExist(string $fkName, string $table) : self
     {
         return new self(
             sprintf("There exists no foreign key with the name '%s' on table '%s'.", $fkName, $table),
@@ -174,10 +108,7 @@ class SchemaException extends DBALException
         );
     }
 
-    /**
-     * @return \Doctrine\DBAL\Schema\SchemaException
-     */
-    public static function namedForeignKeyRequired(Table $localTable, ForeignKeyConstraint $foreignKey)
+    public static function namedForeignKeyRequired(Table $localTable, ForeignKeyConstraint $foreignKey) : self
     {
         return new self(
             'The performed schema operation on ' . $localTable->getName() . ' requires a named foreign key, ' .
@@ -187,12 +118,7 @@ class SchemaException extends DBALException
         );
     }
 
-    /**
-     * @param string $changeName
-     *
-     * @return \Doctrine\DBAL\Schema\SchemaException
-     */
-    public static function alterTableChangeNotSupported($changeName)
+    public static function alterTableChangeNotSupported(string $changeName) : self
     {
         return new self(
             sprintf("Alter table change not supported, given '%s'", $changeName)

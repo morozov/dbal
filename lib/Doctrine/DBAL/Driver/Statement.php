@@ -26,11 +26,11 @@ interface Statement extends ResultStatement
      *                     using question mark placeholders, this will be the 1-indexed position of the parameter.
      * @param mixed $value The value to bind to the parameter.
      * @param int   $type  Explicit data type for the parameter using the {@link \Doctrine\DBAL\ParameterType}
-     *                     constants.
+     *                        constants.
      *
      * @throws DriverException
      */
-    public function bindValue($param, $value, $type = ParameterType::STRING) : void;
+    public function bindValue($param, $value, int $type = ParameterType::STRING) : void;
 
     /**
      * Binds a PHP variable to a corresponding named (not supported by mysqli driver, see comment below) or question
@@ -57,7 +57,7 @@ interface Statement extends ResultStatement
      *
      * @throws DriverException
      */
-    public function bindParam($column, &$variable, $type = ParameterType::STRING, $length = null) : void;
+    public function bindParam($column, &$variable, int $type = ParameterType::STRING, ?int $length = null) : void;
 
     /**
      * Executes a prepared statement
@@ -73,5 +73,5 @@ interface Statement extends ResultStatement
      *
      * @throws DriverException
      */
-    public function execute($params = null) : void;
+    public function execute(?array $params = null) : void;
 }

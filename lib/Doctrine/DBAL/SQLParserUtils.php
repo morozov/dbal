@@ -48,12 +48,9 @@ class SQLParserUtils
      *
      * @deprecated Will be removed as internal implementation detail.
      *
-     * @param string $statement
-     * @param bool   $isPositional
-     *
      * @return int[]|string[]
      */
-    public static function getPlaceholderPositions($statement, $isPositional = true)
+    public static function getPlaceholderPositions(string $statement, bool $isPositional = true) : array
     {
         return $isPositional
             ? self::getPositionalPlaceholderPositions($statement)
@@ -126,7 +123,7 @@ class SQLParserUtils
      *
      * @throws SQLParserUtilsException
      */
-    public static function expandListParameters($query, $params, $types)
+    public static function expandListParameters(string $query, array $params, array $types) : array
     {
         $isPositional   = is_int(key($params));
         $arrayPositions = [];
@@ -242,11 +239,9 @@ class SQLParserUtils
      * 0 => matched fragment string,
      * 1 => offset of fragment in $statement
      *
-     * @param string $statement
-     *
      * @return mixed[][]
      */
-    private static function getUnquotedStatementFragments($statement)
+    private static function getUnquotedStatementFragments(string $statement) : array
     {
         $literal    = self::ESCAPED_SINGLE_QUOTED_TEXT . '|' .
             self::ESCAPED_DOUBLE_QUOTED_TEXT . '|' .
@@ -262,14 +257,13 @@ class SQLParserUtils
     /**
      * @param string $paramName     The name of the parameter (without a colon in front)
      * @param mixed  $paramsOrTypes A hash of parameters or types
-     * @param bool   $isParam
      * @param mixed  $defaultValue  An optional default value. If omitted, an exception is thrown
      *
      * @return mixed
      *
      * @throws SQLParserUtilsException
      */
-    private static function extractParam($paramName, $paramsOrTypes, $isParam, $defaultValue = null)
+    private static function extractParam(string $paramName, $paramsOrTypes, bool $isParam, $defaultValue = null)
     {
         if (array_key_exists($paramName, $paramsOrTypes)) {
             return $paramsOrTypes[$paramName];

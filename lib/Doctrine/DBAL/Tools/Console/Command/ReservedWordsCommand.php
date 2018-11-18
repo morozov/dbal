@@ -47,19 +47,16 @@ class ReservedWordsCommand extends Command
 
     /**
      * If you want to add or replace a keywords list use this command.
-     *
-     * @param string $name
-     * @param string $class
-     *
-     * @return void
      */
-    public function setKeywordListClass($name, $class)
+    public function setKeywordListClass(string $name, string $class) : void
     {
         $this->keywordListClasses[$name] = $class;
     }
 
     /**
      * {@inheritdoc}
+     *
+     * @return void
      */
     protected function configure()
     {

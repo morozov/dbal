@@ -11,7 +11,7 @@ use PHPUnit\Framework\TestCase;
 
 class MultiTenantVisitorTest extends TestCase
 {
-    public function testMultiTenantPrimaryKey()
+    public function testMultiTenantPrimaryKey() : void
     {
         $platform = new SQLAzurePlatform();
         $visitor  = new MultiTenantVisitor();
@@ -26,7 +26,7 @@ class MultiTenantVisitorTest extends TestCase
         self::assertTrue($foo->hasColumn('tenant_id'));
     }
 
-    public function testMultiTenantNonPrimaryKey()
+    public function testMultiTenantNonPrimaryKey() : void
     {
         $platform = new SQLAzurePlatform();
         $visitor  = new MultiTenantVisitor();

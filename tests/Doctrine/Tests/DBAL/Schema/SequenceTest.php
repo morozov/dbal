@@ -13,7 +13,7 @@ class SequenceTest extends DbalTestCase
     /**
      * @group DDC-1657
      */
-    public function testIsAutoincrementFor()
+    public function testIsAutoincrementFor() : void
     {
         $table = new Table('foo');
         $table->addColumn('id', 'integer', ['autoincrement' => true]);
@@ -28,7 +28,7 @@ class SequenceTest extends DbalTestCase
         self::assertFalse($sequence3->isAutoIncrementsFor($table));
     }
 
-    public function testIsAutoincrementForCaseInsensitive()
+    public function testIsAutoincrementForCaseInsensitive() : void
     {
         $table = new Table('foo');
         $table->addColumn('ID', 'integer', ['autoincrement' => true]);

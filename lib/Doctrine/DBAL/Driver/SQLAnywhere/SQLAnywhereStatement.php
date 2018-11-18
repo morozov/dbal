@@ -70,7 +70,7 @@ class SQLAnywhereStatement implements IteratorAggregate, Statement
      *
      * @throws SQLAnywhereException
      */
-    public function __construct($conn, $sql)
+    public function __construct($conn, string $sql)
     {
         if (! is_resource($conn)) {
             throw new SQLAnywhereException('Invalid SQL Anywhere connection resource: ' . $conn);
@@ -137,7 +137,7 @@ class SQLAnywhereStatement implements IteratorAggregate, Statement
     /**
      * {@inheritdoc}
      */
-    public function columnCount()
+    public function columnCount() : int
     {
         return sasql_stmt_field_count($this->stmt);
     }
@@ -147,7 +147,7 @@ class SQLAnywhereStatement implements IteratorAggregate, Statement
      *
      * @throws SQLAnywhereException
      */
-    public function execute($params = null) : void
+    public function execute(?array $params = null) : void
     {
         if (is_array($params)) {
             $hasZeroIndex = array_key_exists(0, $params);
@@ -173,7 +173,7 @@ class SQLAnywhereStatement implements IteratorAggregate, Statement
      *
      * @throws SQLAnywhereException
      */
-    public function fetch($fetchMode = null, ...$args)
+    public function fetch(?int $fetchMode = null, ...$args)
     {
         if (! is_resource($this->result)) {
             return false;
@@ -222,7 +222,7 @@ class SQLAnywhereStatement implements IteratorAggregate, Statement
     /**
      * {@inheritdoc}
      */
-    public function fetchAll($fetchMode = null, ...$args)
+    public function fetchAll(?int $fetchMode = null, ...$args) : array
     {
         $rows = [];
 
@@ -251,7 +251,7 @@ class SQLAnywhereStatement implements IteratorAggregate, Statement
     /**
      * {@inheritdoc}
      */
-    public function fetchColumn($columnIndex = 0)
+    public function fetchColumn(int $columnIndex = 0)
     {
         $row = $this->fetch(FetchMode::NUMERIC);
 
@@ -283,7 +283,7 @@ class SQLAnywhereStatement implements IteratorAggregate, Statement
     /**
      * {@inheritdoc}
      */
-    public function setFetchMode($fetchMode, ...$args) : void
+    public function setFetchMode(int $fetchMode, ...$args) : void
     {
         $this->defaultFetchMode = $fetchMode;
 
@@ -305,11 +305,9 @@ class SQLAnywhereStatement implements IteratorAggregate, Statement
      * @param string|object $destinationClass Name of the class or class instance to cast to.
      * @param mixed[]       $ctorArgs         Arguments to use for constructing the destination class instance.
      *
-     * @return object
-     *
      * @throws SQLAnywhereException
      */
-    private function castObject(stdClass $sourceObject, $destinationClass, array $ctorArgs = [])
+    private function castObject(stdClass $sourceObject, $destinationClass, array $ctorArgs = []) : object
     {
         if (! is_string($destinationClass)) {
             if (! is_object($destinationClass)) {

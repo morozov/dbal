@@ -40,7 +40,7 @@ class TestUtil
      *
      * @return Connection The database connection instance.
      */
-    public static function getConnection()
+    public static function getConnection() : Connection
     {
         if (self::hasRequiredConnectionParams() && ! self::$initialized) {
             self::initializeDatabase();
@@ -54,7 +54,10 @@ class TestUtil
         return $conn;
     }
 
-    public static function getConnectionParams()
+    /**
+     * @return mixed[]
+     */
+    public static function getConnectionParams() : array
     {
         if (self::hasRequiredConnectionParams()) {
             return self::getParamsForMainConnection();
@@ -63,7 +66,7 @@ class TestUtil
         return self::getFallbackConnectionParams();
     }
 
-    private static function hasRequiredConnectionParams()
+    private static function hasRequiredConnectionParams() : bool
     {
         return isset(
             $GLOBALS['db_type'],
@@ -113,7 +116,10 @@ class TestUtil
         }
     }
 
-    private static function getFallbackConnectionParams()
+    /**
+     * @return mixed[]
+     */
+    private static function getFallbackConnectionParams() : array
     {
         if (! extension_loaded('pdo_sqlite')) {
             Assert::markTestSkipped('PDO SQLite extension is not loaded');
@@ -132,7 +138,7 @@ class TestUtil
         return $params;
     }
 
-    private static function addDbEventSubscribers(Connection $conn)
+    private static function addDbEventSubscribers(Connection $conn) : void
     {
         if (! isset($GLOBALS['db_event_subscribers'])) {
             return;
@@ -145,7 +151,10 @@ class TestUtil
         }
     }
 
-    private static function getParamsForTemporaryConnection()
+    /**
+     * @return mixed[]
+     */
+    private static function getParamsForTemporaryConnection() : array
     {
         $connectionParams = [
             'driver' => $GLOBALS['tmpdb_type'],
@@ -171,7 +180,10 @@ class TestUtil
         return $connectionParams;
     }
 
-    private static function getParamsForMainConnection()
+    /**
+     * @return mixed[]
+     */
+    private static function getParamsForMainConnection() : array
     {
         $connectionParams = [
             'driver' => $GLOBALS['db_type'],
@@ -193,10 +205,7 @@ class TestUtil
         return $connectionParams;
     }
 
-    /**
-     * @return Connection
-     */
-    public static function getTempConnection()
+    public static function getTempConnection() : Connection
     {
         return DriverManager::getConnection(self::getParamsForTemporaryConnection());
     }

@@ -44,12 +44,12 @@ class PDOConnectionTest extends DbalFunctionalTestCase
         parent::tearDown();
     }
 
-    public function testDoesNotRequireQueryForServerVersion()
+    public function testDoesNotRequireQueryForServerVersion() : void
     {
         self::assertFalse($this->driverConnection->requiresQueryForServerVersion());
     }
 
-    public function testThrowsWrappedExceptionOnConstruct()
+    public function testThrowsWrappedExceptionOnConstruct() : void
     {
         $this->expectException(PDOException::class);
 
@@ -59,14 +59,14 @@ class PDOConnectionTest extends DbalFunctionalTestCase
     /**
      * @group DBAL-1022
      */
-    public function testThrowsWrappedExceptionOnExec()
+    public function testThrowsWrappedExceptionOnExec() : void
     {
         $this->expectException(PDOException::class);
 
         $this->driverConnection->exec('foo');
     }
 
-    public function testThrowsWrappedExceptionOnPrepare()
+    public function testThrowsWrappedExceptionOnPrepare() : void
     {
         if ($this->connection->getDriver()->getName() === 'pdo_sqlsrv') {
             $this->markTestSkipped('pdo_sqlsrv does not allow setting PDO::ATTR_EMULATE_PREPARES at connection level.');
@@ -95,7 +95,7 @@ class PDOConnectionTest extends DbalFunctionalTestCase
         );
     }
 
-    public function testThrowsWrappedExceptionOnQuery()
+    public function testThrowsWrappedExceptionOnQuery() : void
     {
         $this->expectException(PDOException::class);
 
