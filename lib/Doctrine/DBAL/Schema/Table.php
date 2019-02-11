@@ -11,6 +11,7 @@ use function array_keys;
 use function array_merge;
 use function array_search;
 use function array_unique;
+use function assert;
 use function in_array;
 use function is_string;
 use function preg_match;
@@ -20,8 +21,6 @@ use function uksort;
 
 /**
  * Object Representation of a table.
- *
- * @method getName() : string
  */
 class Table extends AbstractAsset
 {
@@ -89,6 +88,14 @@ class Table extends AbstractAsset
         }
 
         $this->_options = $options;
+    }
+
+    public function getName() : string
+    {
+        $name = parent::getName();
+        assert(is_string($name));
+
+        return $name;
     }
 
     public function setSchemaConfig(SchemaConfig $schemaConfig) : void
@@ -768,13 +775,15 @@ class Table extends AbstractAsset
 
     protected function _addUniqueConstraint(UniqueConstraint $constraint) : self
     {
-        $name = strlen($constraint->getName())
-            ? $constraint->getName()
-            : $this->_generateIdentifierName(
-                array_merge((array) $this->getName(), $constraint->getLocalColumns()),
+        $name = $constraint->getName();
+
+        if ($name === null) {
+            $name = $this->_generateIdentifierName(
+                array_merge([$this->getName()], $constraint->getLocalColumns()),
                 'fk',
                 $this->_getMaxIdentifierLength()
             );
+        }
 
         $name = $this->normalizeIdentifier($name);
 
