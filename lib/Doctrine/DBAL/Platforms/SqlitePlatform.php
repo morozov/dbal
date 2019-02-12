@@ -22,7 +22,6 @@ use function implode;
 use function sprintf;
 use function sqrt;
 use function str_replace;
-use function strlen;
 use function strpos;
 use function strtolower;
 
@@ -1068,18 +1067,20 @@ class SqlitePlatform extends AbstractPlatform
         }
 
         foreach ($diff->removedIndexes as $index) {
-            $indexName = strtolower($index->getName());
-            if (! strlen($indexName) || ! isset($indexes[$indexName])) {
+            $indexName = $index->getName();
+
+            if ($indexName === null) {
                 continue;
             }
 
-            unset($indexes[$indexName]);
+            unset($indexes[strtolower($indexName)]);
         }
 
         foreach (array_merge($diff->changedIndexes, $diff->addedIndexes, $diff->renamedIndexes) as $index) {
-            $indexName = strtolower($index->getName());
-            if (strlen($indexName)) {
-                $indexes[$indexName] = $index;
+            $indexName = $index->getName();
+
+            if ($indexName !== null) {
+                $indexes[strtolower($indexName)] = $index;
             } else {
                 $indexes[] = $index;
             }
@@ -1126,18 +1127,20 @@ class SqlitePlatform extends AbstractPlatform
                 $constraint = new Identifier($constraint);
             }
 
-            $constraintName = strtolower($constraint->getName());
-            if (! strlen($constraintName) || ! isset($foreignKeys[$constraintName])) {
+            $constraintName = $constraint->getName();
+
+            if ($constraintName === null) {
                 continue;
             }
 
-            unset($foreignKeys[$constraintName]);
+            unset($foreignKeys[strtolower($constraintName)]);
         }
 
         foreach (array_merge($diff->changedForeignKeys, $diff->addedForeignKeys) as $constraint) {
-            $constraintName = strtolower($constraint->getName());
-            if (strlen($constraintName)) {
-                $foreignKeys[$constraintName] = $constraint;
+            $constraintName = $constraint->getName();
+
+            if ($constraintName !== null) {
+                $foreignKeys[strtolower($constraintName)] = $constraint;
             } else {
                 $foreignKeys[] = $constraint;
             }

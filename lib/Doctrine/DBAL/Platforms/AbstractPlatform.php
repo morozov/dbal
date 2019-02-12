@@ -1449,7 +1449,7 @@ abstract class AbstractPlatform
             throw DBALException::notSupported(__METHOD__);
         }
 
-        return 'COMMENT ' . $this->quoteStringLiteral($comment);
+        return 'COMMENT ' . $this->quoteStringLiteral((string) $comment);
     }
 
     /**
@@ -2080,15 +2080,19 @@ abstract class AbstractPlatform
     {
         $constraints = [];
         foreach ($definition as $field => $def) {
-            if (isset($def['min'])) {
-                $constraints[] = 'CHECK (' . $field . ' >= ' . $def['min'] . ')';
-            }
+            if (is_string($def)) {
+                $constraints[] = 'CHECK (' . $def . ')';
+            } else {
+                if (isset($def['min'])) {
+                    $constraints[] = 'CHECK (' . $field . ' >= ' . $def['min'] . ')';
+                }
 
-            if (! isset($def['max'])) {
-                continue;
-            }
+                if (! isset($def['max'])) {
+                    continue;
+                }
 
-            $constraints[] = 'CHECK (' . $field . ' <= ' . $def['max'] . ')';
+                $constraints[] = 'CHECK (' . $field . ' <= ' . $def['max'] . ')';
+            }
         }
 
         return implode(', ', $constraints);
@@ -2168,7 +2172,7 @@ abstract class AbstractPlatform
      * Obtains DBMS specific SQL code portion needed to set an index
      * declaration to be used in statements like CREATE TABLE.
      *
-     * @param mixed[][]|Index $columnsOrIndex array declaration is deprecated, prefer passing Index to this method
+     * @param mixed[]|Index $columnsOrIndex array declaration is deprecated, prefer passing Index to this method
      */
     public function getIndexFieldDeclarationListSQL($columnsOrIndex) : string
     {
