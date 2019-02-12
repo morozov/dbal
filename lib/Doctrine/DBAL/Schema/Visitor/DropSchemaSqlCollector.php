@@ -10,7 +10,6 @@ use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\DBAL\Schema\Sequence;
 use Doctrine\DBAL\Schema\Table;
 use SplObjectStorage;
-use function strlen;
 
 /**
  * Gathers SQL statements that allow to completely drop the current schema.

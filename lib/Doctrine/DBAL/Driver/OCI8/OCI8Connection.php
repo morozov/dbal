@@ -43,7 +43,7 @@ class OCI8Connection implements Connection, ServerInfoAwareConnection
         string $username,
         string $password,
         string $db,
-        ?string $charset = null,
+        string $charset = '',
         int $sessionMode = OCI_DEFAULT,
         bool $persistent = false
     ) {

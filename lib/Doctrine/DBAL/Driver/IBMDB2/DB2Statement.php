@@ -160,11 +160,7 @@ class DB2Statement implements IteratorAggregate, Statement
      */
     public function columnCount() : int
     {
-        if (! $this->stmt) {
-            return 0;
-        }
-
-        return db2_num_fields($this->stmt);
+        return db2_num_fields($this->stmt) ?: 0;
     }
 
     /**

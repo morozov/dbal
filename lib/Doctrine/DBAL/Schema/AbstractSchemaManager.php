@@ -898,14 +898,9 @@ abstract class AbstractSchemaManager
     {
         $list = [];
         foreach ($views as $value) {
-            $view = $this->_getPortableViewDefinition($value);
-
-            if (! $view) {
-                continue;
-            }
-
-            $viewName        = strtolower($view->getQuotedName($this->_platform));
-            $list[$viewName] = $view;
+            $view        = $this->_getPortableViewDefinition($value);
+            $name        = strtolower($view->getQuotedName($this->_platform));
+            $list[$name] = $view;
         }
 
         return $list;

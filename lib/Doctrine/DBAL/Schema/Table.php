@@ -775,15 +775,11 @@ class Table extends AbstractAsset
 
     protected function _addUniqueConstraint(UniqueConstraint $constraint) : self
     {
-        $name = $constraint->getName();
-
-        if ($name === null) {
-            $name = $this->_generateIdentifierName(
-                array_merge([$this->getName()], $constraint->getLocalColumns()),
-                'fk',
-                $this->_getMaxIdentifierLength()
-            );
-        }
+        $name = $constraint->getName() ?? $this->_generateIdentifierName(
+            array_merge([$this->getName()], $constraint->getLocalColumns()),
+            'fk',
+            $this->_getMaxIdentifierLength()
+        );
 
         $name = $this->normalizeIdentifier($name);
 
@@ -815,13 +811,11 @@ class Table extends AbstractAsset
     {
         $constraint->setLocalTable($this);
 
-        $name = strlen($constraint->getName())
-            ? $constraint->getName()
-            : $this->_generateIdentifierName(
-                array_merge((array) $this->getName(), $constraint->getLocalColumns()),
-                'fk',
-                $this->_getMaxIdentifierLength()
-            );
+        $name = $constraint->getName() ?? $this->_generateIdentifierName(
+            array_merge([$this->getName()], $constraint->getLocalColumns()),
+            'fk',
+            $this->_getMaxIdentifierLength()
+        );
 
         $name = $this->normalizeIdentifier($name);
 
