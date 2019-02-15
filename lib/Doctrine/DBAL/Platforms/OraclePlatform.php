@@ -350,7 +350,7 @@ class OraclePlatform extends AbstractPlatform
     /**
      * {@inheritDoc}
      */
-    public function getListSequencesSQL(?string $database) : ?string
+    public function getListSequencesSQL(?string $database) : string
     {
         $database = $this->normalizeIdentifier($database);
         $database = $this->quoteStringLiteral($database->getName());

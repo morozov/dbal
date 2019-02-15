@@ -227,7 +227,7 @@ class PostgreSqlPlatform extends AbstractPlatform
     /**
      * {@inheritDoc}
      */
-    public function getListSequencesSQL(?string $database) : ?string
+    public function getListSequencesSQL(?string $database) : string
     {
         return "SELECT sequence_name AS relname,
                        sequence_schema AS schemaname

@@ -54,7 +54,7 @@ class SQLServer2012Platform extends SQLServerPlatform
     /**
      * {@inheritdoc}
      */
-    public function getListSequencesSQL(?string $database) : ?string
+    public function getListSequencesSQL(?string $database) : string
     {
         return 'SELECT seq.name,
                        CAST(

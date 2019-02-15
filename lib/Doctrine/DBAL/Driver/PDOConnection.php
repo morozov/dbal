@@ -18,7 +18,7 @@ class PDOConnection implements Connection, ServerInfoAwareConnection
     private $connection;
 
     /**
-     * @param mixed[]|null $options
+     * @param mixed[] $options
      *
      * @throws PDOException In case of an error.
      */

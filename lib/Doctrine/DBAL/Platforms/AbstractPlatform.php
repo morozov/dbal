@@ -2492,7 +2492,7 @@ abstract class AbstractPlatform
     /**
      * @throws DBALException If not supported on this platform.
      */
-    public function getListSequencesSQL(?string $database) : ?string
+    public function getListSequencesSQL(?string $database) : string
     {
         throw DBALException::notSupported(__METHOD__);
     }

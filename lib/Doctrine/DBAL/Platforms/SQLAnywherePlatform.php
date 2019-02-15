@@ -1185,7 +1185,7 @@ SQL
     /**
      * {@inheritdoc}
      */
-    public function getListSequencesSQL(?string $database) : ?string
+    public function getListSequencesSQL(?string $database) : string
     {
         return 'SELECT sequence_name, increment_by, start_with, min_value FROM SYS.SYSSEQUENCE';
     }
