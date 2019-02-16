@@ -581,6 +581,10 @@ class SqlitePlatform extends AbstractPlatform
      */
     public function getInlineColumnCommentSQL(?string $comment) : string
     {
+        if ($comment === null || $comment === '') {
+            return '';
+        }
+
         return '--' . str_replace("\n", "\n--", $comment) . "\n";
     }
 
@@ -1067,23 +1071,11 @@ class SqlitePlatform extends AbstractPlatform
         }
 
         foreach ($diff->removedIndexes as $index) {
-            $indexName = $index->getName();
-
-            if ($indexName === null) {
-                continue;
-            }
-
-            unset($indexes[strtolower($indexName)]);
+            unset($indexes[strtolower($index->getName())]);
         }
 
         foreach (array_merge($diff->changedIndexes, $diff->addedIndexes, $diff->renamedIndexes) as $index) {
-            $indexName = $index->getName();
-
-            if ($indexName !== null) {
-                $indexes[strtolower($indexName)] = $index;
-            } else {
-                $indexes[] = $index;
-            }
+            $indexes[strtolower($index->getName())] = $index;
         }
 
         return $indexes;
@@ -1127,23 +1119,11 @@ class SqlitePlatform extends AbstractPlatform
                 $constraint = new Identifier($constraint);
             }
 
-            $constraintName = $constraint->getName();
-
-            if ($constraintName === null) {
-                continue;
-            }
-
-            unset($foreignKeys[strtolower($constraintName)]);
+            unset($foreignKeys[strtolower($constraint->getName())]);
         }
 
         foreach (array_merge($diff->changedForeignKeys, $diff->addedForeignKeys) as $constraint) {
-            $constraintName = $constraint->getName();
-
-            if ($constraintName !== null) {
-                $foreignKeys[strtolower($constraintName)] = $constraint;
-            } else {
-                $foreignKeys[] = $constraint;
-            }
+            $foreignKeys[strtolower($constraint->getName())] = $constraint;
         }
 
         return $foreignKeys;

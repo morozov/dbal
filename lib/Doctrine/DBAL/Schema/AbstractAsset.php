@@ -131,9 +131,15 @@ abstract class AbstractAsset
 
     /**
      * Returns the name of this schema asset.
+     *
+     * @throws SchemaException
      */
-    public function getName() : ?string
+    public function getName() : string
     {
+        if ($this->_name === null) {
+            throw SchemaException::assetDoesNotHaveAName($this);
+        }
+
         if ($this->_namespace) {
             return $this->_namespace . '.' . $this->_name;
         }

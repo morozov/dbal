@@ -6,7 +6,6 @@ namespace Doctrine\DBAL\Schema\Visitor;
 
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
-use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\DBAL\Schema\Sequence;
 use Doctrine\DBAL\Schema\Table;
 use SplObjectStorage;
@@ -47,10 +46,6 @@ class DropSchemaSqlCollector extends AbstractVisitor
      */
     public function acceptForeignKey(Table $localTable, ForeignKeyConstraint $fkConstraint) : void
     {
-        if ($fkConstraint->getName() === null) {
-            throw SchemaException::namedForeignKeyRequired($localTable, $fkConstraint);
-        }
-
         $this->constraints->attach($fkConstraint, $localTable);
     }
 

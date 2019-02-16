@@ -7,8 +7,6 @@ namespace Doctrine\DBAL\Schema;
 use Doctrine\DBAL\Types\Type;
 use const E_USER_DEPRECATED;
 use function array_merge;
-use function assert;
-use function is_string;
 use function method_exists;
 use function sprintf;
 use function trigger_error;
@@ -67,14 +65,6 @@ class Column extends AbstractAsset
         $this->_setName($columnName);
         $this->setType($type);
         $this->setOptions($options);
-    }
-
-    public function getName() : string
-    {
-        $name = parent::getName();
-        assert(is_string($name));
-
-        return $name;
     }
 
     /**

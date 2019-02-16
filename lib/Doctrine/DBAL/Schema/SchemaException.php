@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Doctrine\DBAL\Schema;
 
 use Doctrine\DBAL\DBALException;
-use function implode;
 use function sprintf;
 
 class SchemaException extends DBALException
@@ -108,14 +107,9 @@ class SchemaException extends DBALException
         );
     }
 
-    public static function namedForeignKeyRequired(Table $localTable, ForeignKeyConstraint $foreignKey) : self
+    public static function assetDoesNotHaveAName(AbstractAsset $asset) : self
     {
-        return new self(
-            'The performed schema operation on ' . $localTable->getName() . ' requires a named foreign key, ' .
-            'but the given foreign key from (' . implode(', ', $foreignKey->getColumns()) . ') onto foreign table ' .
-            "'" . $foreignKey->getForeignTableName() . "' (" . implode(', ', $foreignKey->getForeignColumns()) . ') is currently ' .
-            'unnamed.'
-        );
+        return new self('The asset does not have a name');
     }
 
     public static function alterTableChangeNotSupported(string $changeName) : self

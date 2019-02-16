@@ -207,7 +207,7 @@ class PoolingShardConnection extends Connection
      *
      * @param string|int $shardId
      */
-    protected function connectTo(string $shardId) : DriverConnection
+    protected function connectTo($shardId) : DriverConnection
     {
         $params = $this->getParams();
 
