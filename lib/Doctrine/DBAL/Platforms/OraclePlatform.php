@@ -352,11 +352,18 @@ class OraclePlatform extends AbstractPlatform
      */
     public function getListSequencesSQL(?string $database) : string
     {
-        $database = $this->normalizeIdentifier($database);
-        $database = $this->quoteStringLiteral($database->getName());
+        $query = 'SELECT SEQUENCE_NAME, MIN_VALUE, INCREMENT_BY';
 
-        return 'SELECT sequence_name, min_value, increment_by FROM sys.all_sequences ' .
-               'WHERE SEQUENCE_OWNER = ' . $database;
+        if ($database === null || $database === '/') {
+            $query .= ' FROM SYS.USER_SEQUENCES';
+        } else {
+            $query .= ' FROM SYS.ALL_SEQUENCES WHERE SEQUENCE_OWNER = '
+                . $this->quoteStringLiteral(
+                    $this->normalizeIdentifier($database)->getName()
+                );
+        }
+
+        return $query;
     }
 
     /**
