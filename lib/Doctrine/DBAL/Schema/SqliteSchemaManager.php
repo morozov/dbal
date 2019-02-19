@@ -408,7 +408,12 @@ class SqliteSchemaManager extends AbstractSchemaManager
                     'deferred'=> $value['deferred'],
                 ];
             }
-            $list[$name]['local'][]   = $value['from'];
+            $list[$name]['local'][] = $value['from'];
+
+            if ($value['to'] === null) {
+                continue;
+            }
+
             $list[$name]['foreign'][] = $value['to'];
         }
 

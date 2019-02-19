@@ -6,10 +6,12 @@ namespace Doctrine\DBAL\Schema;
 
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use function array_map;
+use function assert;
 use function crc32;
 use function dechex;
 use function explode;
 use function implode;
+use function is_string;
 use function str_replace;
 use function strpos;
 use function strtolower;
@@ -79,6 +81,8 @@ abstract class AbstractAsset
     public function getShortestName(?string $defaultNamespaceName) : string
     {
         $shortestName = $this->getName();
+        assert(is_string($shortestName));
+
         if ($this->_namespace === $defaultNamespaceName) {
             $shortestName = $this->_name;
         }
@@ -98,6 +102,8 @@ abstract class AbstractAsset
     public function getFullQualifiedName(string $defaultNamespaceName) : string
     {
         $name = $this->getName();
+        assert(is_string($name));
+
         if (! $this->_namespace) {
             $name = $defaultNamespaceName . '.' . $name;
         }
@@ -131,13 +137,11 @@ abstract class AbstractAsset
 
     /**
      * Returns the name of this schema asset.
-     *
-     * @throws SchemaException
      */
-    public function getName() : string
+    public function getName() : ?string
     {
         if ($this->_name === null) {
-            throw SchemaException::assetDoesNotHaveAName($this);
+            return null;
         }
 
         if ($this->_namespace) {
@@ -153,8 +157,11 @@ abstract class AbstractAsset
      */
     public function getQuotedName(AbstractPlatform $platform) : string
     {
+        $name = $this->getName();
+        assert(is_string($name));
+
         $keywords = $platform->getReservedKeywordsList();
-        $parts    = explode('.', $this->getName());
+        $parts    = explode('.', $name);
         foreach ($parts as $k => $v) {
             $parts[$k] = $this->_quoted || $keywords->isKeyword($v) ? $platform->quoteIdentifier($v) : $v;
         }

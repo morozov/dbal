@@ -1071,11 +1071,23 @@ class SqlitePlatform extends AbstractPlatform
         }
 
         foreach ($diff->removedIndexes as $index) {
-            unset($indexes[strtolower($index->getName())]);
+            $indexName = $index->getName();
+
+            if ($indexName === null) {
+                continue;
+            }
+
+            unset($indexes[strtolower($indexName)]);
         }
 
         foreach (array_merge($diff->changedIndexes, $diff->addedIndexes, $diff->renamedIndexes) as $index) {
-            $indexes[strtolower($index->getName())] = $index;
+            $indexName = $index->getName();
+
+            if ($indexName !== null) {
+                $indexes[strtolower($indexName)] = $index;
+            } else {
+                $indexes[] = $index;
+            }
         }
 
         return $indexes;
@@ -1119,11 +1131,23 @@ class SqlitePlatform extends AbstractPlatform
                 $constraint = new Identifier($constraint);
             }
 
-            unset($foreignKeys[strtolower($constraint->getName())]);
+            $constraintName = $constraint->getName();
+
+            if ($constraintName === null) {
+                continue;
+            }
+
+            unset($foreignKeys[strtolower($constraintName)]);
         }
 
         foreach (array_merge($diff->changedForeignKeys, $diff->addedForeignKeys) as $constraint) {
-            $foreignKeys[strtolower($constraint->getName())] = $constraint;
+            $constraintName = $constraint->getName();
+
+            if ($constraintName !== null) {
+                $foreignKeys[strtolower($constraintName)] = $constraint;
+            } else {
+                $foreignKeys[] = $constraint;
+            }
         }
 
         return $foreignKeys;

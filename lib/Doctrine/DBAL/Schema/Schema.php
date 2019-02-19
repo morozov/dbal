@@ -10,6 +10,8 @@ use Doctrine\DBAL\Schema\Visitor\DropSchemaSqlCollector;
 use Doctrine\DBAL\Schema\Visitor\NamespaceVisitor;
 use Doctrine\DBAL\Schema\Visitor\Visitor;
 use function array_keys;
+use function assert;
+use function is_string;
 use function strpos;
 use function strtolower;
 
@@ -83,6 +85,14 @@ class Schema extends AbstractAsset
         foreach ($sequences as $sequence) {
             $this->_addSequence($sequence);
         }
+    }
+
+    public function getName() : string
+    {
+        $name = parent::getName();
+        assert(is_string($name));
+
+        return $name;
     }
 
     public function hasExplicitForeignKeyIndexes() : bool

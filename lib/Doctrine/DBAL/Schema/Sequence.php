@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Doctrine\DBAL\Schema;
 
 use Doctrine\DBAL\Schema\Visitor\Visitor;
+use function assert;
 use function count;
+use function is_string;
 use function sprintf;
 
 /**
@@ -28,6 +30,14 @@ class Sequence extends AbstractAsset
         $this->setAllocationSize($allocationSize);
         $this->setInitialValue($initialValue);
         $this->cache = $cache;
+    }
+
+    public function getName() : string
+    {
+        $name = parent::getName();
+        assert(is_string($name));
+
+        return $name;
     }
 
     public function getAllocationSize() : int

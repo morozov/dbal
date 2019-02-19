@@ -2112,23 +2112,26 @@ abstract class AbstractPlatform
     public function getUniqueConstraintDeclarationSQL(?string $name, UniqueConstraint $constraint) : string
     {
         $columns = $constraint->getColumns();
-        $name    = new Identifier($name);
 
         if (count($columns) === 0) {
             throw new InvalidArgumentException("Incomplete definition. 'columns' required.");
         }
 
-        $flags = ['UNIQUE'];
+        $chunks = ['CONSTRAINT'];
 
-        if ($constraint->hasFlag('clustered')) {
-            $flags[] = 'CLUSTERED';
+        if ($name !== null) {
+            $chunks[] = (new Identifier($name))->getQuotedName($this);
         }
 
-        $constraintName  = $name->getQuotedName($this);
-        $constraintName  = ! empty($constraintName) ? $constraintName . ' ' : '';
-        $columnListNames = $this->getIndexFieldDeclarationListSQL($columns);
+        $chunks[] = 'UNIQUE';
 
-        return sprintf('CONSTRAINT %s%s (%s)', $constraintName, implode(' ', $flags), $columnListNames);
+        if ($constraint->hasFlag('clustered')) {
+            $chunks[] = 'CLUSTERED';
+        }
+
+        $chunks[] = sprintf('(%s)', $this->getIndexFieldDeclarationListSQL($columns));
+
+        return implode(' ', $chunks);
     }
 
     /**
