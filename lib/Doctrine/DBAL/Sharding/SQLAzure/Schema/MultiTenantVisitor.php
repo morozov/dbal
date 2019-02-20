@@ -8,6 +8,7 @@ use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\DBAL\Schema\Sequence;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\Visitor\Visitor;
@@ -64,6 +65,8 @@ class MultiTenantVisitor implements Visitor
 
     /**
      * {@inheritdoc}
+     *
+     * @throws SchemaException
      */
     public function acceptTable(Table $table) : void
     {
@@ -84,9 +87,15 @@ class MultiTenantVisitor implements Visitor
             $table->dropPrimaryKey();
             $table->setPrimaryKey($indexColumns);
         } else {
-            $table->dropIndex($clusteredIndex->getName());
-            $table->addIndex($indexColumns, $clusteredIndex->getName());
-            $table->getIndex($clusteredIndex->getName())->addFlag('clustered');
+            $name = $clusteredIndex->getName();
+
+            if ($name === null) {
+                throw SchemaException::namedIndexRequired($table, $clusteredIndex);
+            }
+
+            $table->dropIndex($name);
+            $table->addIndex($indexColumns, $name);
+            $table->getIndex($name)->addFlag('clustered');
         }
     }
 

@@ -6,6 +6,7 @@ namespace Doctrine\DBAL\Schema\Visitor;
 
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\DBAL\Schema\Sequence;
 use Doctrine\DBAL\Schema\Table;
 
@@ -59,6 +60,8 @@ class RemoveNamespacedAssets extends AbstractVisitor
 
     /**
      * {@inheritdoc}
+     *
+     * @throws SchemaException
      */
     public function acceptForeignKey(Table $localTable, ForeignKeyConstraint $fkConstraint) : void
     {
@@ -66,7 +69,7 @@ class RemoveNamespacedAssets extends AbstractVisitor
         // RemoveNamespacedAssets#acceptTable call. Removing Foreign keys that
         // point to nowhere.
         if (! $this->schema->hasTable($fkConstraint->getForeignTableName())) {
-            $localTable->removeForeignKey($fkConstraint->getName());
+            $this->removeForeignKey($localTable, $fkConstraint);
 
             return;
         }
@@ -76,6 +79,20 @@ class RemoveNamespacedAssets extends AbstractVisitor
             return;
         }
 
-        $localTable->removeForeignKey($fkConstraint->getName());
+        $this->removeForeignKey($localTable, $fkConstraint);
+    }
+
+    /**
+     * @throws SchemaException
+     */
+    private function removeForeignKey(Table $table, ForeignKeyConstraint $constraint) : void
+    {
+        $name = $constraint->getName();
+
+        if ($name === null) {
+            throw SchemaException::namedForeignKeyRequired($table, $constraint);
+        }
+
+        $table->removeForeignKey($name);
     }
 }

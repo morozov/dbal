@@ -14,6 +14,7 @@ use function array_shift;
 use function array_unique;
 use function assert;
 use function count;
+use function strcasecmp;
 use function strtolower;
 
 /**
@@ -261,7 +262,10 @@ class Comparator
                 if ($this->diffForeignKey($constraint1, $constraint2) === false) {
                     unset($fromFkeys[$key1], $toFkeys[$key2]);
                 } else {
-                    if (strtolower($constraint1->getName()) === strtolower($constraint2->getName())) {
+                    $name1 = $constraint1->getName();
+                    $name2 = $constraint2->getName();
+
+                    if ($name1 !== null && $name2 !== null && strcasecmp($name1, $name2) === 0) {
                         $tableDifferences->changedForeignKeys[] = $constraint2;
                         $changes++;
                         unset($fromFkeys[$key1], $toFkeys[$key2]);
@@ -351,8 +355,20 @@ class Comparator
 
             [$removedIndex, $addedIndex] = $candidateIndexes[0];
 
-            $removedIndexName = strtolower($removedIndex->getName());
-            $addedIndexName   = strtolower($addedIndex->getName());
+            $removedIndexName = $removedIndex->getName();
+
+            if ($removedIndexName === null) {
+                continue;
+            }
+
+            $addedIndexName = $addedIndex->getName();
+
+            if ($addedIndexName === null) {
+                continue;
+            }
+
+            $removedIndexName = strtolower($removedIndexName);
+            $addedIndexName   = strtolower($addedIndexName);
 
             if (isset($tableDifferences->renamedIndexes[$removedIndexName])) {
                 continue;

@@ -118,6 +118,17 @@ class SchemaException extends DBALException
         );
     }
 
+    public static function namedIndexRequired(Table $table, Index $index) : self
+    {
+        return new self(
+            sprintf(
+                'The performed schema operation on %s requires a named index, but the given index on (%s) is currently unnamed.',
+                $table->getName(),
+                implode(', ', $index->getColumns())
+            )
+        );
+    }
+
     public static function alterTableChangeNotSupported(string $changeName) : self
     {
         return new self(
