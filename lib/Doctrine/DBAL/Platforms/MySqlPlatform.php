@@ -355,7 +355,7 @@ class MySqlPlatform extends AbstractPlatform
                'COLUMN_KEY AS `Key`, COLUMN_DEFAULT AS `Default`, EXTRA AS Extra, COLUMN_COMMENT AS Comment, ' .
                'CHARACTER_SET_NAME AS CharacterSet, COLLATION_NAME AS Collation ' .
                'FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ' . $this->getDatabaseNameSql($database) . ' ' .
-               'AND TABLE_NAME = ' . $this->quoteStringLiteral($table);
+               'AND TABLE_NAME = ' . $this->quoteStringLiteral($table) . ' ORDER BY ORDINAL_POSITION';
     }
 
     public function getListTableMetadataSQL(string $table, ?string $database = null) : string
