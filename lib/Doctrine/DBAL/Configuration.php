@@ -89,15 +89,12 @@ class Configuration
 
     private function buildSchemaAssetsFilterFromExpression(string $filterExpression) : callable
     {
-        return /**
-                * @return int|false
-                */
-        static function ($assetName) use ($filterExpression) {
+        return static function ($assetName) use ($filterExpression) : bool {
             if ($assetName instanceof AbstractAsset) {
                 $assetName = $assetName->getName();
             }
 
-            return preg_match($filterExpression, $assetName);
+            return preg_match($filterExpression, $assetName) > 0;
         };
     }
 
