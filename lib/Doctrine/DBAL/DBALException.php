@@ -66,7 +66,7 @@ class DBALException extends Exception
      * @param string $version        The invalid platform version given.
      * @param string $expectedFormat The expected platform version format.
      */
-    public static function invalidPlatformVersionSpecified(string $version, string $expectedFormat) : DBALException
+    public static function invalidPlatformVersionSpecified(string $version, string $expectedFormat) : self
     {
         return new self(
             sprintf(

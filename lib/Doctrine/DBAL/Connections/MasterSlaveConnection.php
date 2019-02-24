@@ -195,9 +195,9 @@ class MasterSlaveConnection extends Connection
     /**
      * @param mixed[] $params
      *
-     * @return mixed
+     * @return mixed[]
      */
-    protected function chooseConnectionConfiguration(string $connectionName, array $params)
+    protected function chooseConnectionConfiguration(string $connectionName, array $params) : array
     {
         if ($connectionName === 'master') {
             return $params['master'];

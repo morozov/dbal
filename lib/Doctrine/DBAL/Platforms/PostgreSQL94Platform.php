@@ -27,8 +27,6 @@ class PostgreSQL94Platform extends PostgreSqlPlatform
 
     /**
      * {@inheritdoc}
-     *
-     * @return string
      */
     protected function getReservedKeywordsClass() : string
     {
@@ -37,8 +35,6 @@ class PostgreSQL94Platform extends PostgreSqlPlatform
 
     /**
      * {@inheritdoc}
-     *
-     * @return void
      */
     protected function initializeDoctrineTypeMappings() : void
     {

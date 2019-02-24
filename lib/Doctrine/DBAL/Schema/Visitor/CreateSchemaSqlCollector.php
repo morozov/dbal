@@ -34,8 +34,6 @@ class CreateSchemaSqlCollector extends AbstractVisitor
 
     /**
      * {@inheritdoc}
-     *
-     * @return void
      */
     public function acceptNamespace(string $namespaceName) : void
     {

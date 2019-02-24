@@ -154,7 +154,7 @@ abstract class AbstractPlatform
     /**
      * Sets the EventManager used by the Platform.
      */
-    public function setEventManager(?EventManager $eventManager) : void
+    public function setEventManager(EventManager $eventManager) : void
     {
         $this->_eventManager = $eventManager;
     }
@@ -1328,7 +1328,6 @@ abstract class AbstractPlatform
      * @return string[] The sequence of SQL statements.
      *
      * @throws DBALException
-     * @throws InvalidArgumentException
      */
     public function getCreateTableSQL(Table $table, int $createFlags = self::CREATE_INDEXES) : array
     {
@@ -2411,7 +2410,11 @@ abstract class AbstractPlatform
      */
     public function convertFromBoolean($item) : ?bool
     {
-        return $item === null ? null: (bool) $item;
+        if ($item === null) {
+            return null;
+        }
+
+        return (bool) $item;
     }
 
     /**

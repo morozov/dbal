@@ -32,8 +32,6 @@ class JsonArrayType extends JsonType
 
     /**
      * {@inheritdoc}
-     *
-     * @return string
      */
     public function getName() : string
     {
@@ -42,8 +40,6 @@ class JsonArrayType extends JsonType
 
     /**
      * {@inheritdoc}
-     *
-     * @return true
      */
     public function requiresSQLCommentHint(AbstractPlatform $platform) : bool
     {

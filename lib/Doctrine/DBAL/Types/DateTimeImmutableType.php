@@ -15,8 +15,6 @@ class DateTimeImmutableType extends DateTimeType
 {
     /**
      * {@inheritdoc}
-     *
-     * @return string
      */
     public function getName() : string
     {
@@ -25,8 +23,6 @@ class DateTimeImmutableType extends DateTimeType
 
     /**
      * {@inheritdoc}
-     *
-     * @return string|false|null
      */
     public function convertToDatabaseValue($value, AbstractPlatform $platform)
     {
@@ -47,8 +43,6 @@ class DateTimeImmutableType extends DateTimeType
 
     /**
      * {@inheritdoc}
-     *
-     * @return DateTimeImmutable|null
      */
     public function convertToPHPValue($value, AbstractPlatform $platform)
     {

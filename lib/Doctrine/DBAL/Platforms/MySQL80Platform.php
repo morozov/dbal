@@ -11,8 +11,6 @@ class MySQL80Platform extends MySQL57Platform
 {
     /**
      * {@inheritdoc}
-     *
-     * @return string
      */
     protected function getReservedKeywordsClass() : string
     {

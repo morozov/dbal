@@ -25,10 +25,8 @@ class RunSqlCommand extends Command
 {
     /**
      * {@inheritdoc}
-     *
-     * @return void
      */
-    protected function configure()
+    protected function configure() : void
     {
         $this
         ->setName('dbal:run-sql')

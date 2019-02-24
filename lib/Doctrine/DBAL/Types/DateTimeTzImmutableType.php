@@ -14,8 +14,6 @@ class DateTimeTzImmutableType extends DateTimeTzType
 {
     /**
      * {@inheritdoc}
-     *
-     * @return string
      */
     public function getName() : string
     {
@@ -24,8 +22,6 @@ class DateTimeTzImmutableType extends DateTimeTzType
 
     /**
      * {@inheritdoc}
-     *
-     * @return string|false|null
      */
     public function convertToDatabaseValue($value, AbstractPlatform $platform)
     {
@@ -46,8 +42,6 @@ class DateTimeTzImmutableType extends DateTimeTzType
 
     /**
      * {@inheritdoc}
-     *
-     * @return DateTimeImmutable|null
      */
     public function convertToPHPValue($value, AbstractPlatform $platform)
     {

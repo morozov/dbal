@@ -55,8 +55,6 @@ class MySQL57Platform extends MySqlPlatform
 
     /**
      * {@inheritdoc}
-     *
-     * @return string
      */
     protected function getReservedKeywordsClass() : string
     {
@@ -65,8 +63,6 @@ class MySQL57Platform extends MySqlPlatform
 
     /**
      * {@inheritdoc}
-     *
-     * @return void
      */
     protected function initializeDoctrineTypeMappings() : void
     {

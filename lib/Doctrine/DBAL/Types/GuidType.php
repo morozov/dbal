@@ -13,8 +13,6 @@ class GuidType extends StringType
 {
     /**
      * {@inheritdoc}
-     *
-     * @return string
      */
     public function getSQLDeclaration(array $fieldDeclaration, AbstractPlatform $platform) : string
     {
@@ -23,8 +21,6 @@ class GuidType extends StringType
 
     /**
      * {@inheritdoc}
-     *
-     * @return string
      */
     public function getName() : string
     {
