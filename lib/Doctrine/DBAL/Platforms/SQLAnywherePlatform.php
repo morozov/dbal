@@ -941,16 +941,6 @@ SQL
 
     /**
      * {@inheritdoc}
-     *
-     * @todo Where is this used? Which information should be retrieved?
-     */
-    public function getListUsersSQL()
-    {
-        return 'SELECT * FROM SYS.SYSUSER ORDER BY user_name ASC';
-    }
-
-    /**
-     * {@inheritdoc}
      */
     public function getListViewsSQL($database)
     {

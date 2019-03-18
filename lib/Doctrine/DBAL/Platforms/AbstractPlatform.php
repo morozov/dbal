@@ -320,13 +320,8 @@ abstract class AbstractPlatform
      * @param bool $fixed
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
-    protected function getVarcharTypeDeclarationSQLSnippet($length, $fixed)
-    {
-        throw DBALException::notSupported('VARCHARs not supported by Platform.');
-    }
+    abstract protected function getVarcharTypeDeclarationSQLSnippet($length, $fixed);
 
     /**
      * Returns the SQL snippet used to declare a BINARY/VARBINARY column type.
@@ -335,13 +330,8 @@ abstract class AbstractPlatform
      * @param bool $fixed  Whether the column length is fixed.
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
-    protected function getBinaryTypeDeclarationSQLSnippet($length, $fixed)
-    {
-        throw DBALException::notSupported('BINARY/VARBINARY column types are not supported by this platform.');
-    }
+    abstract protected function getBinaryTypeDeclarationSQLSnippet($length, $fixed);
 
     /**
      * Returns the SQL snippet used to declare a CLOB column type.
@@ -615,10 +605,7 @@ abstract class AbstractPlatform
      *
      * @throws DBALException If not supported on this platform.
      */
-    public function getRegexpExpression()
-    {
-        throw DBALException::notSupported(__METHOD__);
-    }
+    abstract public function getRegexpExpression();
 
     /**
      * Returns the SQL snippet to get the average value of a column.
@@ -857,13 +844,8 @@ abstract class AbstractPlatform
      * @param int|false $startPos Position to start at, beginning of string by default.
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
-    public function getLocateExpression($str, $substr, $startPos = false)
-    {
-        throw DBALException::notSupported(__METHOD__);
-    }
+    abstract public function getLocateExpression($str, $substr, $startPos = false);
 
     /**
      * Returns the SQL snippet to get the current system date.
@@ -1028,13 +1010,8 @@ abstract class AbstractPlatform
      * @param string $date2
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
-    public function getDateDiffExpression($date1, $date2)
-    {
-        throw DBALException::notSupported(__METHOD__);
-    }
+    abstract public function getDateDiffExpression($date1, $date2);
 
     /**
      * Returns the SQL to add the number of given seconds to a date.
@@ -1043,8 +1020,6 @@ abstract class AbstractPlatform
      * @param int    $seconds
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
     public function getDateAddSecondsExpression($date, $seconds)
     {
@@ -1058,8 +1033,6 @@ abstract class AbstractPlatform
      * @param int    $seconds
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
     public function getDateSubSecondsExpression($date, $seconds)
     {
@@ -1073,8 +1046,6 @@ abstract class AbstractPlatform
      * @param int    $minutes
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
     public function getDateAddMinutesExpression($date, $minutes)
     {
@@ -1088,8 +1059,6 @@ abstract class AbstractPlatform
      * @param int    $minutes
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
     public function getDateSubMinutesExpression($date, $minutes)
     {
@@ -1103,8 +1072,6 @@ abstract class AbstractPlatform
      * @param int    $hours
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
     public function getDateAddHourExpression($date, $hours)
     {
@@ -1118,8 +1085,6 @@ abstract class AbstractPlatform
      * @param int    $hours
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
     public function getDateSubHourExpression($date, $hours)
     {
@@ -1133,8 +1098,6 @@ abstract class AbstractPlatform
      * @param int    $days
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
     public function getDateAddDaysExpression($date, $days)
     {
@@ -1148,8 +1111,6 @@ abstract class AbstractPlatform
      * @param int    $days
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
     public function getDateSubDaysExpression($date, $days)
     {
@@ -1163,8 +1124,6 @@ abstract class AbstractPlatform
      * @param int    $weeks
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
     public function getDateAddWeeksExpression($date, $weeks)
     {
@@ -1178,8 +1137,6 @@ abstract class AbstractPlatform
      * @param int    $weeks
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
     public function getDateSubWeeksExpression($date, $weeks)
     {
@@ -1193,8 +1150,6 @@ abstract class AbstractPlatform
      * @param int    $months
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
     public function getDateAddMonthExpression($date, $months)
     {
@@ -1208,8 +1163,6 @@ abstract class AbstractPlatform
      * @param int    $months
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
     public function getDateSubMonthExpression($date, $months)
     {
@@ -1223,8 +1176,6 @@ abstract class AbstractPlatform
      * @param int    $quarters
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
     public function getDateAddQuartersExpression($date, $quarters)
     {
@@ -1238,8 +1189,6 @@ abstract class AbstractPlatform
      * @param int    $quarters
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
     public function getDateSubQuartersExpression($date, $quarters)
     {
@@ -1253,8 +1202,6 @@ abstract class AbstractPlatform
      * @param int    $years
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
     public function getDateAddYearsExpression($date, $years)
     {
@@ -1268,8 +1215,6 @@ abstract class AbstractPlatform
      * @param int    $years
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
     public function getDateSubYearsExpression($date, $years)
     {
@@ -1286,13 +1231,8 @@ abstract class AbstractPlatform
      *                         One of the DATE_INTERVAL_UNIT_* constants.
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
-    protected function getDateArithmeticIntervalExpression($date, $operator, $interval, $unit)
-    {
-        throw DBALException::notSupported(__METHOD__);
-    }
+    abstract protected function getDateArithmeticIntervalExpression($date, $operator, $interval, $unit);
 
     /**
      * Returns the SQL bit AND comparison expression.
@@ -1709,25 +1649,15 @@ abstract class AbstractPlatform
      * Returns the SQL to create a sequence on this platform.
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
-    public function getCreateSequenceSQL(Sequence $sequence)
-    {
-        throw DBALException::notSupported(__METHOD__);
-    }
+    abstract public function getCreateSequenceSQL(Sequence $sequence);
 
     /**
      * Returns the SQL to change a sequence on this platform.
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
-    public function getAlterSequenceSQL(Sequence $sequence)
-    {
-        throw DBALException::notSupported(__METHOD__);
-    }
+    abstract public function getAlterSequenceSQL(Sequence $sequence);
 
     /**
      * Returns the SQL to create a constraint on a table on this platform.
@@ -1847,13 +1777,8 @@ abstract class AbstractPlatform
      * @param string $schemaName
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
-    public function getCreateSchemaSQL($schemaName)
-    {
-        throw DBALException::notSupported(__METHOD__);
-    }
+    abstract public function getCreateSchemaSQL($schemaName);
 
     /**
      * Quotes a string so that it can be safely used as a table or column name,
@@ -1916,13 +1841,8 @@ abstract class AbstractPlatform
      * This method returns an array of SQL statements, since some platforms need several statements.
      *
      * @return string[]
-     *
-     * @throws DBALException If not supported on this platform.
      */
-    public function getAlterTableSQL(TableDiff $diff)
-    {
-        throw DBALException::notSupported(__METHOD__);
-    }
+    abstract public function getAlterTableSQL(TableDiff $diff);
 
     /**
      * @param mixed[] $columnSql
@@ -2735,13 +2655,8 @@ abstract class AbstractPlatform
 
     /**
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
-    public function getListDatabasesSQL()
-    {
-        throw DBALException::notSupported(__METHOD__);
-    }
+    abstract public function getListDatabasesSQL();
 
     /**
      * Returns the SQL statement for retrieving the namespaces defined in the database.
@@ -2750,10 +2665,7 @@ abstract class AbstractPlatform
      *
      * @throws DBALException If not supported on this platform.
      */
-    public function getListNamespacesSQL()
-    {
-        throw DBALException::notSupported(__METHOD__);
-    }
+    abstract public function getListNamespacesSQL();
 
     /**
      * @param string $database
@@ -2762,10 +2674,7 @@ abstract class AbstractPlatform
      *
      * @throws DBALException If not supported on this platform.
      */
-    public function getListSequencesSQL($database)
-    {
-        throw DBALException::notSupported(__METHOD__);
-    }
+    abstract public function getListSequencesSQL($database);
 
     /**
      * @param string $table
@@ -2774,43 +2683,20 @@ abstract class AbstractPlatform
      *
      * @throws DBALException If not supported on this platform.
      */
-    public function getListTableConstraintsSQL($table)
-    {
-        throw DBALException::notSupported(__METHOD__);
-    }
+    abstract public function getListTableConstraintsSQL($table);
 
     /**
      * @param string      $table
      * @param string|null $database
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
-    public function getListTableColumnsSQL($table, $database = null)
-    {
-        throw DBALException::notSupported(__METHOD__);
-    }
+    abstract public function getListTableColumnsSQL($table, $database = null);
 
     /**
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
-    public function getListTablesSQL()
-    {
-        throw DBALException::notSupported(__METHOD__);
-    }
-
-    /**
-     * @return string
-     *
-     * @throws DBALException If not supported on this platform.
-     */
-    public function getListUsersSQL()
-    {
-        throw DBALException::notSupported(__METHOD__);
-    }
+    abstract public function getListTablesSQL();
 
     /**
      * Returns the SQL to list all views of a database or user.
@@ -2818,13 +2704,8 @@ abstract class AbstractPlatform
      * @param string $database
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
-    public function getListViewsSQL($database)
-    {
-        throw DBALException::notSupported(__METHOD__);
-    }
+    abstract public function getListViewsSQL($database);
 
     /**
      * Returns the list of indexes for the current database.
@@ -2840,50 +2721,30 @@ abstract class AbstractPlatform
      * @param string $currentDatabase
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
-    public function getListTableIndexesSQL($table, $currentDatabase = null)
-    {
-        throw DBALException::notSupported(__METHOD__);
-    }
+    abstract public function getListTableIndexesSQL($table, $currentDatabase = null);
 
     /**
      * @param string $table
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
-    public function getListTableForeignKeysSQL($table)
-    {
-        throw DBALException::notSupported(__METHOD__);
-    }
+    abstract public function getListTableForeignKeysSQL($table);
 
     /**
      * @param string $name
      * @param string $sql
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
-    public function getCreateViewSQL($name, $sql)
-    {
-        throw DBALException::notSupported(__METHOD__);
-    }
+    abstract public function getCreateViewSQL($name, $sql);
 
     /**
      * @param string $name
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
-    public function getDropViewSQL($name)
-    {
-        throw DBALException::notSupported(__METHOD__);
-    }
+    abstract public function getDropViewSQL($name);
 
     /**
      * Returns the SQL snippet to drop an existing sequence.
@@ -2894,10 +2755,7 @@ abstract class AbstractPlatform
      *
      * @throws DBALException If not supported on this platform.
      */
-    public function getDropSequenceSQL($sequence)
-    {
-        throw DBALException::notSupported(__METHOD__);
-    }
+    abstract public function getDropSequenceSQL($sequence);
 
     /**
      * @param string $sequenceName
@@ -2906,10 +2764,7 @@ abstract class AbstractPlatform
      *
      * @throws DBALException If not supported on this platform.
      */
-    public function getSequenceNextValSQL($sequenceName)
-    {
-        throw DBALException::notSupported(__METHOD__);
-    }
+    abstract public function getSequenceNextValSQL($sequenceName);
 
     /**
      * Returns the SQL to create a new database.
@@ -2920,10 +2775,7 @@ abstract class AbstractPlatform
      *
      * @throws DBALException If not supported on this platform.
      */
-    public function getCreateDatabaseSQL($database)
-    {
-        throw DBALException::notSupported(__METHOD__);
-    }
+    abstract public function getCreateDatabaseSQL($database);
 
     /**
      * Returns the SQL to set the transaction isolation level.
@@ -2934,10 +2786,7 @@ abstract class AbstractPlatform
      *
      * @throws DBALException If not supported on this platform.
      */
-    public function getSetTransactionIsolationSQL($level)
-    {
-        throw DBALException::notSupported(__METHOD__);
-    }
+    abstract public function getSetTransactionIsolationSQL($level);
 
     /**
      * Obtains DBMS specific SQL to be used to create datetime fields in
@@ -2946,13 +2795,8 @@ abstract class AbstractPlatform
      * @param mixed[] $fieldDeclaration
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
-    public function getDateTimeTypeDeclarationSQL(array $fieldDeclaration)
-    {
-        throw DBALException::notSupported(__METHOD__);
-    }
+    abstract public function getDateTimeTypeDeclarationSQL(array $fieldDeclaration);
 
     /**
      * Obtains DBMS specific SQL to be used to create datetime with timezone offset fields.
@@ -2973,13 +2817,8 @@ abstract class AbstractPlatform
      * @param mixed[] $fieldDeclaration
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
-    public function getDateTypeDeclarationSQL(array $fieldDeclaration)
-    {
-        throw DBALException::notSupported(__METHOD__);
-    }
+    abstract public function getDateTypeDeclarationSQL(array $fieldDeclaration);
 
     /**
      * Obtains DBMS specific SQL to be used to create time fields in statements
@@ -2988,13 +2827,8 @@ abstract class AbstractPlatform
      * @param mixed[] $fieldDeclaration
      *
      * @return string
-     *
-     * @throws DBALException If not supported on this platform.
      */
-    public function getTimeTypeDeclarationSQL(array $fieldDeclaration)
-    {
-        throw DBALException::notSupported(__METHOD__);
-    }
+    abstract public function getTimeTypeDeclarationSQL(array $fieldDeclaration);
 
     /**
      * @param mixed[] $fieldDeclaration
