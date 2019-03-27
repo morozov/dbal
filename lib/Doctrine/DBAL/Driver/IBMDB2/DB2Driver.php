@@ -15,8 +15,12 @@ class DB2Driver extends AbstractDB2Driver
     /**
      * {@inheritdoc}
      */
-    public function connect(array $params, ?string $username = null, ?string $password = null, array $driverOptions = []) : Connection
-    {
+    public function connect(
+        array $params,
+        string $username = '',
+        string $password = '',
+        array $driverOptions = []
+    ) : Connection {
         if (! isset($params['protocol'])) {
             $params['protocol'] = 'TCPIP';
         }
@@ -33,11 +37,11 @@ class DB2Driver extends AbstractDB2Driver
                 $params['dbname'] .= 'PORT=' . $params['port'];
             }
 
-            $username = null;
-            $password = null;
+            $username = '';
+            $password = '';
         }
 
-        return new DB2Connection($params, (string) $username, (string) $password, $driverOptions);
+        return new DB2Connection($params, $username, $password, $driverOptions);
     }
 
     /**

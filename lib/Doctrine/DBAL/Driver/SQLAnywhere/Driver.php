@@ -21,8 +21,12 @@ class Driver extends AbstractSQLAnywhereDriver
      *
      * @throws DBALException If there was a problem establishing the connection.
      */
-    public function connect(array $params, ?string $username = null, ?string $password = null, array $driverOptions = []) : Connection
-    {
+    public function connect(
+        array $params,
+        string $username = '',
+        string $password = '',
+        array $driverOptions = []
+    ) : Connection {
         try {
             return new SQLAnywhereConnection(
                 $this->buildDsn(
@@ -62,8 +66,15 @@ class Driver extends AbstractSQLAnywhereDriver
      * @param string  $password      Password to use for connection authentication.
      * @param mixed[] $driverOptions Additional parameters to use for the connection.
      */
-    private function buildDsn(string $host, int $port, string $server, string $dbname, ?string $username = null, ?string $password = null, array $driverOptions = []) : string
-    {
+    private function buildDsn(
+        string $host,
+        int $port,
+        string $server,
+        string $dbname,
+        string $username,
+        string $password,
+        array $driverOptions = []
+    ) : string {
         $host = $host ?: 'localhost';
         $port = $port ?: 2638;
 

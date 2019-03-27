@@ -22,10 +22,10 @@ class PDOConnection implements Connection, ServerInfoAwareConnection
      *
      * @throws PDOException In case of an error.
      */
-    public function __construct(string $dsn, ?string $username = null, ?string $password = null, array $options = [])
+    public function __construct(string $dsn, string $username = '', string $password = '', array $options = [])
     {
         try {
-            $this->connection = new PDO($dsn, (string) $username, (string) $password, (array) $options);
+            $this->connection = new PDO($dsn, $username, $password, $options);
             $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (\PDOException $exception) {
             throw new PDOException($exception);

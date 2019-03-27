@@ -17,12 +17,16 @@ class Driver extends AbstractOracleDriver
     /**
      * {@inheritdoc}
      */
-    public function connect(array $params, ?string $username = null, ?string $password = null, array $driverOptions = []) : Connection
-    {
+    public function connect(
+        array $params,
+        string $username = '',
+        string $password = '',
+        array $driverOptions = []
+    ) : Connection {
         try {
             return new OCI8Connection(
-                (string) $username,
-                (string) $password,
+                $username,
+                $password,
                 $this->_constructDsn($params),
                 $params['charset'] ?? '',
                 $params['sessionMode'] ?? OCI_DEFAULT,
