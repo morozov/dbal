@@ -19,8 +19,6 @@ class Driver extends AbstractSQLServerDriver
      */
     public function connect(
         array $params,
-        string $username = '',
-        string $password = '',
         array $driverOptions = []
     ) : DriverConnection {
         $pdoOptions = $dsnOptions = [];
@@ -35,8 +33,8 @@ class Driver extends AbstractSQLServerDriver
 
         return new Connection(
             $this->_constructPdoDsn($params, $dsnOptions),
-            $username,
-            $password,
+            $params['username'] ?? '',
+            $params['password'] ?? '',
             $pdoOptions
         );
     }

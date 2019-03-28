@@ -44,7 +44,7 @@ class ConnectionTest extends DbalTestCase
     protected $params = [
         'driver' => 'pdo_mysql',
         'host' => 'localhost',
-        'user' => 'root',
+        'username' => 'root',
         'password' => 'password',
         'port' => 1234,
     ];

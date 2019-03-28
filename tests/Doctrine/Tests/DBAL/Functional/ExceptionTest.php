@@ -371,7 +371,7 @@ class ExceptionTest extends DbalFunctionalTestCase
     public static function getConnectionParams() : iterable
     {
         return [
-            [['user' => 'not_existing']],
+            [['username' => 'not_existing']],
             [['password' => 'really_not']],
             [['host' => 'localnope']],
         ];

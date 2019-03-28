@@ -158,7 +158,7 @@ class TestUtil
     {
         $connectionParams = [
             'driver' => $GLOBALS['tmpdb_type'],
-            'user' => $GLOBALS['tmpdb_username'],
+            'username' => $GLOBALS['tmpdb_username'],
             'password' => $GLOBALS['tmpdb_password'],
             'host' => $GLOBALS['tmpdb_host'],
             'dbname' => null,
@@ -187,7 +187,7 @@ class TestUtil
     {
         $connectionParams = [
             'driver' => $GLOBALS['db_type'],
-            'user' => $GLOBALS['db_username'],
+            'username' => $GLOBALS['db_username'],
             'password' => $GLOBALS['db_password'],
             'host' => $GLOBALS['db_host'],
             'dbname' => $GLOBALS['db_name'],

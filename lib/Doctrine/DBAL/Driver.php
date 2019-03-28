@@ -18,8 +18,6 @@ interface Driver
      * Attempts to create a connection with the database.
      *
      * @param mixed[] $params        All connection parameters passed by the user.
-     * @param string  $username      The username to use when connecting.
-     * @param string  $password      The password to use when connecting.
      * @param mixed[] $driverOptions The driver options to use when connecting.
      *
      * @return DriverConnection The database connection.
@@ -28,8 +26,6 @@ interface Driver
      */
     public function connect(
         array $params,
-        string $username = '',
-        string $password = '',
         array $driverOptions = []
     ) : DriverConnection;
 

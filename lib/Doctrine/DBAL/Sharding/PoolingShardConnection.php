@@ -39,10 +39,10 @@ use function is_string;
  * $conn = DriverManager::getConnection(array(
  *    'wrapperClass' => 'Doctrine\DBAL\Sharding\PoolingShardConnection',
  *    'driver' => 'pdo_mysql',
- *    'global' => array('user' => '', 'password' => '', 'host' => '', 'dbname' => ''),
+ *    'global' => array('username' => '', 'password' => '', 'host' => '', 'dbname' => ''),
  *    'shards' => array(
- *        array('id' => 1, 'user' => 'slave1', 'password', 'host' => '', 'dbname' => ''),
- *        array('id' => 2, 'user' => 'slave2', 'password', 'host' => '', 'dbname' => ''),
+ *        array('id' => 1, 'username' => 'slave1', 'password', 'host' => '', 'dbname' => ''),
+ *        array('id' => 2, 'username' => 'slave2', 'password', 'host' => '', 'dbname' => ''),
  *    ),
  *    'shardChoser' => 'Doctrine\DBAL\Sharding\ShardChoser\MultiTenantShardChoser',
  * ));
@@ -150,7 +150,7 @@ class PoolingShardConnection extends Connection
     {
         $params = $this->getParams();
 
-        return $params['user'] ?? parent::getUsername();
+        return $params['username'] ?? parent::getUsername();
     }
 
     /**
@@ -215,10 +215,7 @@ class PoolingShardConnection extends Connection
 
         $connectionParams = $this->connectionParameters[$shardId];
 
-        $user     = $connectionParams['user'] ?? '';
-        $password = $connectionParams['password'] ?? '';
-
-        return $this->_driver->connect($connectionParams, $user, $password, $driverOptions);
+        return $this->_driver->connect($connectionParams, $driverOptions);
     }
 
     /**

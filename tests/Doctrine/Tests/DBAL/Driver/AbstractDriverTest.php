@@ -167,7 +167,7 @@ abstract class AbstractDriverTest extends DbalTestCase
     public function testReturnsDatabaseName() : void
     {
         $params = [
-            'user'     => 'foo',
+            'username' => 'foo',
             'password' => 'bar',
             'dbname'   => 'baz',
         ];

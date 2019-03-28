@@ -28,7 +28,7 @@ abstract class AbstractTestCase extends TestCase
         $params     = [
             'driver' => $GLOBALS['db_type'],
             'dbname' => $GLOBALS['db_name'],
-            'user' => $GLOBALS['db_username'],
+            'username' => $GLOBALS['db_username'],
             'password' => $GLOBALS['db_password'],
             'host' => $GLOBALS['db_host'],
             'sharding' => [

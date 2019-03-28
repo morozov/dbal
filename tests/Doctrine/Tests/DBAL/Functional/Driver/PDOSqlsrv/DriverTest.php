@@ -53,11 +53,11 @@ class DriverTest extends AbstractDriverTest
     {
         return $this->connection->getDriver()->connect(
             [
-                'host' => $GLOBALS['db_host'],
-                'port' => $GLOBALS['db_port'],
+                'host'     => $GLOBALS['db_host'],
+                'port'     => $GLOBALS['db_port'],
+                'username' => $GLOBALS['db_username'],
+                'password' => $GLOBALS['db_password'],
             ],
-            $GLOBALS['db_username'],
-            $GLOBALS['db_password'],
             $driverOptions
         );
     }

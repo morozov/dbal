@@ -17,7 +17,7 @@ class AbstractOracleDriverTest extends AbstractDriverTest
     public function testReturnsDatabaseName() : void
     {
         $params = [
-            'user'     => 'foo',
+            'username' => 'foo',
             'password' => 'bar',
             'dbname'   => 'baz',
         ];
@@ -28,13 +28,13 @@ class AbstractOracleDriverTest extends AbstractDriverTest
             ->method('getParams')
             ->will($this->returnValue($params));
 
-        self::assertSame($params['user'], $this->driver->getDatabase($connection));
+        self::assertSame($params['username'], $this->driver->getDatabase($connection));
     }
 
     public function testReturnsDatabaseNameWithConnectDescriptor() : void
     {
         $params = [
-            'user'             => 'foo',
+            'username'         => 'foo',
             'password'         => 'bar',
             'connectionstring' => '(DESCRIPTION=' .
                 '(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))' .
@@ -47,7 +47,7 @@ class AbstractOracleDriverTest extends AbstractDriverTest
             ->method('getParams')
             ->will($this->returnValue($params));
 
-        self::assertSame($params['user'], $this->driver->getDatabase($connection));
+        self::assertSame($params['username'], $this->driver->getDatabase($connection));
     }
 
     protected function createDriver() : Driver

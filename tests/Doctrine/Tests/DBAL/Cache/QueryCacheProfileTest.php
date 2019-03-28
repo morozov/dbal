@@ -29,7 +29,7 @@ class QueryCacheProfileTest extends DbalTestCase
     /** @var string[] */
     private $connectionParams = [
         'dbname'   => 'database_name',
-        'user'     => 'database_user',
+        'username' => 'database_user',
         'password' => 'database_password',
         'host'     => 'database_host',
         'driver'   => 'database_driver',

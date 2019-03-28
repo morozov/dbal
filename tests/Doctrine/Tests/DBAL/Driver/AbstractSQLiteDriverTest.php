@@ -17,7 +17,7 @@ class AbstractSQLiteDriverTest extends AbstractDriverTest
     public function testReturnsDatabaseName() : void
     {
         $params = [
-            'user'     => 'foo',
+            'username' => 'foo',
             'password' => 'bar',
             'dbname'   => 'baz',
             'path'     => 'bloo',

@@ -17,8 +17,6 @@ class Driver extends AbstractSQLServerDriver
      */
     public function connect(
         array $params,
-        string $username = '',
-        string $password = '',
         array $driverOptions = []
     ) : Connection {
         if (! isset($params['host'])) {
@@ -38,12 +36,12 @@ class Driver extends AbstractSQLServerDriver
             $driverOptions['CharacterSet'] = $params['charset'];
         }
 
-        if ($username !== '') {
-            $driverOptions['UID'] = $username;
+        if (isset($params['username'])) {
+            $driverOptions['UID'] = $params['username'];
         }
 
-        if ($password !== '') {
-            $driverOptions['PWD'] = $password;
+        if (isset($params['password'])) {
+            $driverOptions['PWD'] = $params['password'];
         }
 
         if (! isset($driverOptions['ReturnDatesAsStrings'])) {

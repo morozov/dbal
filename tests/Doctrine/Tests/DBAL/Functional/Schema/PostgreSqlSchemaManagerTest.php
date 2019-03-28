@@ -40,7 +40,7 @@ class PostgreSqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
         $params = $this->connection->getParams();
 
         $paths = $this->schemaManager->getSchemaSearchPaths();
-        self::assertEquals([$params['user'], 'public'], $paths);
+        self::assertEquals([$params['username'], 'public'], $paths);
     }
 
     /**

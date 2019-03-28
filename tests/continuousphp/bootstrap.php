@@ -9,7 +9,7 @@ use Doctrine\DBAL\DriverManager;
     DriverManager::getConnection([
         'driver' => 'oci8',
         'host' => 'oracle-xe-11',
-        'user' => 'ORACLE',
+        'username' => 'ORACLE',
         'password' => 'ORACLE',
         'dbname' => 'XE',
     ])->query('ALTER USER ORACLE IDENTIFIED BY ORACLE');

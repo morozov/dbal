@@ -155,7 +155,7 @@ class DriverManagerTest extends DbalTestCase
         self::assertInstanceOf(PDOMySQLDriver::class, $conn->getDriver());
 
         $expected = [
-            'user'     => 'foo',
+            'username' => 'foo',
             'password' => 'bar',
             'host'     => 'localhost',
             'port'     => 11211,
@@ -191,7 +191,7 @@ class DriverManagerTest extends DbalTestCase
         self::assertInstanceOf(PDOMySQLDriver::class, $conn->getDriver());
 
         $expected = [
-            'user'     => 'foo',
+            'username' => 'foo',
             'password' => 'bar',
             'host'     => 'localhost',
             'port'     => 11211,
@@ -254,7 +254,7 @@ class DriverManagerTest extends DbalTestCase
             'simple URL' => [
                 'mysql://foo:bar@localhost/baz',
                 [
-                    'user'     => 'foo',
+                    'username' => 'foo',
                     'password' => 'bar',
                     'host'     => 'localhost',
                     'dbname'   => 'baz',
@@ -264,7 +264,7 @@ class DriverManagerTest extends DbalTestCase
             'simple URL with port' => [
                 'mysql://foo:bar@localhost:11211/baz',
                 [
-                    'user'     => 'foo',
+                    'username' => 'foo',
                     'password' => 'bar',
                     'host'     => 'localhost',
                     'port'     => 11211,
@@ -320,7 +320,7 @@ class DriverManagerTest extends DbalTestCase
                     'password' => 'lulz',
                 ],
                 [
-                    'user'     => 'foo',
+                    'username' => 'foo',
                     'password' => 'bar',
                     'host'     => 'localhost',
                     'dbname'   => 'baz',
@@ -333,7 +333,7 @@ class DriverManagerTest extends DbalTestCase
                     'port' => 1234,
                 ],
                 [
-                    'user'     => 'foo',
+                    'username' => 'foo',
                     'password' => 'bar',
                     'host'     => 'localhost',
                     'port'     => 1234,
@@ -348,7 +348,7 @@ class DriverManagerTest extends DbalTestCase
             'simple URL with fallthrough scheme not defined in map' => [
                 'sqlsrv://foo:bar@localhost/baz',
                 [
-                    'user'     => 'foo',
+                    'username' => 'foo',
                     'password' => 'bar',
                     'host'     => 'localhost',
                     'dbname'   => 'baz',
@@ -362,7 +362,7 @@ class DriverManagerTest extends DbalTestCase
             'simple URL with fallthrough scheme containing dashes works' => [
                 'pdo-mysql://foo:bar@localhost/baz',
                 [
-                    'user'     => 'foo',
+                    'username' => 'foo',
                     'password' => 'bar',
                     'host'     => 'localhost',
                     'dbname'   => 'baz',
@@ -372,7 +372,7 @@ class DriverManagerTest extends DbalTestCase
             'simple URL with percent encoding' => [
                 'mysql://foo%3A:bar%2F@localhost/baz+baz%40',
                 [
-                    'user'     => 'foo:',
+                    'username' => 'foo:',
                     'password' => 'bar/',
                     'host'     => 'localhost',
                     'dbname'   => 'baz+baz@',
@@ -382,7 +382,7 @@ class DriverManagerTest extends DbalTestCase
             'simple URL with percent sign in password' => [
                 'mysql://foo:bar%25bar@localhost/baz',
                 [
-                    'user'     => 'foo',
+                    'username' => 'foo',
                     'password' => 'bar%bar',
                     'host'     => 'localhost',
                     'dbname'   => 'baz',
@@ -408,7 +408,7 @@ class DriverManagerTest extends DbalTestCase
                     'driver' => 'pdo_mysql',
                 ],
                 [
-                    'user'     => 'foo',
+                    'username' => 'foo',
                     'password' => 'bar',
                     'host'     => 'localhost',
                     'dbname'   => 'baz',
@@ -421,7 +421,7 @@ class DriverManagerTest extends DbalTestCase
                     'driverClass' => $driverClass,
                 ],
                 [
-                    'user'        => 'foo',
+                    'username'    => 'foo',
                     'password'    => 'bar',
                     'host'        => 'localhost',
                     'dbname'      => 'baz',
@@ -435,7 +435,7 @@ class DriverManagerTest extends DbalTestCase
                     'driver' => 'pdo_mysql',
                 ],
                 [
-                    'user'     => 'foo',
+                    'username' => 'foo',
                     'password' => 'bar',
                     'host'     => 'localhost',
                     'dbname'   => 'baz',
@@ -449,7 +449,7 @@ class DriverManagerTest extends DbalTestCase
                     'driverClass' => $driverClass,
                 ],
                 [
-                    'user'        => 'foo',
+                    'username'    => 'foo',
                     'password'    => 'bar',
                     'host'        => 'localhost',
                     'dbname'      => 'baz',
@@ -462,7 +462,7 @@ class DriverManagerTest extends DbalTestCase
                     'pdo' => true,
                 ],
                 [
-                    'user'     => 'foo',
+                    'username' => 'foo',
                     'password' => 'bar',
                     'host'     => 'localhost',
                     'dbname'   => 'baz',
@@ -475,7 +475,7 @@ class DriverManagerTest extends DbalTestCase
                     'driver' => 'sqlite',
                 ],
                 [
-                    'user'     => 'foo',
+                    'username' => 'foo',
                     'password' => 'bar',
                     'host'     => 'localhost',
                     'dbname'   => 'baz',
@@ -488,7 +488,7 @@ class DriverManagerTest extends DbalTestCase
                     'driverClass' => $driverClass,
                 ],
                 [
-                    'user'     => 'foo',
+                    'username' => 'foo',
                     'password' => 'bar',
                     'host'     => 'localhost',
                     'dbname'   => 'baz',
@@ -502,7 +502,7 @@ class DriverManagerTest extends DbalTestCase
                     'driver' => 'sqlite',
                 ],
                 [
-                    'user'     => 'foo',
+                    'username' => 'foo',
                     'password' => 'bar',
                     'host'     => 'localhost',
                     'dbname'   => 'baz',
@@ -516,7 +516,7 @@ class DriverManagerTest extends DbalTestCase
                     'driverClass' => $driverClass,
                 ],
                 [
-                    'user'     => 'foo',
+                    'username' => 'foo',
                     'password' => 'bar',
                     'host'     => 'localhost',
                     'dbname'   => 'baz',
@@ -531,7 +531,7 @@ class DriverManagerTest extends DbalTestCase
                     'driverClass' => $driverClass,
                 ],
                 [
-                    'user'     => 'foo',
+                    'username' => 'foo',
                     'password' => 'bar',
                     'host'     => 'localhost',
                     'dbname'   => 'baz',

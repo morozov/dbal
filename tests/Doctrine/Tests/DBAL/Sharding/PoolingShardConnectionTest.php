@@ -273,10 +273,10 @@ class PoolingShardConnectionTest extends TestCase
     {
         $conn = $this->createConnection([
             'driver' => 'pdo_sqlite',
-            'user' => 'foo',
+            'username' => 'foo',
             'global' => ['memory' => true],
             'shards' => [
-                ['id' => 1, 'memory' => true, 'user' => 'bar'],
+                ['id' => 1, 'memory' => true, 'username' => 'bar'],
             ],
             'shardChoser' => MultiTenantShardChoser::class,
         ]);

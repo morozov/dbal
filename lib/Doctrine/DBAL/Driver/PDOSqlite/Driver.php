@@ -29,8 +29,6 @@ class Driver extends AbstractSQLiteDriver
      */
     public function connect(
         array $params,
-        string $username = '',
-        string $password = '',
         array $driverOptions = []
     ) : Connection {
         if (isset($driverOptions['userDefinedFunctions'])) {
@@ -44,8 +42,8 @@ class Driver extends AbstractSQLiteDriver
         try {
             $connection = new PDOConnection(
                 $this->_constructPdoDsn($params),
-                $username,
-                $password,
+                $params['username'] ?? '',
+                $params['password'] ?? '',
                 $driverOptions
             );
         } catch (PDOException $ex) {

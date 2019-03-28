@@ -29,11 +29,11 @@ class DriverTest extends AbstractPostgreSQLDriverTest
 
         $connection = $this->createDriver()->connect(
             [
-                'host' => $GLOBALS['db_host'],
-                'port' => $GLOBALS['db_port'],
-            ],
-            $GLOBALS['db_username'],
-            $GLOBALS['db_password']
+                'host'     => $GLOBALS['db_host'],
+                'port'     => $GLOBALS['db_port'],
+                'username' => $GLOBALS['db_username'],
+                'password' => $GLOBALS['db_password'],
+            ]
         );
 
         self::assertInstanceOf(PDOConnection::class, $connection);
@@ -55,11 +55,11 @@ class DriverTest extends AbstractPostgreSQLDriverTest
 
         $connection = $this->createDriver()->connect(
             [
-                'host' => $GLOBALS['db_host'],
-                'port' => $GLOBALS['db_port'],
+                'host'     => $GLOBALS['db_host'],
+                'port'     => $GLOBALS['db_port'],
+                'username' => $GLOBALS['db_username'],
+                'password' => $GLOBALS['db_password'],
             ],
-            $GLOBALS['db_username'],
-            $GLOBALS['db_password'],
             [PDO::PGSQL_ATTR_DISABLE_PREPARES => false]
         );
 
@@ -85,11 +85,11 @@ class DriverTest extends AbstractPostgreSQLDriverTest
 
         $connection = $this->createDriver()->connect(
             [
-                'host' => $GLOBALS['db_host'],
-                'port' => $GLOBALS['db_port'],
+                'host'     => $GLOBALS['db_host'],
+                'port'     => $GLOBALS['db_port'],
+                'username' => $GLOBALS['db_username'],
+                'password' => $GLOBALS['db_password'],
             ],
-            $GLOBALS['db_username'],
-            $GLOBALS['db_password'],
             [PDO::PGSQL_ATTR_DISABLE_PREPARES => true]
         );
 

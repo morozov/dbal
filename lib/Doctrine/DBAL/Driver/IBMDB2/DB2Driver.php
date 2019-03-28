@@ -6,6 +6,8 @@ namespace Doctrine\DBAL\Driver\IBMDB2;
 
 use Doctrine\DBAL\Driver\AbstractDB2Driver;
 use Doctrine\DBAL\Driver\Connection;
+use function implode;
+use function sprintf;
 
 /**
  * IBM DB2 Driver.
@@ -17,31 +19,45 @@ class DB2Driver extends AbstractDB2Driver
      */
     public function connect(
         array $params,
-        string $username = '',
-        string $password = '',
         array $driverOptions = []
     ) : Connection {
         if (! isset($params['protocol'])) {
             $params['protocol'] = 'TCPIP';
         }
 
+        // if the host isn't localhost, use extended connection params
         if ($params['host'] !== 'localhost' && $params['host'] !== '127.0.0.1') {
-            // if the host isn't localhost, use extended connection params
-            $params['dbname'] = 'DRIVER={IBM DB2 ODBC DRIVER}' .
-                     ';DATABASE=' . $params['dbname'] .
-                     ';HOSTNAME=' . $params['host'] .
-                     ';PROTOCOL=' . $params['protocol'] .
-                     ';UID=' . $username .
-                     ';PWD=' . $password . ';';
-            if (isset($params['port'])) {
-                $params['dbname'] .= 'PORT=' . $params['port'];
+            $dsnParams = [
+                'DRIVER' => '{IBM DB2 ODBC DRIVER}',
+                'DATABASE' => $params['dbname'],
+                'HOSTNAME' => $params['host'],
+                'PROTOCOL' => $params['protocol'],
+            ];
+
+            if (isset($params['username'])) {
+                $dsnParams['UID'] = $params['username'];
             }
 
-            $username = '';
-            $password = '';
+            if (isset($params['password'])) {
+                $dsnParams['PWD'] = $params['password'];
+            }
+
+            if (isset($params['port'])) {
+                $dsnParams['PORT'] = $params['port'];
+            }
+
+            $pairs = [];
+
+            foreach ($dsnParams as $param => $value) {
+                $pairs[] = sprintf('%s=%s', $param, $value);
+            }
+
+            $params['dbname'] = implode(';', $pairs);
+
+            unset($params['username'], $params['password']);
         }
 
-        return new DB2Connection($params, $username, $password, $driverOptions);
+        return new DB2Connection($params, $driverOptions);
     }
 
     /**

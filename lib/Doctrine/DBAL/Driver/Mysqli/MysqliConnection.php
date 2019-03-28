@@ -43,7 +43,7 @@ class MysqliConnection implements Connection, PingableConnection, ServerInfoAwar
      *
      * @throws MysqliException
      */
-    public function __construct(array $params, string $username = '', string $password = '', array $driverOptions = [])
+    public function __construct(array $params, array $driverOptions = [])
     {
         $port = $params['port'] ?? (int) ini_get('mysqli.default_port');
 
@@ -52,10 +52,7 @@ class MysqliConnection implements Connection, PingableConnection, ServerInfoAwar
             $port = 3306;
         }
 
-        $socket = $params['unix_socket'] ?? ini_get('mysqli.default_socket');
-        $dbname = $params['dbname'] ?? '';
-
-        $flags = $driverOptions[static::OPTION_FLAGS] ?? 0;
+        $flags = $driverOptions[static::OPTION_FLAGS] ?? null;
 
         $this->conn = mysqli_init();
 
@@ -65,8 +62,18 @@ class MysqliConnection implements Connection, PingableConnection, ServerInfoAwar
         set_error_handler(static function () : void {
         });
         try {
-            if (! $this->conn->real_connect($params['host'], $username, $password, $dbname, $port, $socket, $flags)) {
-                throw MysqliException::fromConnectionError($this->conn);
+            if (! $this->conn->real_connect(
+                $params['host'],
+                $params['username'] ?? null,
+                $params['password'] ?? null,
+                $params['dbname'] ?? null,
+                $port,
+                $params['unix_socket'] ?? ini_get('mysqli.default_socket'),
+                $flags
+            )) {
+                throw MysqliException::fromConnectionError(
+                    $this->conn
+                );
             }
         } finally {
             restore_error_handler();

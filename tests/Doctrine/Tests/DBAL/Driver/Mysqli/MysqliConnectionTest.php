@@ -52,7 +52,7 @@ class MysqliConnectionTest extends DbalFunctionalTestCase
         $default_handler = set_error_handler($handler);
 
         try {
-            new MysqliConnection(['host' => '255.255.255.255'], 'user', 'pass');
+            new MysqliConnection(['host' => '255.255.255.255']);
             self::fail('An exception was supposed to be raised');
         } catch (MysqliException $e) {
             // Do nothing

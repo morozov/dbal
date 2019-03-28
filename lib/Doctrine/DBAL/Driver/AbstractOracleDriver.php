@@ -70,7 +70,7 @@ abstract class AbstractOracleDriver implements Driver, ExceptionConverterDriver
     {
         $params = $conn->getParams();
 
-        return $params['user'];
+        return $params['username'];
     }
 
     /**

@@ -60,10 +60,10 @@ use function count;
  * $conn = DriverManager::getConnection(array(
  *    'wrapperClass' => 'Doctrine\DBAL\Connections\MasterSlaveConnection',
  *    'driver' => 'pdo_mysql',
- *    'master' => array('user' => '', 'password' => '', 'host' => '', 'dbname' => ''),
+ *    'master' => array('username' => '', 'password' => '', 'host' => '', 'dbname' => ''),
  *    'slaves' => array(
- *        array('user' => 'slave1', 'password', 'host' => '', 'dbname' => ''),
- *        array('user' => 'slave2', 'password', 'host' => '', 'dbname' => ''),
+ *        array('username' => 'slave1', 'password', 'host' => '', 'dbname' => ''),
+ *        array('username' => 'slave2', 'password', 'host' => '', 'dbname' => ''),
  *    )
  * ));
  *
@@ -186,10 +186,7 @@ class MasterSlaveConnection extends Connection
 
         $connectionParams = $this->chooseConnectionConfiguration($connectionName, $params);
 
-        $user     = $connectionParams['user'] ?? '';
-        $password = $connectionParams['password'] ?? '';
-
-        return $this->_driver->connect($connectionParams, $user, $password, $driverOptions);
+        return $this->_driver->connect($connectionParams, $driverOptions);
     }
 
     /**

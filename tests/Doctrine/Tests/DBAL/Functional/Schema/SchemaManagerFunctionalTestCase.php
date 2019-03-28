@@ -111,15 +111,12 @@ abstract class SchemaManagerFunctionalTestCase extends DbalFunctionalTestCase
 
         $params = $this->connection->getParams();
         if ($this->connection->getDatabasePlatform() instanceof OraclePlatform) {
-            $params['user'] = 'test_drop_database';
+            $params['username'] = 'test_drop_database';
         } else {
             $params['dbname'] = 'test_drop_database';
         }
 
-        $user     = $params['user'] ?? '';
-        $password = $params['password'] ?? '';
-
-        $connection = $this->connection->getDriver()->connect($params, $user, $password);
+        $connection = $this->connection->getDriver()->connect($params);
 
         self::assertInstanceOf(Connection::class, $connection);
 

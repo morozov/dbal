@@ -285,12 +285,15 @@ final class DriverManager
         if (isset($url['host'])) {
             $params['host'] = $url['host'];
         }
+
         if (isset($url['port'])) {
             $params['port'] = $url['port'];
         }
+
         if (isset($url['user'])) {
-            $params['user'] = $url['user'];
+            $params['username'] = $url['user'];
         }
+
         if (isset($url['pass'])) {
             $params['password'] = $url['pass'];
         }

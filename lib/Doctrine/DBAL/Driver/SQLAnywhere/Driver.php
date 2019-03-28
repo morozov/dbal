@@ -23,8 +23,6 @@ class Driver extends AbstractSQLAnywhereDriver
      */
     public function connect(
         array $params,
-        string $username = '',
-        string $password = '',
         array $driverOptions = []
     ) : Connection {
         try {
@@ -34,8 +32,8 @@ class Driver extends AbstractSQLAnywhereDriver
                     $params['port'] ?? null,
                     $params['server'] ?? null,
                     $params['dbname'] ?? null,
-                    $username,
-                    $password,
+                    $params['username'] ?? null,
+                    $params['password'] ?? null,
                     $driverOptions
                 ),
                 $params['persistent'] ?? false

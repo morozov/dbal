@@ -24,7 +24,7 @@ class AbstractMySQLDriverTest extends AbstractDriverTest
 
         $database = 'bloo';
         $params   = [
-            'user'     => 'foo',
+            'username' => 'foo',
             'password' => 'bar',
         ];
 

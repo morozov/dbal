@@ -15,12 +15,10 @@ class Driver extends AbstractMySQLDriver
      */
     public function connect(
         array $params,
-        string $username = '',
-        string $password = '',
         array $driverOptions = []
     ) : Connection {
         try {
-            return new MysqliConnection($params, $username, $password, $driverOptions);
+            return new MysqliConnection($params, $driverOptions);
         } catch (MysqliException $e) {
             throw DBALException::driverException($this, $e);
         }
