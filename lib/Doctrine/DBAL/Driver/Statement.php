@@ -26,7 +26,7 @@ interface Statement extends ResultStatement
      *                     using question mark placeholders, this will be the 1-indexed position of the parameter.
      * @param mixed $value The value to bind to the parameter.
      * @param int   $type  Explicit data type for the parameter using the {@link \Doctrine\DBAL\ParameterType}
-     *                        constants.
+     *                     constants.
      *
      * @throws DriverException
      */

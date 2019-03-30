@@ -250,10 +250,8 @@ class Connection implements DriverConnection
 
     /**
      * Gets the port of the currently connected database.
-     *
-     * @return mixed
      */
-    public function getPort()
+    public function getPort() : ?int
     {
         return $this->params['port'] ?? null;
     }
@@ -458,7 +456,7 @@ class Connection implements DriverConnection
      */
     public function isAutoCommit() : bool
     {
-        return $this->autoCommit === true;
+        return $this->autoCommit;
     }
 
     /**
@@ -486,7 +484,7 @@ class Connection implements DriverConnection
         $this->autoCommit = $autoCommit;
 
         // Commit all currently active transactions if any when switching auto-commit mode.
-        if ($this->isConnected !== true || $this->transactionNestingLevel === 0) {
+        if (! $this->isConnected || $this->transactionNestingLevel === 0) {
             return;
         }
 

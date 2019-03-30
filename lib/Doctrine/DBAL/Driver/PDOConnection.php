@@ -24,9 +24,6 @@ class PDOConnection implements Connection, ServerInfoAwareConnection
      */
     public function __construct(string $dsn, ?string $username = null, ?string $password = null, array $options = [])
     {
-        $username = (string) $username;
-        $password = (string) $password;
-
         try {
             $this->connection = new PDO($dsn, (string) $username, (string) $password, (array) $options);
             $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

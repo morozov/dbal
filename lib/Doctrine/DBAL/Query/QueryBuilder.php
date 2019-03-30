@@ -111,12 +111,12 @@ class QueryBuilder
      *
      * @var int
      */
-    private $firstResult = null;
+    private $firstResult = 0;
 
     /**
      * The maximum number of results to retrieve.
      *
-     * @var int
+     * @var int|null
      */
     private $maxResults = null;
 
@@ -1149,7 +1149,7 @@ class QueryBuilder
 
     private function isLimitQuery() : bool
     {
-        return $this->maxResults !== null || $this->firstResult !== null;
+        return $this->maxResults !== null || $this->firstResult !== 0;
     }
 
     /**

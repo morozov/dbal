@@ -700,7 +700,7 @@ SQL
 
             $column = $diff->fromTable->getColumn($columnName);
 
-            if ($column->getAutoincrement() !== true) {
+            if (! $column->getAutoincrement()) {
                 continue;
             }
 

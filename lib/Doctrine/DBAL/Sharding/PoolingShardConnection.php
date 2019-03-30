@@ -136,7 +136,7 @@ class PoolingShardConnection extends Connection
     /**
      * {@inheritdoc}
      */
-    public function getPort()
+    public function getPort() : ?int
     {
         $params = $this->getParams();
 

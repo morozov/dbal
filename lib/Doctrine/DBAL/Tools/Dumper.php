@@ -59,7 +59,7 @@ final class Dumper
     {
         $html = ini_get('html_errors');
 
-        if ($html !== true) {
+        if ($html !== '1') {
             ini_set('html_errors', '1');
         }
 

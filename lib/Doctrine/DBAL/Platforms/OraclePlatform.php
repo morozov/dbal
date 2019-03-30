@@ -59,7 +59,7 @@ class OraclePlatform extends AbstractPlatform
     /**
      * {@inheritDoc}
      */
-    public function getNowExpression($type = 'timestamp') : string
+    public function getNowExpression(string $type = 'timestamp') : string
     {
         switch ($type) {
             case 'date':
