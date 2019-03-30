@@ -80,7 +80,7 @@ class Column extends AbstractAsset
     /**
      * @param mixed[] $options
      */
-    public function setOptions(array $options) : Column
+    public function setOptions(array $options) : self
     {
         foreach ($options as $name => $value) {
             $method = 'set' . $name;
@@ -100,21 +100,21 @@ class Column extends AbstractAsset
         return $this;
     }
 
-    public function setType(Type $type) : Column
+    public function setType(Type $type) : self
     {
         $this->_type = $type;
 
         return $this;
     }
 
-    public function setLength(?int $length) : Column
+    public function setLength(?int $length) : self
     {
         $this->_length = $length;
 
         return $this;
     }
 
-    public function setPrecision(?int $precision) : Column
+    public function setPrecision(?int $precision) : self
     {
         // defaults to 10 when no valid precision is given.
         $this->_precision = $precision ?? 10;
@@ -122,28 +122,28 @@ class Column extends AbstractAsset
         return $this;
     }
 
-    public function setScale(?int $scale) : Column
+    public function setScale(?int $scale) : self
     {
         $this->_scale = $scale ?? 0;
 
         return $this;
     }
 
-    public function setUnsigned(bool $unsigned) : Column
+    public function setUnsigned(bool $unsigned) : self
     {
         $this->_unsigned = $unsigned;
 
         return $this;
     }
 
-    public function setFixed(bool $fixed) : Column
+    public function setFixed(bool $fixed) : self
     {
         $this->_fixed = $fixed;
 
         return $this;
     }
 
-    public function setNotnull(bool $notnull) : Column
+    public function setNotnull(bool $notnull) : self
     {
         $this->_notnull = $notnull;
 
@@ -153,7 +153,7 @@ class Column extends AbstractAsset
     /**
      * @param mixed $default
      */
-    public function setDefault($default) : Column
+    public function setDefault($default) : self
     {
         $this->_default = $default;
 
@@ -163,7 +163,7 @@ class Column extends AbstractAsset
     /**
      * @param mixed[] $platformOptions
      */
-    public function setPlatformOptions(array $platformOptions) : Column
+    public function setPlatformOptions(array $platformOptions) : self
     {
         $this->_platformOptions = $platformOptions;
 
@@ -173,14 +173,14 @@ class Column extends AbstractAsset
     /**
      * @param mixed $value
      */
-    public function setPlatformOption(string $name, $value) : Column
+    public function setPlatformOption(string $name, $value) : self
     {
         $this->_platformOptions[$name] = $value;
 
         return $this;
     }
 
-    public function setColumnDefinition(string $value) : Column
+    public function setColumnDefinition(string $value) : self
     {
         $this->_columnDefinition = $value;
 
@@ -258,14 +258,14 @@ class Column extends AbstractAsset
         return $this->_autoincrement;
     }
 
-    public function setAutoincrement(bool $flag) : Column
+    public function setAutoincrement(bool $flag) : self
     {
         $this->_autoincrement = $flag;
 
         return $this;
     }
 
-    public function setComment(?string $comment) : Column
+    public function setComment(?string $comment) : self
     {
         $this->_comment = $comment;
 
@@ -280,7 +280,7 @@ class Column extends AbstractAsset
     /**
      * @param mixed $value
      */
-    public function setCustomSchemaOption(string $name, $value) : Column
+    public function setCustomSchemaOption(string $name, $value) : self
     {
         $this->_customSchemaOptions[$name] = $value;
 
@@ -303,7 +303,7 @@ class Column extends AbstractAsset
     /**
      * @param mixed[] $customSchemaOptions
      */
-    public function setCustomSchemaOptions(array $customSchemaOptions) : Column
+    public function setCustomSchemaOptions(array $customSchemaOptions) : self
     {
         $this->_customSchemaOptions = $customSchemaOptions;
 

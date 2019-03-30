@@ -246,7 +246,7 @@ class Index extends AbstractAsset implements Constraint
      *
      * @example $index->addFlag('CLUSTERED')
      */
-    public function addFlag(string $flag) : Index
+    public function addFlag(string $flag) : self
     {
         $this->_flags[strtolower($flag)] = true;
 

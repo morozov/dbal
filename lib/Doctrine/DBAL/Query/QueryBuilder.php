@@ -258,7 +258,7 @@ class QueryBuilder
      *
      * @return $this This QueryBuilder instance.
      */
-    public function setParameter($key, $value, $type = null)
+    public function setParameter($key, $value, $type = null) : self
     {
         if ($type !== null) {
             $this->paramTypes[$key] = $type;
@@ -288,7 +288,7 @@ class QueryBuilder
      *
      * @return $this This QueryBuilder instance.
      */
-    public function setParameters(array $params, array $types = [])
+    public function setParameters(array $params, array $types = []) : self
     {
         $this->paramTypes = $types;
         $this->params     = $params;
@@ -347,7 +347,7 @@ class QueryBuilder
      *
      * @return $this This QueryBuilder instance.
      */
-    public function setFirstResult(int $firstResult)
+    public function setFirstResult(int $firstResult) : self
     {
         $this->state       = self::STATE_DIRTY;
         $this->firstResult = $firstResult;
@@ -373,7 +373,7 @@ class QueryBuilder
      *
      * @return $this This QueryBuilder instance.
      */
-    public function setMaxResults(int $maxResults)
+    public function setMaxResults(int $maxResults) : self
     {
         $this->state      = self::STATE_DIRTY;
         $this->maxResults = $maxResults;
@@ -402,7 +402,7 @@ class QueryBuilder
      *
      * @return $this This QueryBuilder instance.
      */
-    public function add(string $sqlPartName, $sqlPart, bool $append = false)
+    public function add(string $sqlPartName, $sqlPart, bool $append = false) : self
     {
         $isArray    = is_array($sqlPart);
         $isMultiple = is_array($this->sqlParts[$sqlPartName]);
@@ -450,7 +450,7 @@ class QueryBuilder
      *
      * @return $this This QueryBuilder instance.
      */
-    public function select($select = null)
+    public function select($select = null) : self
     {
         $this->type = self::SELECT;
 
@@ -478,7 +478,7 @@ class QueryBuilder
      *
      * @return $this This QueryBuilder instance.
      */
-    public function addSelect($select = null)
+    public function addSelect($select = null) : self
     {
         $this->type = self::SELECT;
 
@@ -507,7 +507,7 @@ class QueryBuilder
      *
      * @return $this This QueryBuilder instance.
      */
-    public function delete(?string $delete = null, ?string $alias = null)
+    public function delete(?string $delete = null, ?string $alias = null) : self
     {
         $this->type = self::DELETE;
 
@@ -537,7 +537,7 @@ class QueryBuilder
      *
      * @return $this This QueryBuilder instance.
      */
-    public function update(?string $update = null, ?string $alias = null)
+    public function update(?string $update = null, ?string $alias = null) : self
     {
         $this->type = self::UPDATE;
 
@@ -570,7 +570,7 @@ class QueryBuilder
      *
      * @return $this This QueryBuilder instance.
      */
-    public function insert(?string $insert = null)
+    public function insert(?string $insert = null) : self
     {
         $this->type = self::INSERT;
 
@@ -849,7 +849,7 @@ class QueryBuilder
      *
      * @return $this This QueryBuilder instance.
      */
-    public function groupBy($groupBy)
+    public function groupBy($groupBy) : self
     {
         if (empty($groupBy)) {
             return $this;
@@ -875,7 +875,7 @@ class QueryBuilder
      *
      * @return $this This QueryBuilder instance.
      */
-    public function addGroupBy($groupBy)
+    public function addGroupBy($groupBy) : self
     {
         if (empty($groupBy)) {
             return $this;
@@ -905,7 +905,7 @@ class QueryBuilder
      *
      * @return $this This QueryBuilder instance.
      */
-    public function setValue(string $column, string $value)
+    public function setValue(string $column, string $value) : self
     {
         $this->sqlParts['values'][$column] = $value;
 
@@ -1071,7 +1071,7 @@ class QueryBuilder
      *
      * @return $this This QueryBuilder instance.
      */
-    public function resetQueryPart(string $queryPartName)
+    public function resetQueryPart(string $queryPartName) : self
     {
         $this->sqlParts[$queryPartName] = is_array($this->sqlParts[$queryPartName])
             ? [] : null;
