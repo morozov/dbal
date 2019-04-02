@@ -31,7 +31,7 @@ class SQLAzureShardManager implements ShardManager
     /** @var Connection */
     private $conn;
 
-    /** @var string|null */
+    /** @var mixed */
     private $currentDistributionValue;
 
     /**
@@ -109,7 +109,7 @@ class SQLAzureShardManager implements ShardManager
     /**
      * {@inheritDoc}
      */
-    public function selectShard(string $distributionValue) : void
+    public function selectShard($distributionValue) : void
     {
         if ($this->conn->isTransactionActive()) {
             throw ShardingException::activeTransaction();

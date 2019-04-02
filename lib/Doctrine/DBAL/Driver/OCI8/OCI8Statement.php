@@ -236,7 +236,7 @@ class OCI8Statement implements IteratorAggregate, Statement
             return false;
         }
 
-        $currentLiteralDelimiter = false;
+        $currentLiteralDelimiter = null;
         ++$tokenOffset;
 
         return true;

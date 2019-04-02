@@ -40,7 +40,7 @@ class PoolingShardManager implements ShardManager
     /**
      * {@inheritDoc}
      */
-    public function selectShard(string $distributionValue) : void
+    public function selectShard($distributionValue) : void
     {
         $shardId = $this->choser->pickShard($distributionValue, $this->conn);
         $this->conn->connect($shardId);

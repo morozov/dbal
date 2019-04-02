@@ -33,9 +33,11 @@ interface ShardManager
     /**
      * Selects the shard against which the queries after this statement will be issued.
      *
+     * @param mixed $distributionValue
+     *
      * @throws ShardingException If no value is passed as shard identifier.
      */
-    public function selectShard(string $distributionValue) : void;
+    public function selectShard($distributionValue) : void;
 
     /**
      * Gets the distribution value currently used for sharding.

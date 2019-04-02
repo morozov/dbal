@@ -46,7 +46,7 @@ class ConnectionTest extends DbalTestCase
         'host' => 'localhost',
         'user' => 'root',
         'password' => 'password',
-        'port' => '1234',
+        'port' => 1234,
     ];
 
     protected function setUp() : void

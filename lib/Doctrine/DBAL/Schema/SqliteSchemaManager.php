@@ -12,10 +12,9 @@ use Doctrine\DBAL\Types\TextType;
 use Doctrine\DBAL\Types\Type;
 use const CASE_LOWER;
 use function array_change_key_case;
-use function array_map;
 use function array_reverse;
 use function array_values;
-use function explode;
+use function count;
 use function file_exists;
 use function preg_match;
 use function preg_match_all;
@@ -23,10 +22,8 @@ use function preg_quote;
 use function preg_replace;
 use function rtrim;
 use function sprintf;
-use function str_replace;
 use function strpos;
 use function strtolower;
-use function trim;
 use function unlink;
 use function usort;
 
@@ -298,23 +295,23 @@ class SqliteSchemaManager extends AbstractSchemaManager
      */
     protected function _getPortableTableColumnDefinition(array $tableColumn) : Column
     {
-        $parts               = explode('(', $tableColumn['type']);
-        $tableColumn['type'] = trim($parts[0]);
-        if (isset($parts[1])) {
-            $length                = trim($parts[1], ')');
-            $tableColumn['length'] = $length;
+        preg_match('/^([^\\s()]*)\\s*(\\(((\\d+)(,\\s*(\\d+))?)\\))?/', $tableColumn['type'], $matches);
+
+        $dbType = strtolower($matches[1]);
+
+        $length = $precision = $scale = $unsigned = $fixed = null;
+
+        if (count($matches) >= 6) {
+            $precision = (int) $matches[4];
+            $scale     = (int) $matches[6];
+        } elseif (count($matches) >= 4) {
+            $length = (int) $matches[4];
         }
 
-        $dbType   = strtolower($tableColumn['type']);
-        $length   = $tableColumn['length'] ?? null;
-        $unsigned = null;
-
-        if (strpos($dbType, ' unsigned') !== false) {
-            $dbType   = str_replace(' unsigned', '', $dbType);
+        if (strpos($tableColumn['type'], ' UNSIGNED') !== false) {
             $unsigned = true;
         }
 
-        $fixed   = null;
         $type    = $this->_platform->getDoctrineTypeMapping($dbType);
         $default = $tableColumn['dflt_value'];
         if ($default === 'NULL') {
@@ -330,26 +327,8 @@ class SqliteSchemaManager extends AbstractSchemaManager
             $tableColumn['name'] = '';
         }
 
-        $precision = null;
-        $scale     = null;
-
-        switch ($dbType) {
-            case 'char':
-                $fixed = true;
-                break;
-            case 'float':
-            case 'double':
-            case 'real':
-            case 'decimal':
-            case 'numeric':
-                if (isset($tableColumn['length'])) {
-                    if (strpos($tableColumn['length'], ',') === false) {
-                        $tableColumn['length'] .= ',0';
-                    }
-                    [$precision, $scale] = array_map('trim', explode(',', $tableColumn['length']));
-                }
-                $length = null;
-                break;
+        if ($dbType === 'char') {
+            $fixed = true;
         }
 
         $options = [
