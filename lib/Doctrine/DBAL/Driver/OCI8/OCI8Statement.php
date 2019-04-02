@@ -274,7 +274,7 @@ class OCI8Statement implements IteratorAggregate, Statement
     /**
      * {@inheritdoc}
      */
-    public function bindParam($column, &$variable, int $type = ParameterType::STRING, $length = null) : void
+    public function bindParam($column, &$variable, int $type = ParameterType::STRING, ?int $length = null) : void
     {
         $column = $this->_paramMap[$column];
 

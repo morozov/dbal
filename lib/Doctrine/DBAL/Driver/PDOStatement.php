@@ -67,7 +67,7 @@ class PDOStatement implements IteratorAggregate, Statement
     /**
      * {@inheritdoc}
      */
-    public function bindValue($param, $value, $type = ParameterType::STRING) : void
+    public function bindValue($param, $value, int $type = ParameterType::STRING) : void
     {
         $type = $this->convertParamType($type);
 
@@ -81,7 +81,7 @@ class PDOStatement implements IteratorAggregate, Statement
     /**
      * {@inheritdoc}
      */
-    public function bindParam($column, &$variable, $type = ParameterType::STRING, $length = null, $driverOptions = null) : void
+    public function bindParam($column, &$variable, int $type = ParameterType::STRING, ?int $length = null, $driverOptions = null) : void
     {
         $type            = $this->convertParamType($type);
         $extraParameters = array_slice(func_get_args(), 3);

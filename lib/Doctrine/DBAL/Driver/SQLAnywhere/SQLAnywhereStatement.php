@@ -89,7 +89,7 @@ class SQLAnywhereStatement implements IteratorAggregate, Statement
      *
      * @throws SQLAnywhereException
      */
-    public function bindParam($column, &$variable, $type = ParameterType::STRING, $length = null) : void
+    public function bindParam($column, &$variable, int $type = ParameterType::STRING, ?int $length = null) : void
     {
         switch ($type) {
             case ParameterType::INTEGER:
@@ -121,7 +121,7 @@ class SQLAnywhereStatement implements IteratorAggregate, Statement
     /**
      * {@inheritdoc}
      */
-    public function bindValue($param, $value, $type = ParameterType::STRING) : void
+    public function bindValue($param, $value, int $type = ParameterType::STRING) : void
     {
         $this->bindParam($param, $value, $type);
     }

@@ -131,7 +131,7 @@ class SQLAzureShardManager implements ShardManager
     /**
      * {@inheritDoc}
      */
-    public function getCurrentDistributionValue() : ?string
+    public function getCurrentDistributionValue()
     {
         return $this->currentDistributionValue;
     }

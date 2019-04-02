@@ -18,7 +18,7 @@ class PoolingShardManager implements ShardManager
     /** @var ShardChoser */
     private $choser;
 
-    /** @var string|null */
+    /** @var mixed */
     private $currentDistributionValue;
 
     public function __construct(PoolingShardConnection $conn)
@@ -50,7 +50,7 @@ class PoolingShardManager implements ShardManager
     /**
      * {@inheritDoc}
      */
-    public function getCurrentDistributionValue() : ?string
+    public function getCurrentDistributionValue()
     {
         return $this->currentDistributionValue;
     }

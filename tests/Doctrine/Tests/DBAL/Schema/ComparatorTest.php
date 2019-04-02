@@ -453,13 +453,11 @@ class ComparatorTest extends TestCase
         $seq1 = new Sequence('foo', 1, 1);
         $seq2 = new Sequence('foo', 1, 2);
         $seq3 = new Sequence('foo', 2, 1);
-        $seq4 = new Sequence('foo', '1', '1');
 
         $c = new Comparator();
 
         self::assertTrue($c->diffSequence($seq1, $seq2));
         self::assertTrue($c->diffSequence($seq1, $seq3));
-        self::assertFalse($c->diffSequence($seq1, $seq4));
     }
 
     public function testRemovedSequence() : void
@@ -1193,7 +1191,7 @@ class ComparatorTest extends TestCase
         $column2 = new Column(
             'foo',
             Type::getType('guid'),
-            ['notnull' => false, 'length' => '36', 'fixed' => true, 'default' => 'NEWID()', 'comment' => 'GUID 2.']
+            ['notnull' => false, 'length' => 36, 'fixed' => true, 'default' => 'NEWID()', 'comment' => 'GUID 2.']
         );
 
         self::assertEquals(['notnull', 'default', 'comment'], $comparator->diffColumn($column1, $column2));

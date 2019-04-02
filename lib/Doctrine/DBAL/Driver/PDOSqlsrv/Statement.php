@@ -16,7 +16,7 @@ class Statement extends PDOStatement
     /**
      * {@inheritdoc}
      */
-    public function bindParam($column, &$variable, $type = ParameterType::STRING, $length = null, $driverOptions = null) : void
+    public function bindParam($column, &$variable, int $type = ParameterType::STRING, ?int $length = null, $driverOptions = null) : void
     {
         if (($type === ParameterType::LARGE_OBJECT || $type === ParameterType::BINARY)
             && $driverOptions === null
@@ -30,7 +30,7 @@ class Statement extends PDOStatement
     /**
      * {@inheritdoc}
      */
-    public function bindValue($param, $value, $type = ParameterType::STRING) : void
+    public function bindValue($param, $value, int $type = ParameterType::STRING) : void
     {
         $this->bindParam($param, $value, $type);
     }

@@ -14,6 +14,10 @@ interface ShardChoser
 {
     /**
      * Picks a shard for the given distribution value.
+     *
+     * @param string|int $distributionValue
+     *
+     * @return string|int
      */
-    public function pickShard(string $distributionValue, PoolingShardConnection $conn) : string;
+    public function pickShard($distributionValue, PoolingShardConnection $conn);
 }

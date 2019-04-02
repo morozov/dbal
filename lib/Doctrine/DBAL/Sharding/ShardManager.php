@@ -41,8 +41,10 @@ interface ShardManager
 
     /**
      * Gets the distribution value currently used for sharding.
+     *
+     * @return mixed
      */
-    public function getCurrentDistributionValue() : ?string;
+    public function getCurrentDistributionValue();
 
     /**
      * Gets information about the amount of shards and other details.

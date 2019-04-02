@@ -144,7 +144,7 @@ class SQLSrvStatement implements IteratorAggregate, Statement
     /**
      * {@inheritdoc}
      */
-    public function bindValue($param, $value, $type = ParameterType::STRING) : void
+    public function bindValue($param, $value, int $type = ParameterType::STRING) : void
     {
         if (! is_numeric($param)) {
             throw new SQLSrvException(
@@ -159,7 +159,7 @@ class SQLSrvStatement implements IteratorAggregate, Statement
     /**
      * {@inheritdoc}
      */
-    public function bindParam($column, &$variable, $type = ParameterType::STRING, $length = null) : void
+    public function bindParam($column, &$variable, int $type = ParameterType::STRING, ?int $length = null) : void
     {
         if (! is_numeric($column)) {
             throw new SQLSrvException('sqlsrv does not support named parameters to queries, use question mark (?) placeholders instead.');

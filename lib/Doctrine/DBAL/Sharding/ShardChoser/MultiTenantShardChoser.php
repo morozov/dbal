@@ -15,7 +15,7 @@ class MultiTenantShardChoser implements ShardChoser
     /**
      * {@inheritdoc}
      */
-    public function pickShard(string $distributionValue, PoolingShardConnection $conn) : string
+    public function pickShard($distributionValue, PoolingShardConnection $conn)
     {
         return $distributionValue;
     }
