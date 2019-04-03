@@ -137,7 +137,7 @@ class OCI8Connection implements Connection, ServerInfoAwareConnection
     public function lastInsertId(?string $name = null) : string
     {
         if ($name === null) {
-            return false;
+            return '0';
         }
 
         $sql    = 'SELECT ' . $name . '.CURRVAL FROM DUAL';
@@ -148,7 +148,7 @@ class OCI8Connection implements Connection, ServerInfoAwareConnection
             throw new OCI8Exception('lastInsertId failed: Query was executed but no result was returned.');
         }
 
-        return (int) $result;
+        return $result;
     }
 
     /**
