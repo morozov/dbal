@@ -45,12 +45,7 @@ class DB2SchemaManager extends AbstractSchemaManager
     {
         $tableColumn = array_change_key_case($tableColumn, CASE_LOWER);
 
-        $length    = null;
-        $fixed     = null;
-        $scale     = false;
-        $precision = false;
-
-        $default = null;
+        $length = $fixed = $scale = $precision = $default = null;
 
         if ($tableColumn['default'] !== null && $tableColumn['default'] !== 'NULL') {
             $default = trim($tableColumn['default'], "'");
