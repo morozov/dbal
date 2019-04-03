@@ -232,7 +232,7 @@ class SQLSrvStatement implements IteratorAggregate, Statement
         if ($this->lastInsertId) {
             sqlsrv_next_result($this->stmt);
             sqlsrv_fetch($this->stmt);
-            $this->lastInsertId->setId(sqlsrv_get_field($this->stmt, 0));
+            $this->lastInsertId->setId(sqlsrv_get_field($this->stmt, 0) ?? '0');
         }
 
         $this->result = true;

@@ -9,15 +9,15 @@ namespace Doctrine\DBAL\Driver\SQLSrv;
  */
 class LastInsertId
 {
-    /** @var int|null */
-    private $id;
+    /** @var string */
+    private $id = '0';
 
-    public function setId(?int $id) : void
+    public function setId(string $id) : void
     {
         $this->id = $id;
     }
 
-    public function getId() : ?int
+    public function getId() : string
     {
         return $this->id;
     }
