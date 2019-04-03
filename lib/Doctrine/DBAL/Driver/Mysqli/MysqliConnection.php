@@ -163,7 +163,7 @@ class MysqliConnection implements Connection, PingableConnection, ServerInfoAwar
      */
     public function lastInsertId(?string $name = null) : string
     {
-        return $this->conn->insert_id;
+        return (string) $this->conn->insert_id;
     }
 
     /**
