@@ -22,13 +22,13 @@ class Column extends AbstractAsset
     protected $_type;
 
     /** @var int|null */
-    protected $_length = null;
+    protected $_length;
 
     /** @var int */
-    protected $_precision = 10;
+    protected $_precision;
 
     /** @var int */
-    protected $_scale = 0;
+    protected $_scale;
 
     /** @var bool */
     protected $_unsigned = false;
@@ -49,10 +49,10 @@ class Column extends AbstractAsset
     protected $_platformOptions = [];
 
     /** @var string|null */
-    protected $_columnDefinition = null;
+    protected $_columnDefinition;
 
     /** @var string|null */
-    protected $_comment = null;
+    protected $_comment;
 
     /** @var mixed[] */
     protected $_customSchemaOptions = [];
@@ -116,15 +116,14 @@ class Column extends AbstractAsset
 
     public function setPrecision(?int $precision) : self
     {
-        // defaults to 10 when no valid precision is given.
-        $this->_precision = $precision ?? 10;
+        $this->_precision = $precision;
 
         return $this;
     }
 
     public function setScale(?int $scale) : self
     {
-        $this->_scale = $scale ?? 0;
+        $this->_scale = $scale;
 
         return $this;
     }
@@ -197,12 +196,12 @@ class Column extends AbstractAsset
         return $this->_length;
     }
 
-    public function getPrecision() : int
+    public function getPrecision() : ?int
     {
         return $this->_precision;
     }
 
-    public function getScale() : int
+    public function getScale() : ?int
     {
         return $this->_scale;
     }
