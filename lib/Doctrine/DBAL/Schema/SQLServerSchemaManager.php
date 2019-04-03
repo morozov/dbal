@@ -70,16 +70,24 @@ class SQLServerSchemaManager extends AbstractSchemaManager
         $dbType = strtok($tableColumn['type'], '(), ');
         assert(is_string($dbType));
 
-        $fixed   = null;
-        $length  = (int) $tableColumn['length'];
-        $default = $tableColumn['default'];
+        $length = (int) $tableColumn['length'];
+
+        $default = $fixed = $scale = $precision = null;
 
         if (! isset($tableColumn['name'])) {
             $tableColumn['name'] = '';
         }
 
-        if ($default !== null) {
-            $default = $this->parseDefaultExpression($default);
+        if ($tableColumn['scale'] !== null) {
+            $scale = (int) $tableColumn['scale'];
+        }
+
+        if ($tableColumn['precision'] !== null) {
+            $precision = (int) $tableColumn['precision'];
+        }
+
+        if ($tableColumn['default'] !== null) {
+            $default = $this->parseDefaultExpression($tableColumn['default']);
         }
 
         switch ($dbType) {
@@ -109,8 +117,8 @@ class SQLServerSchemaManager extends AbstractSchemaManager
             'unsigned'      => false,
             'default'       => $default !== 'NULL' ? $default : null,
             'notnull'       => (bool) $tableColumn['notnull'],
-            'scale'         => $tableColumn['scale'],
-            'precision'     => $tableColumn['precision'],
+            'scale'         => $scale,
+            'precision'     => $precision,
             'autoincrement' => (bool) $tableColumn['autoincrement'],
             'comment'       => $tableColumn['comment'] !== '' ? $tableColumn['comment'] : null,
         ];
