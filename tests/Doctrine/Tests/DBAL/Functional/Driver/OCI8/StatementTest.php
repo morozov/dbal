@@ -6,9 +6,7 @@ namespace Doctrine\Tests\DBAL\Functional\Driver\OCI8;
 
 use Doctrine\DBAL\Driver\OCI8\Driver;
 use Doctrine\Tests\DbalFunctionalTestCase;
-use function array_key_exists;
 use function extension_loaded;
-use function is_int;
 
 class StatementTest extends DbalFunctionalTestCase
 {
@@ -51,20 +49,8 @@ class StatementTest extends DbalFunctionalTestCase
      */
     public function testStatementBindParameters(string $query, array $params, array $expected) : void
     {
-        $stmt         = $this->connection->prepare($query);
-        $hasZeroIndex = array_key_exists(0, $params);
-
-        foreach ($params as $key => $val) {
-            if ($hasZeroIndex && is_int($key)) {
-                $param = $key + 1;
-            } else {
-                $param = $key;
-            }
-
-            $stmt->bindParam($param, $val);
-        }
-
-        $stmt->execute();
+        $stmt = $this->connection->prepare($query);
+        $stmt->execute($params); // bind params in statement and execute it
 
         self::assertEquals(
             $expected,

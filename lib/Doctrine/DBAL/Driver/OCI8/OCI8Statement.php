@@ -91,19 +91,6 @@ class OCI8Statement implements IteratorAggregate, Statement
     private $result = false;
 
     /**
-     * @param resource $dbh The connection handle.
-     *
-     * @return resource
-     */
-    protected function prepareQuery($dbh, string $query)
-    {
-        $stmt = oci_parse($dbh, $query);
-        assert(is_resource($stmt));
-
-        return $stmt;
-    }
-
-    /**
      * Creates a new OCI8Statement that uses the given connection handle and SQL statement.
      *
      * @param resource $dbh   The connection handle.
@@ -113,7 +100,10 @@ class OCI8Statement implements IteratorAggregate, Statement
     {
         [$query, $paramMap] = self::convertPositionalToNamedPlaceholders($query);
 
-        $this->_sth      = $this->prepareQuery($dbh, $query);
+        $stmt = oci_parse($dbh, $query);
+        assert(is_resource($stmt));
+
+        $this->_sth      = $stmt;
         $this->_dbh      = $dbh;
         $this->_paramMap = $paramMap;
         $this->_conn     = $conn;
@@ -283,7 +273,13 @@ class OCI8Statement implements IteratorAggregate, Statement
      */
     public function bindParam($param, &$variable, int $type = ParameterType::STRING, ?int $length = null) : void
     {
-        $param = $this->_paramMap[$param] ?? (string) $param;
+        if (is_int($param)) {
+            if (! isset($this->_paramMap[$param])) {
+                throw new OCI8Exception(sprintf('Could not find variable mapping with index "%s", in the SQL statement', $param));
+            }
+
+            $param = $this->_paramMap[$param];
+        }
 
         if ($type === ParameterType::LARGE_OBJECT) {
             $lob = oci_new_descriptor($this->_dbh, OCI_D_LOB);
