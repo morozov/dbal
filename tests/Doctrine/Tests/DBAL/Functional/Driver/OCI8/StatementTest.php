@@ -50,7 +50,7 @@ class StatementTest extends DbalFunctionalTestCase
     public function testStatementBindParameters(string $query, array $params, array $expected) : void
     {
         $stmt = $this->connection->prepare($query);
-        $stmt->execute($params); // bind params in statement and execute it
+        $stmt->execute($params);
 
         self::assertEquals(
             $expected,

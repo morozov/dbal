@@ -275,7 +275,7 @@ class OCI8Statement implements IteratorAggregate, Statement
     {
         if (is_int($param)) {
             if (! isset($this->_paramMap[$param])) {
-                throw new OCI8Exception(sprintf('Could not find variable mapping with index "%s", in the SQL statement', $param));
+                throw new OCI8Exception(sprintf('Could not find variable mapping with index "%d", in the SQL statement', $param));
             }
 
             $param = $this->_paramMap[$param];
