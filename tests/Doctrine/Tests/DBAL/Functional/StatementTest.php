@@ -279,6 +279,22 @@ EOF
         $stmt->closeCursor();
     }
 
+    public function testBindPositionalParameter() : void
+    {
+        $platform = $this->connection->getDatabasePlatform();
+        $stmt     = $this->connection->prepare($platform->getDummySelectSQL('?'));
+        $stmt->execute(['1']);
+        $this->assertSame('1', $stmt->fetchColumn());
+    }
+
+    public function testBindNamedParameter() : void
+    {
+        $platform = $this->connection->getDatabasePlatform();
+        $stmt     = $this->connection->prepare($platform->getDummySelectSQL(':test'));
+        $stmt->execute([':test' => '1']);
+        $this->assertSame('1', $stmt->fetchColumn());
+    }
+
     /**
      * @param mixed $expected
      *
