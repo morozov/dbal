@@ -369,11 +369,8 @@ class OraclePlatform extends AbstractPlatform
      */
     public function getListSequencesSQL($database)
     {
-        $database = $this->normalizeIdentifier($database);
-        $database = $this->quoteStringLiteral($database->getName());
-
         return 'SELECT sequence_name, min_value, increment_by FROM sys.all_sequences ' .
-               'WHERE SEQUENCE_OWNER = ' . $database;
+               'WHERE SEQUENCE_OWNER = ' . $this->quoteStringLiteral($this->fooBar($database));
     }
 
     /**
@@ -414,38 +411,51 @@ class OraclePlatform extends AbstractPlatform
      *
      * @link http://ezcomponents.org/docs/api/trunk/DatabaseSchema/ezcDbSchemaOracleReader.html
      */
-    public function getListTableIndexesSQL($table, $database = null)
+    public function getListTableIndexesSQL($table, $database)
     {
-        $table = $this->normalizeIdentifier($table);
-        $table = $this->quoteStringLiteral($table->getName());
-
-        return "SELECT uind_col.index_name AS name,
-                       (
-                           SELECT uind.index_type
-                           FROM   user_indexes uind
-                           WHERE  uind.index_name = uind_col.index_name
-                       ) AS type,
-                       decode(
-                           (
-                               SELECT uind.uniqueness
-                               FROM   user_indexes uind
-                               WHERE  uind.index_name = uind_col.index_name
-                           ),
-                           'NONUNIQUE',
-                           0,
-                           'UNIQUE',
-                           1
-                       ) AS is_unique,
-                       uind_col.column_name AS column_name,
-                       uind_col.column_position AS column_pos,
-                       (
-                           SELECT ucon.constraint_type
-                           FROM   user_constraints ucon
-                           WHERE  ucon.index_name = uind_col.index_name
-                       ) AS is_primary
-             FROM      user_ind_columns uind_col
-             WHERE     uind_col.table_name = " . $table . '
-             ORDER BY  uind_col.column_position ASC';
+        return sprintf(
+            <<<'SQL'
+SELECT /*+ RULE */
+    ic.INDEX_NAME AS name,
+    (
+        SELECT i.INDEX_TYPE
+          FROM SYS.ALL_INDEXES i
+         WHERE i.OWNER = ic.INDEX_OWNER
+           AND i.INDEX_NAME = ic.INDEX_NAME
+    ) AS type,
+    decode(
+        (
+            SELECT i.UNIQUENESS
+              FROM SYS.ALL_INDEXES i
+             WHERE i.OWNER = ic.INDEX_OWNER
+               AND i.INDEX_NAME = ic.INDEX_NAME
+        ),
+        'NONUNIQUE',
+        0,
+        'UNIQUE',
+        1
+    ) AS is_unique,
+    ic.COLUMN_NAME AS column_name,
+    ic.COLUMN_POSITION AS column_pos,
+    (
+        SELECT c.CONSTRAINT_TYPE
+          FROM SYS.ALL_CONSTRAINTS c
+         WHERE c.OWNER = ic.INDEX_OWNER
+           AND c.INDEX_NAME = ic.INDEX_NAME
+    ) AS is_primary
+    FROM SYS.ALL_IND_COLUMNS ic
+   WHERE ic.INDEX_OWNER = %s
+     AND ic.TABLE_NAME = %s
+ORDER BY ic.COLUMN_POSITION
+SQL
+            ,
+            $this->quoteStringLiteral(
+                $this->fooBar($database)
+            ),
+            $this->quoteStringLiteral(
+                $this->fooBar($table)
+            )
+        );
     }
 
     /**
@@ -461,7 +471,18 @@ class OraclePlatform extends AbstractPlatform
      */
     public function getListViewsSQL($database)
     {
-        return 'SELECT view_name, text FROM sys.user_views';
+        return sprintf(
+            <<<'SQL'
+SELECT VIEW_NAME,
+       TEXT
+  FROM SYS.ALL_VIEWS
+ WHERE OWNER = %s
+SQL
+            ,
+            $this->quoteStringLiteral(
+                $this->fooBar($database)
+            )
+        );
     }
 
     /**
@@ -585,6 +606,18 @@ END;';
         return $identifier->isQuoted() ? $identifier : new Identifier(strtoupper($name));
     }
 
+    private function fooBar(string $name): string
+    {
+        $identifier = new Identifier($name);
+        $name       = $identifier->getName();
+
+        if ($identifier->isQuoted()) {
+            return $name;
+        }
+
+        return strtoupper($name);
+    }
+
     /**
      * Adds suffix to identifier,
      *
@@ -623,33 +656,38 @@ END;';
     /**
      * {@inheritDoc}
      */
-    public function getListTableForeignKeysSQL($table)
+    public function getListTableForeignKeysSQL($table, $database)
     {
-        $table = $this->normalizeIdentifier($table);
-        $table = $this->quoteStringLiteral($table->getName());
-
-        return "SELECT alc.constraint_name,
-          alc.DELETE_RULE,
-          cols.column_name \"local_column\",
-          cols.position,
-          (
-              SELECT r_cols.table_name
-              FROM   user_cons_columns r_cols
-              WHERE  alc.r_constraint_name = r_cols.constraint_name
-              AND    r_cols.position = cols.position
-          ) AS \"references_table\",
-          (
-              SELECT r_cols.column_name
-              FROM   user_cons_columns r_cols
-              WHERE  alc.r_constraint_name = r_cols.constraint_name
-              AND    r_cols.position = cols.position
-          ) AS \"foreign_column\"
-     FROM user_cons_columns cols
-     JOIN user_constraints alc
-       ON alc.constraint_name = cols.constraint_name
-      AND alc.constraint_type = 'R'
-      AND alc.table_name = " . $table . '
-    ORDER BY cols.constraint_name ASC, cols.position ASC';
+        return sprintf(
+            <<<'SQL'
+SELECT /*+ RULE */ c.CONSTRAINT_NAME,
+       c.DELETE_RULE,
+       cc.COLUMN_NAME  AS "local_column",
+       cc.POSITION,
+       rcc.TABLE_NAME  AS "references_table",
+       rcc.COLUMN_NAME AS "foreign_column"
+FROM SYS.ALL_CONSTRAINTS c
+INNER JOIN SYS.ALL_CONS_COLUMNS cc
+        ON cc.OWNER = c.OWNER
+       AND cc.CONSTRAINT_NAME = c.CONSTRAINT_NAME
+INNER JOIN SYS.ALL_CONS_COLUMNS rcc
+        ON rcc.OWNER = c.R_OWNER
+       AND rcc.CONSTRAINT_NAME = c.R_CONSTRAINT_NAME
+       AND rcc.POSITION = cc.POSITION
+WHERE c.OWNER = %s
+  AND c.TABLE_NAME = %s
+  AND c.CONSTRAINT_TYPE = 'R'
+ORDER BY cc.CONSTRAINT_NAME,
+         cc.POSITION
+SQL
+            ,
+            $this->quoteStringLiteral(
+                $this->fooBar($database)
+            ),
+            $this->quoteStringLiteral(
+                $this->fooBar($table)
+            )
+        );
     }
 
     /**
@@ -657,8 +695,7 @@ END;';
      */
     public function getListTableConstraintsSQL($table)
     {
-        $table = $this->normalizeIdentifier($table);
-        $table = $this->quoteStringLiteral($table->getName());
+        $table = $this->quoteStringLiteral($this->fooBar($table));
 
         return 'SELECT * FROM user_constraints WHERE table_name = ' . $table;
     }
@@ -666,44 +703,29 @@ END;';
     /**
      * {@inheritDoc}
      */
-    public function getListTableColumnsSQL($table, $database = null)
+    public function getListTableColumnsSQL($table, $database)
     {
-        $table = $this->normalizeIdentifier($table);
-        $table = $this->quoteStringLiteral($table->getName());
-
-        $tabColumnsTableName       = 'user_tab_columns';
-        $colCommentsTableName      = 'user_col_comments';
-        $tabColumnsOwnerCondition  = '';
-        $colCommentsOwnerCondition = '';
-
-        if ($database !== null && $database !== '/') {
-            $database                  = $this->normalizeIdentifier($database);
-            $database                  = $this->quoteStringLiteral($database->getName());
-            $tabColumnsTableName       = 'all_tab_columns';
-            $colCommentsTableName      = 'all_col_comments';
-            $tabColumnsOwnerCondition  = ' AND c.owner = ' . $database;
-            $colCommentsOwnerCondition = ' AND d.OWNER = c.OWNER';
-        }
-
         return sprintf(
             <<<'SQL'
-SELECT   c.*,
+SELECT   tc.*,
          (
-             SELECT d.comments
-             FROM   %s d
-             WHERE  d.TABLE_NAME = c.TABLE_NAME%s
-             AND    d.COLUMN_NAME = c.COLUMN_NAME
+             SELECT cc.comments
+             FROM   all_col_comments cc
+             WHERE  cc.TABLE_NAME = tc.TABLE_NAME
+             AND    cc.OWNER = tc.OWNER
+             AND    cc.COLUMN_NAME = tc.COLUMN_NAME
          ) AS comments
-FROM     %s c
-WHERE    c.table_name = %s%s
-ORDER BY c.column_id
+FROM     all_tab_columns tc
+WHERE    tc.owner = %s AND tc.table_name = %s
+ORDER BY tc.column_id
 SQL
             ,
-            $colCommentsTableName,
-            $colCommentsOwnerCondition,
-            $tabColumnsTableName,
-            $table,
-            $tabColumnsOwnerCondition
+            $this->quoteStringLiteral(
+                $this->fooBar($database)
+            ),
+            $this->quoteStringLiteral(
+                $this->fooBar($table)
+            )
         );
     }
 
@@ -1174,26 +1196,22 @@ SQL
         return 'BLOB';
     }
 
-    public function getListTableCommentsSQL(string $table, ?string $database = null): string
+    public function getListTableCommentsSQL(string $table, string $database): string
     {
-        $tableCommentsName = 'user_tab_comments';
-        $ownerCondition    = '';
-
-        if ($database !== null && $database !== '/') {
-            $tableCommentsName = 'all_tab_comments';
-            $ownerCondition    = ' AND owner = ' . $this->quoteStringLiteral(
-                $this->normalizeIdentifier($database)->getName()
-            );
-        }
-
         return sprintf(
             <<<'SQL'
-SELECT comments FROM %s WHERE table_name = %s%s
+SELECT COMMENTS
+  FROM SYS.ALL_TAB_COMMENTS
+ WHERE OWNER = %s
+   AND TABLE_NAME = %s
 SQL
             ,
-            $tableCommentsName,
-            $this->quoteStringLiteral($this->normalizeIdentifier($table)->getName()),
-            $ownerCondition
+            $this->quoteStringLiteral(
+                $this->fooBar($database)
+            ),
+            $this->quoteStringLiteral(
+                $this->fooBar($table)
+            )
         );
     }
 }

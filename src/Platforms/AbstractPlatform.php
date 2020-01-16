@@ -2772,7 +2772,7 @@ abstract class AbstractPlatform
      *
      * @throws Exception If not supported on this platform.
      */
-    public function getListTableColumnsSQL($table, $database = null)
+    public function getListTableColumnsSQL($table, $database)
     {
         throw Exception::notSupported(__METHOD__);
     }
@@ -2812,14 +2812,7 @@ abstract class AbstractPlatform
     }
 
     /**
-     * Returns the list of indexes for the current database.
-     *
-     * The current database parameter is optional but will always be passed
-     * when using the SchemaManager API and is the database the given table is in.
-     *
-     * Attention: Some platforms only support currentDatabase when they
-     * are connected with that database. Cross-database information schema
-     * requests may be impossible.
+     * Returns the list of indexes for the given table and the database.
      *
      * @param string $table
      * @param string $database
@@ -2828,19 +2821,20 @@ abstract class AbstractPlatform
      *
      * @throws Exception If not supported on this platform.
      */
-    public function getListTableIndexesSQL($table, $database = null)
+    public function getListTableIndexesSQL($table, $database)
     {
         throw Exception::notSupported(__METHOD__);
     }
 
     /**
      * @param string $table
+     * @param string $database
      *
      * @return string
      *
      * @throws Exception If not supported on this platform.
      */
-    public function getListTableForeignKeysSQL($table)
+    public function getListTableForeignKeysSQL($table, $database)
     {
         throw Exception::notSupported(__METHOD__);
     }

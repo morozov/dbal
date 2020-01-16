@@ -141,24 +141,15 @@ class MySqlPlatform extends AbstractPlatform
 
     /**
      * {@inheritDoc}
-     *
-     * Two approaches to listing the table indexes. The information_schema is
-     * preferred, because it doesn't cause problems with SQL keywords such as "order" or "table".
      */
-    public function getListTableIndexesSQL($table, $database = null)
+    public function getListTableIndexesSQL($table, $database)
     {
-        if ($database !== null) {
-            $database = $this->quoteStringLiteral($database);
-            $table    = $this->quoteStringLiteral($table);
-
-            return 'SELECT NON_UNIQUE AS Non_Unique, INDEX_NAME AS Key_name, COLUMN_NAME AS Column_Name,' .
-                   ' SUB_PART AS Sub_Part, INDEX_TYPE AS Index_Type' .
-                   ' FROM information_schema.STATISTICS WHERE TABLE_NAME = ' . $table .
-                   ' AND TABLE_SCHEMA = ' . $database .
-                   ' ORDER BY SEQ_IN_INDEX ASC';
-        }
-
-        return 'SHOW INDEX FROM ' . $table;
+        return 'SELECT NON_UNIQUE AS Non_Unique, INDEX_NAME AS Key_name, COLUMN_NAME AS Column_Name,'
+            . ' SUB_PART AS Sub_Part, INDEX_TYPE AS Index_Type'
+            . ' FROM information_schema.STATISTICS'
+            . ' WHERE TABLE_NAME = ' . $this->quoteStringLiteral($table)
+            . ' AND TABLE_SCHEMA = ' . $this->quoteStringLiteral($database)
+            . ' ORDER BY SEQ_IN_INDEX';
     }
 
     /**
@@ -177,26 +168,18 @@ class MySqlPlatform extends AbstractPlatform
      *
      * @return string
      */
-    public function getListTableForeignKeysSQL($table, $database = null)
+    public function getListTableForeignKeysSQL($table, $database)
     {
-        $table = $this->quoteStringLiteral($table);
-
-        if ($database !== null) {
-            $database = $this->quoteStringLiteral($database);
-        }
-
-        $sql = 'SELECT DISTINCT k.`CONSTRAINT_NAME`, k.`COLUMN_NAME`, k.`REFERENCED_TABLE_NAME`, ' .
-               'k.`REFERENCED_COLUMN_NAME` /*!50116 , c.update_rule, c.delete_rule */ ' .
-               'FROM information_schema.key_column_usage k /*!50116 ' .
-               'INNER JOIN information_schema.referential_constraints c ON ' .
-               '  c.constraint_name = k.constraint_name AND ' .
-               '  c.table_name = ' . $table . ' */ WHERE k.table_name = ' . $table;
-
-        $databaseNameSql = $database ?? 'DATABASE()';
-
-        return $sql . ' AND k.table_schema = ' . $databaseNameSql
-            . ' /*!50116 AND c.constraint_schema = ' . $databaseNameSql . ' */'
-            . ' AND k.`REFERENCED_COLUMN_NAME` is not NULL';
+        return 'SELECT DISTINCT k.CONSTRAINT_NAME, k.COLUMN_NAME, k.REFERENCED_TABLE_NAME,'
+            . ' k.REFERENCED_COLUMN_NAME, c.UPDATE_RULE, c.DELETE_RULE'
+            . ' FROM information_schema.KEY_COLUMN_USAGE k'
+            . ' INNER JOIN information_schema.REFERENTIAL_CONSTRAINTS c'
+            . ' ON c.CONSTRAINT_NAME = k.CONSTRAINT_NAME'
+            . ' AND c.TABLE_NAME = k.TABLE_NAME'
+            . ' AND c.CONSTRAINT_SCHEMA = k.TABLE_SCHEMA'
+            . ' WHERE k.TABLE_NAME = ' . $this->quoteStringLiteral($table)
+            . ' AND k.TABLE_SCHEMA = ' . $this->quoteStringLiteral($database)
+            . ' AND k.REFERENCED_COLUMN_NAME IS NOT NULL';
     }
 
     /**
@@ -348,24 +331,18 @@ class MySqlPlatform extends AbstractPlatform
     /**
      * {@inheritDoc}
      */
-    public function getListTableColumnsSQL($table, $database = null)
+    public function getListTableColumnsSQL($table, $database)
     {
-        $table = $this->quoteStringLiteral($table);
-
-        if ($database !== null) {
-            $database = $this->quoteStringLiteral($database);
-        } else {
-            $database = 'DATABASE()';
-        }
-
-        return 'SELECT COLUMN_NAME AS Field, COLUMN_TYPE AS Type, IS_NULLABLE AS `Null`, ' .
-               'COLUMN_KEY AS `Key`, COLUMN_DEFAULT AS `Default`, EXTRA AS Extra, COLUMN_COMMENT AS Comment, ' .
-               'CHARACTER_SET_NAME AS CharacterSet, COLLATION_NAME AS Collation ' .
-               'FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ' . $database . ' AND TABLE_NAME = ' . $table .
-               ' ORDER BY ORDINAL_POSITION ASC';
+        return 'SELECT COLUMN_NAME AS Field, COLUMN_TYPE AS Type, IS_NULLABLE AS `Null`,'
+            . ' COLUMN_KEY AS `Key`, COLUMN_DEFAULT AS `Default`, EXTRA AS Extra, COLUMN_COMMENT AS Comment,'
+            . ' CHARACTER_SET_NAME AS CharacterSet, COLLATION_NAME AS Collation '
+            . ' FROM information_schema.COLUMNS'
+            . ' WHERE TABLE_SCHEMA = ' . $this->quoteStringLiteral($database)
+            . ' AND TABLE_NAME = ' . $this->quoteStringLiteral($table)
+            . ' ORDER BY ORDINAL_POSITION';
     }
 
-    public function getListTableMetadataSQL(string $table, ?string $database = null): string
+    public function getListTableMetadataSQL(string $table, string $database): string
     {
         return sprintf(
             <<<'SQL'
@@ -374,7 +351,7 @@ FROM information_schema.TABLES
 WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = %s AND TABLE_NAME = %s
 SQL
             ,
-            $database !== null ? $this->quoteStringLiteral($database) : 'DATABASE()',
+            $this->quoteStringLiteral($database),
             $this->quoteStringLiteral($table)
         );
     }

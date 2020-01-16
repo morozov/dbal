@@ -1,0 +1,100 @@
+Plan hash value: 1908301309
+
+------------------------------------------------------------------------------------------------------------
+| Id  | Operation                           | Name                 | Rows  | Bytes | Cost (%CPU)| Time     |
+------------------------------------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT                    |                      |     1 |   222 |    62   (4)| 00:00:01 |
+|*  1 |  FILTER                             |                      |       |       |            |          |
+|   2 |   NESTED LOOPS OUTER                |                      |     1 |   222 |    62   (4)| 00:00:01 |
+|   3 |    NESTED LOOPS                     |                      |     1 |   220 |    59   (4)| 00:00:01 |
+|   4 |     NESTED LOOPS OUTER              |                      |     1 |   198 |    58   (4)| 00:00:01 |
+|   5 |      NESTED LOOPS OUTER             |                      |     1 |   194 |    57   (4)| 00:00:01 |
+|   6 |       NESTED LOOPS OUTER            |                      |     1 |   190 |    56   (4)| 00:00:01 |
+|   7 |        NESTED LOOPS OUTER           |                      |     1 |   185 |    55   (4)| 00:00:01 |
+|   8 |         NESTED LOOPS                |                      |     1 |   178 |    54   (4)| 00:00:01 |
+|*  9 |          HASH JOIN                  |                      |     4 |   572 |    46   (5)| 00:00:01 |
+|* 10 |           HASH JOIN                 |                      |    70 |  3150 |    42   (3)| 00:00:01 |
+|* 11 |            TABLE ACCESS FULL        | CDEF$                |    70 |  1540 |    31   (0)| 00:00:01 |
+|  12 |            TABLE ACCESS FULL        | CON$                 |  7020 |   157K|    10   (0)| 00:00:01 |
+|* 13 |           TABLE ACCESS FULL         | USER$                |     1 |    98 |     3   (0)| 00:00:01 |
+|* 14 |          TABLE ACCESS BY INDEX ROWID| OBJ$                 |     1 |    35 |     2   (0)| 00:00:01 |
+|* 15 |           INDEX RANGE SCAN          | I_OBJ1               |     1 |       |     1   (0)| 00:00:01 |
+|  16 |         TABLE ACCESS BY INDEX ROWID | CON$                 |     1 |     7 |     1   (0)| 00:00:01 |
+|* 17 |          INDEX UNIQUE SCAN          | I_CON2               |     1 |       |     0   (0)| 00:00:01 |
+|* 18 |        INDEX RANGE SCAN             | I_OBJ1               |     1 |     5 |     1   (0)| 00:00:01 |
+|* 19 |       INDEX RANGE SCAN              | I_USER2              |     1 |     4 |     1   (0)| 00:00:01 |
+|* 20 |      INDEX RANGE SCAN               | I_USER2              |     1 |     4 |     1   (0)| 00:00:01 |
+|* 21 |     INDEX RANGE SCAN                | I_USER2              |     1 |    22 |     1   (0)| 00:00:01 |
+|  22 |    VIEW PUSHED PREDICATE            | _CURRENT_EDITION_OBJ |     1 |     2 |     3   (0)| 00:00:01 |
+|* 23 |     FILTER                          |                      |       |       |            |          |
+|  24 |      NESTED LOOPS                   |                      |     1 |    34 |     3   (0)| 00:00:01 |
+|* 25 |       INDEX RANGE SCAN              | I_OBJ1               |     1 |    12 |     2   (0)| 00:00:01 |
+|* 26 |       INDEX RANGE SCAN              | I_USER2              |     1 |    22 |     1   (0)| 00:00:01 |
+|  27 |      NESTED LOOPS                   |                      |     1 |    30 |     2   (0)| 00:00:01 |
+|* 28 |       INDEX SKIP SCAN               | I_USER2              |     1 |    20 |     1   (0)| 00:00:01 |
+|* 29 |       INDEX RANGE SCAN              | I_OBJ4               |     1 |    10 |     1   (0)| 00:00:01 |
+|  30 |   NESTED LOOPS                      |                      |     1 |    11 |     2   (0)| 00:00:01 |
+|  31 |    FIXED TABLE FULL                 | X$KZSRO              |     2 |     6 |     0   (0)| 00:00:01 |
+|* 32 |    INDEX RANGE SCAN                 | I_OBJAUTH2           |     1 |     8 |     1   (0)| 00:00:01 |
+|* 33 |   FIXED TABLE FULL                  | X$KZSPR              |     2 |    14 |     0   (0)| 00:00:01 |
+|  34 |   NESTED LOOPS                      |                      |     1 |    30 |     2   (0)| 00:00:01 |
+|* 35 |    INDEX SKIP SCAN                  | I_USER2              |     1 |    20 |     1   (0)| 00:00:01 |
+|* 36 |    INDEX RANGE SCAN                 | I_OBJ4               |     1 |    10 |     1   (0)| 00:00:01 |
+------------------------------------------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+"   1 - filter((""O"".""SPARE3""=USERENV('SCHEMAID') OR  EXISTS (SELECT 0 FROM ""SYS"".""OBJAUTH$"" "
+"              ""OBJAUTH$"",SYS.""X$KZSRO"" ""X$KZSRO"" WHERE ""OBJ#""=:B1 AND ""GRANTEE#""=""KZSROROL"") OR  EXISTS (SELECT 0 "
+"              FROM SYS.""X$KZSPR"" ""X$KZSPR"" WHERE ((-""KZSPRPRV"")=(-45) OR (-""KZSPRPRV"")=(-47) OR "
+"              (-""KZSPRPRV"")=(-48) OR (-""KZSPRPRV"")=(-49) OR (-""KZSPRPRV"")=(-50)) AND "
+"              ""INST_ID""=USERENV('INSTANCE'))) AND (""O"".""TYPE#""<>4 AND ""O"".""TYPE#""<>5 AND ""O"".""TYPE#""<>7 AND "
+"              ""O"".""TYPE#""<>8 AND ""O"".""TYPE#""<>9 AND ""O"".""TYPE#""<>10 AND ""O"".""TYPE#""<>11 AND ""O"".""TYPE#""<>12 AND "
+"              ""O"".""TYPE#""<>13 AND ""O"".""TYPE#""<>14 AND ""O"".""TYPE#""<>22 AND ""O"".""TYPE#""<>87 AND ""O"".""TYPE#""<>88 OR "
+"              BITAND(""U"".""SPARE1"",16)=0 OR (""O"".""TYPE#""=4 OR ""O"".""TYPE#""=5 OR ""O"".""TYPE#""=7 OR ""O"".""TYPE#""=8 OR "
+"              ""O"".""TYPE#""=9 OR ""O"".""TYPE#""=10 OR ""O"".""TYPE#""=11 OR ""O"".""TYPE#""=12 OR ""O"".""TYPE#""=13 OR "
+"              ""O"".""TYPE#""=14 OR ""O"".""TYPE#""=22 OR ""O"".""TYPE#""=87) AND (""U"".""TYPE#""<>2 AND "
+"              SYS_CONTEXT('userenv','current_edition_name')='ORA$BASE' OR ""U"".""TYPE#""=2 AND "
+"              ""U"".""SPARE2""=TO_NUMBER(SYS_CONTEXT('userenv','current_edition_id')) OR  EXISTS (SELECT 0 FROM "
+"              SYS.""USER$"" ""U2"",SYS.""OBJ$"" ""O2"" WHERE ""O2"".""OWNER#""=""U2"".""USER#"" AND ""O2"".""TYPE#""=88 AND "
+"              ""O2"".""DATAOBJ#""=:B2 AND ""U2"".""TYPE#""=2 AND ""U2"".""SPARE2""=TO_NUMBER(SYS_CONTEXT('userenv','current_ed"
+              ition_id'))))))
+"   9 - access(""OC"".""OWNER#""=""USER#"")"
+"  10 - access(""OC"".""CON#""=""C"".""CON#"")"
+"  11 - filter(DECODE(""C"".""TYPE#"",1,'C',2,'P',3,'U',4,'R',5,'V',6,'O',7,'C',8,'H',9,'F',10,'F',11,'F'"
+"              ,13,'F','?')='R' AND ""C"".""TYPE#""<>12 AND ""C"".""TYPE#""<>8 AND (""C"".""TYPE#""<14 OR ""C"".""TYPE#"">17))"
+"  13 - filter(DECODE(""U"".""TYPE#"",2,SUBSTR(""U"".""EXT_USERNAME"",0,30),""U"".""NAME"")='DOCTRINE')"
+"  14 - filter(""O"".""NAME""='TEST_BINARY_TABLE')"
+"  15 - access(""C"".""OBJ#""=""O"".""OBJ#"")"
+"  17 - access(""C"".""RCON#""=""RC"".""CON#""(+))"
+"  18 - access(""C"".""ENABLED""=""OI"".""OBJ#""(+))"
+"  19 - access(""OI"".""OBJ#""=""UI"".""USER#""(+))"
+"  20 - access(""RC"".""OWNER#""=""USER#""(+))"
+"  21 - access(""O"".""OWNER#""=""U"".""USER#"")"
+"  23 - filter(""O"".""TYPE#""<>4 AND ""O"".""TYPE#""<>5 AND ""O"".""TYPE#""<>7 AND ""O"".""TYPE#""<>8 AND "
+"              ""O"".""TYPE#""<>9 AND ""O"".""TYPE#""<>10 AND ""O"".""TYPE#""<>11 AND ""O"".""TYPE#""<>12 AND ""O"".""TYPE#""<>13 AND "
+"              ""O"".""TYPE#""<>14 AND ""O"".""TYPE#""<>22 AND ""O"".""TYPE#""<>87 AND ""O"".""TYPE#""<>88 OR "
+"              BITAND(""U"".""SPARE1"",16)=0 OR (""O"".""TYPE#""=4 OR ""O"".""TYPE#""=5 OR ""O"".""TYPE#""=7 OR ""O"".""TYPE#""=8 OR "
+"              ""O"".""TYPE#""=9 OR ""O"".""TYPE#""=10 OR ""O"".""TYPE#""=11 OR ""O"".""TYPE#""=12 OR ""O"".""TYPE#""=13 OR "
+"              ""O"".""TYPE#""=14 OR ""O"".""TYPE#""=22 OR ""O"".""TYPE#""=87) AND (""U"".""TYPE#""<>2 AND "
+"              SYS_CONTEXT('userenv','current_edition_name')='ORA$BASE' OR ""U"".""TYPE#""=2 AND "
+"              ""U"".""SPARE2""=TO_NUMBER(SYS_CONTEXT('userenv','current_edition_id')) OR  EXISTS (SELECT 0 FROM "
+"              SYS.""USER$"" ""U2"",SYS.""OBJ$"" ""O2"" WHERE ""O2"".""OWNER#""=""U2"".""USER#"" AND ""O2"".""TYPE#""=88 AND "
+"              ""O2"".""DATAOBJ#""=:B1 AND ""U2"".""TYPE#""=2 AND ""U2"".""SPARE2""=TO_NUMBER(SYS_CONTEXT('userenv','current_ed"
+              ition_id')))))
+"  25 - access(""O"".""OBJ#""=""C"".""ROBJ#"")"
+"  26 - access(""O"".""OWNER#""=""U"".""USER#"")"
+"  28 - access(""U2"".""TYPE#""=2 AND ""U2"".""SPARE2""=TO_NUMBER(SYS_CONTEXT('userenv','current_edition_id')"
+              ))
+"       filter(""U2"".""TYPE#""=2 AND ""U2"".""SPARE2""=TO_NUMBER(SYS_CONTEXT('userenv','current_edition_id')"
+              ))
+"  29 - access(""O2"".""DATAOBJ#""=:B1 AND ""O2"".""TYPE#""=88 AND ""O2"".""OWNER#""=""U2"".""USER#"")"
+"  32 - access(""GRANTEE#""=""KZSROROL"" AND ""OBJ#""=:B1)"
+"  33 - filter(((-""KZSPRPRV"")=(-45) OR (-""KZSPRPRV"")=(-47) OR (-""KZSPRPRV"")=(-48) OR "
+"              (-""KZSPRPRV"")=(-49) OR (-""KZSPRPRV"")=(-50)) AND ""INST_ID""=USERENV('INSTANCE'))"
+"  35 - access(""U2"".""TYPE#""=2 AND ""U2"".""SPARE2""=TO_NUMBER(SYS_CONTEXT('userenv','current_edition_id')"
+              ))
+"       filter(""U2"".""TYPE#""=2 AND ""U2"".""SPARE2""=TO_NUMBER(SYS_CONTEXT('userenv','current_edition_id')"
+              ))
+"  36 - access(""O2"".""DATAOBJ#""=:B1 AND ""O2"".""TYPE#""=88 AND ""O2"".""OWNER#""=""U2"".""USER#"")"

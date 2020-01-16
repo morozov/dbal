@@ -833,7 +833,7 @@ EOD;
     /**
      * @dataProvider getReturnsGetListTableColumnsSQL
      */
-    public function testReturnsGetListTableColumnsSQL(?string $database, string $expectedSql): void
+    public function testReturnsGetListTableColumnsSQL(string $database, string $expectedSql): void
     {
         // note: this assertion is a bit strict, as it compares a full SQL string.
         // Should this break in future, then please try to reduce the matching to substring matching while reworking
@@ -848,50 +848,19 @@ EOD;
     {
         return [
             [
-                null,
-                <<<'SQL'
-SELECT   c.*,
-         (
-             SELECT d.comments
-             FROM   user_col_comments d
-             WHERE  d.TABLE_NAME = c.TABLE_NAME
-             AND    d.COLUMN_NAME = c.COLUMN_NAME
-         ) AS comments
-FROM     user_tab_columns c
-WHERE    c.table_name = 'test'
-ORDER BY c.column_id
-SQL
-,
-            ],
-            [
-                '/',
-                <<<'SQL'
-SELECT   c.*,
-         (
-             SELECT d.comments
-             FROM   user_col_comments d
-             WHERE  d.TABLE_NAME = c.TABLE_NAME
-             AND    d.COLUMN_NAME = c.COLUMN_NAME
-         ) AS comments
-FROM     user_tab_columns c
-WHERE    c.table_name = 'test'
-ORDER BY c.column_id
-SQL
-,
-            ],
-            [
                 'scott',
                 <<<'SQL'
-SELECT   c.*,
+SELECT   tc.*,
          (
-             SELECT d.comments
-             FROM   all_col_comments d
-             WHERE  d.TABLE_NAME = c.TABLE_NAME AND d.OWNER = c.OWNER
-             AND    d.COLUMN_NAME = c.COLUMN_NAME
+             SELECT cc.comments
+             FROM   all_col_comments cc
+             WHERE  cc.TABLE_NAME = tc.TABLE_NAME
+             AND    cc.OWNER = tc.OWNER
+             AND    cc.COLUMN_NAME = tc.COLUMN_NAME
          ) AS comments
-FROM     all_tab_columns c
-WHERE    c.table_name = 'test' AND c.owner = 'SCOTT'
-ORDER BY c.column_id
+FROM     all_tab_columns tc
+WHERE    tc.owner = 'SCOTT' AND tc.table_name = 'test'
+ORDER BY tc.column_id
 SQL
 ,
             ],
@@ -941,7 +910,7 @@ SQL
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\'",
-            $this->platform->getListTableIndexesSQL("Foo'Bar\\")
+            $this->platform->getListTableIndexesSQL("Foo'Bar\\", "Foo'Bar\\")
         );
     }
 
@@ -949,7 +918,7 @@ SQL
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\'",
-            $this->platform->getListTableForeignKeysSQL("Foo'Bar\\")
+            $this->platform->getListTableForeignKeysSQL("Foo'Bar\\", "Foo'Bar\\")
         );
     }
 
@@ -957,7 +926,7 @@ SQL
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\'",
-            $this->platform->getListTableConstraintsSQL("Foo'Bar\\")
+            $this->platform->getListTableConstraintsSQL("Foo'Bar\\", "Foo'Bar\\")
         );
     }
 
@@ -965,7 +934,7 @@ SQL
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\'",
-            $this->platform->getListTableColumnsSQL("Foo'Bar\\")
+            $this->platform->getListTableColumnsSQL("Foo'Bar\\", "Foo'Bar\\")
         );
     }
 

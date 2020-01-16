@@ -332,7 +332,7 @@ class MySqlSchemaManager extends AbstractSchemaManager
 
         $platform = $this->_platform;
         assert($platform instanceof MySqlPlatform);
-        $sql = $platform->getListTableMetadataSQL($name);
+        $sql = $platform->getListTableMetadataSQL($tableName, $this->_conn->getDatabase());
 
         $tableOptions = $this->_conn->fetchAssociative($sql);
 

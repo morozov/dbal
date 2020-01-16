@@ -16,6 +16,7 @@ use function get_class;
 use function implode;
 use function is_object;
 use function is_scalar;
+use function sprintf;
 use function strpos;
 use function var_export;
 
@@ -64,6 +65,20 @@ abstract class FunctionalTestCase extends TestCase
         while ($this->connection->isTransactionActive()) {
             $this->connection->rollBack();
         }
+
+        if (count($this->sqlLoggerStack->queries) <= 0) {
+            return;
+        }
+
+        $queries = '';
+        $i       = count($this->sqlLoggerStack->queries);
+        foreach (array_reverse($this->sqlLoggerStack->queries) as $query) {
+            $queries .= $i . ". SQL: '" . $query['sql'] . "'
+Time: " . sprintf('%.03f', $query['executionMS']) . PHP_EOL . PHP_EOL;
+            $i--;
+        }
+
+        echo $queries, PHP_EOL;
     }
 
     protected function onNotSuccessfulTest(Throwable $t): void

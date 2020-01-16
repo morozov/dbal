@@ -744,7 +744,7 @@ class SqlitePlatformTest extends AbstractPlatformTestCase
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\'",
-            $this->platform->getListTableColumnsSQL("Foo'Bar\\")
+            $this->platform->getListTableColumnsSQL("Foo'Bar\\", "Foo'Bar\\")
         );
     }
 
@@ -752,7 +752,7 @@ class SqlitePlatformTest extends AbstractPlatformTestCase
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\'",
-            $this->platform->getListTableIndexesSQL("Foo'Bar\\")
+            $this->platform->getListTableIndexesSQL("Foo'Bar\\", "Foo'Bar\\")
         );
     }
 
@@ -760,7 +760,7 @@ class SqlitePlatformTest extends AbstractPlatformTestCase
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\'",
-            $this->platform->getListTableForeignKeysSQL("Foo'Bar\\")
+            $this->platform->getListTableForeignKeysSQL("Foo'Bar\\", "Foo'Bar\\")
         );
     }
 
