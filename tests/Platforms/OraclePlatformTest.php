@@ -357,19 +357,19 @@ class OraclePlatformTest extends AbstractPlatformTestCase
                 $tableName,
                 $columnName
             ),
-            sprintf('CREATE SEQUENCE %s_SEQ START WITH 1 MINVALUE 1 INCREMENT BY 1', $tableName),
+            sprintf('CREATE SEQUENCE "%s_SEQ" START WITH 1 MINVALUE 1 INCREMENT BY 1', $tableName),
             sprintf(
-                'CREATE TRIGGER %s_AI_PK BEFORE INSERT ON %s FOR EACH ROW DECLARE last_Sequence NUMBER;'
+                'CREATE TRIGGER "%s_AI_PK" BEFORE INSERT ON "%s" FOR EACH ROW DECLARE last_Sequence NUMBER;'
                 . ' last_InsertID NUMBER;'
-                . ' BEGIN SELECT %s_SEQ.NEXTVAL'
-                . ' INTO :NEW.%s FROM DUAL;'
-                . ' IF (:NEW.%s IS NULL OR :NEW.%s = 0)'
-                . ' THEN SELECT %s_SEQ.NEXTVAL INTO :NEW.%s FROM DUAL;'
+                . ' BEGIN SELECT "%s_SEQ".NEXTVAL'
+                . ' INTO :NEW."%s" FROM DUAL;'
+                . ' IF (:NEW."%s" IS NULL OR :NEW."%s" = 0)'
+                . ' THEN SELECT "%s_SEQ".NEXTVAL INTO :NEW."%s" FROM DUAL;'
                 . ' ELSE SELECT NVL(Last_Number, 0) INTO last_Sequence'
                 . " FROM User_Sequences WHERE Sequence_Name = '%s_SEQ';"
-                . ' SELECT :NEW.%s INTO last_InsertID FROM DUAL;'
+                . ' SELECT :NEW."%s" INTO last_InsertID FROM DUAL;'
                 . ' WHILE (last_InsertID > last_Sequence) LOOP'
-                . ' SELECT %s_SEQ.NEXTVAL INTO last_Sequence FROM DUAL;'
+                . ' SELECT "%s_SEQ".NEXTVAL INTO last_Sequence FROM DUAL;'
                 . ' END LOOP;'
                 . ' END IF;'
                 . ' END;',
@@ -595,9 +595,9 @@ class OraclePlatformTest extends AbstractPlatformTestCase
     public function testReturnsIdentitySequenceName(): void
     {
         self::assertSame('MYTABLE_SEQ', $this->platform->getIdentitySequenceName('mytable', 'mycolumn'));
-        self::assertSame('"mytable_SEQ"', $this->platform->getIdentitySequenceName('"mytable"', 'mycolumn'));
+        self::assertSame('mytable_SEQ', $this->platform->getIdentitySequenceName('"mytable"', 'mycolumn'));
         self::assertSame('MYTABLE_SEQ', $this->platform->getIdentitySequenceName('mytable', '"mycolumn"'));
-        self::assertSame('"mytable_SEQ"', $this->platform->getIdentitySequenceName('"mytable"', '"mycolumn"'));
+        self::assertSame('mytable_SEQ', $this->platform->getIdentitySequenceName('"mytable"', '"mycolumn"'));
     }
 
     /**
@@ -722,9 +722,9 @@ class OraclePlatformTest extends AbstractPlatformTestCase
             [
                 'myTable',
                 [
-                    'DROP TRIGGER MYTABLE_AI_PK',
-                    'DROP SEQUENCE MYTABLE_SEQ',
-                    'ALTER TABLE MYTABLE DROP CONSTRAINT MYTABLE_AI_PK',
+                    'DROP TRIGGER "MYTABLE_AI_PK"',
+                    'DROP SEQUENCE "MYTABLE_SEQ"',
+                    'ALTER TABLE "MYTABLE" DROP CONSTRAINT "MYTABLE_AI_PK"',
                 ],
             ],
             [
@@ -738,9 +738,9 @@ class OraclePlatformTest extends AbstractPlatformTestCase
             [
                 'table',
                 [
-                    'DROP TRIGGER TABLE_AI_PK',
-                    'DROP SEQUENCE TABLE_SEQ',
-                    'ALTER TABLE "TABLE" DROP CONSTRAINT TABLE_AI_PK',
+                    'DROP TRIGGER "TABLE_AI_PK"',
+                    'DROP SEQUENCE "TABLE_SEQ"',
+                    'ALTER TABLE "TABLE" DROP CONSTRAINT "TABLE_AI_PK"',
                 ],
             ],
         ];
@@ -835,7 +835,7 @@ EOD;
     /**
      * @dataProvider getReturnsGetListTableColumnsSQL
      */
-    public function testReturnsGetListTableColumnsSQL(?string $database, string $expectedSql): void
+    public function testReturnsGetListTableColumnsSQL(string $database, string $expectedSql): void
     {
         // note: this assertion is a bit strict, as it compares a full SQL string.
         // Should this break in future, then please try to reduce the matching to substring matching while reworking
@@ -850,50 +850,19 @@ EOD;
     {
         return [
             [
-                null,
-                <<<'SQL'
-SELECT   c.*,
-         (
-             SELECT d.comments
-             FROM   user_col_comments d
-             WHERE  d.TABLE_NAME = c.TABLE_NAME
-             AND    d.COLUMN_NAME = c.COLUMN_NAME
-         ) AS comments
-FROM     user_tab_columns c
-WHERE    c.table_name = 'test'
-ORDER BY c.column_id
-SQL
-,
-            ],
-            [
-                '/',
-                <<<'SQL'
-SELECT   c.*,
-         (
-             SELECT d.comments
-             FROM   user_col_comments d
-             WHERE  d.TABLE_NAME = c.TABLE_NAME
-             AND    d.COLUMN_NAME = c.COLUMN_NAME
-         ) AS comments
-FROM     user_tab_columns c
-WHERE    c.table_name = 'test'
-ORDER BY c.column_id
-SQL
-,
-            ],
-            [
                 'scott',
                 <<<'SQL'
-SELECT   c.*,
+SELECT   tc.*,
          (
-             SELECT d.comments
-             FROM   all_col_comments d
-             WHERE  d.TABLE_NAME = c.TABLE_NAME AND d.OWNER = c.OWNER
-             AND    d.COLUMN_NAME = c.COLUMN_NAME
+             SELECT cc.comments
+             FROM   all_col_comments cc
+             WHERE  cc.TABLE_NAME = tc.TABLE_NAME
+             AND    cc.OWNER = tc.OWNER
+             AND    cc.COLUMN_NAME = tc.COLUMN_NAME
          ) AS comments
-FROM     all_tab_columns c
-WHERE    c.table_name = 'test' AND c.owner = 'SCOTT'
-ORDER BY c.column_id
+FROM     all_tab_columns tc
+WHERE    tc.owner = 'SCOTT' AND tc.table_name = 'test'
+ORDER BY tc.column_id
 SQL
 ,
             ],
@@ -943,7 +912,7 @@ SQL
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\'",
-            $this->platform->getListTableIndexesSQL("Foo'Bar\\")
+            $this->platform->getListTableIndexesSQL("Foo'Bar\\", "Foo'Bar\\")
         );
     }
 
@@ -951,7 +920,7 @@ SQL
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\'",
-            $this->platform->getListTableForeignKeysSQL("Foo'Bar\\")
+            $this->platform->getListTableForeignKeysSQL("Foo'Bar\\", "Foo'Bar\\")
         );
     }
 
@@ -967,7 +936,7 @@ SQL
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\'",
-            $this->platform->getListTableColumnsSQL("Foo'Bar\\")
+            $this->platform->getListTableColumnsSQL("Foo'Bar\\", "Foo'Bar\\")
         );
     }
 

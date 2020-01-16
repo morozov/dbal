@@ -954,7 +954,7 @@ SQL
     /**
      * {@inheritDoc}
      */
-    public function getListTableColumnsSQL($table, $database = null)
+    public function getListTableColumnsSQL($table, $database)
     {
         return "SELECT    col.name,
                           type.name AS type,
@@ -990,7 +990,7 @@ SQL
      *
      * @return string
      */
-    public function getListTableForeignKeysSQL($table, $database = null)
+    public function getListTableForeignKeysSQL($table, $database)
     {
         return 'SELECT f.name AS ForeignKey,
                 SCHEMA_NAME (f.SCHEMA_ID) AS SchemaName,
@@ -1012,7 +1012,7 @@ SQL
     /**
      * {@inheritDoc}
      */
-    public function getListTableIndexesSQL($table, $database = null)
+    public function getListTableIndexesSQL($table, $database)
     {
         return "SELECT idx.name AS key_name,
                        col.name AS column_name,

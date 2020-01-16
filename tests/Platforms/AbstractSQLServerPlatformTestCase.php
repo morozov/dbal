@@ -1686,7 +1686,7 @@ abstract class AbstractSQLServerPlatformTestCase extends AbstractPlatformTestCas
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\'",
-            $this->platform->getListTableColumnsSQL("Foo'Bar\\")
+            $this->platform->getListTableColumnsSQL("Foo'Bar\\", "Foo'Bar\\")
         );
     }
 
@@ -1694,7 +1694,7 @@ abstract class AbstractSQLServerPlatformTestCase extends AbstractPlatformTestCas
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\'",
-            $this->platform->getListTableColumnsSQL("Foo'Bar\\.baz_table")
+            $this->platform->getListTableColumnsSQL("Foo'Bar\\.baz_table", "Foo'Bar\\")
         );
     }
 
@@ -1702,7 +1702,7 @@ abstract class AbstractSQLServerPlatformTestCase extends AbstractPlatformTestCas
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\'",
-            $this->platform->getListTableForeignKeysSQL("Foo'Bar\\")
+            $this->platform->getListTableForeignKeysSQL("Foo'Bar\\", "Foo'Bar\\")
         );
     }
 
@@ -1710,7 +1710,7 @@ abstract class AbstractSQLServerPlatformTestCase extends AbstractPlatformTestCas
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\'",
-            $this->platform->getListTableForeignKeysSQL("Foo'Bar\\.baz_table")
+            $this->platform->getListTableForeignKeysSQL("Foo'Bar\\.baz_table", "Foo'Bar\\")
         );
     }
 
@@ -1718,7 +1718,7 @@ abstract class AbstractSQLServerPlatformTestCase extends AbstractPlatformTestCas
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\'",
-            $this->platform->getListTableIndexesSQL("Foo'Bar\\")
+            $this->platform->getListTableIndexesSQL("Foo'Bar\\", "Foo'Bar\\")
         );
     }
 
@@ -1726,7 +1726,7 @@ abstract class AbstractSQLServerPlatformTestCase extends AbstractPlatformTestCas
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\'",
-            $this->platform->getListTableIndexesSQL("Foo'Bar\\.baz_table")
+            $this->platform->getListTableIndexesSQL("Foo'Bar\\.baz_table", "Foo'Bar\\")
         );
     }
 

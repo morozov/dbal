@@ -317,7 +317,10 @@ class OracleSchemaManager extends AbstractSchemaManager
 
         $platform = $this->_platform;
         assert($platform instanceof OraclePlatform);
-        $sql = $platform->getListTableCommentsSQL($name);
+        $sql = $platform->getListTableCommentsSQL(
+            $name,
+            $this->_conn->getDatabase()
+        );
 
         $tableOptions = $this->_conn->fetchAssociative($sql);
 

@@ -175,7 +175,7 @@ class OraclePlatform extends AbstractPlatform
      */
     public function getCreateSequenceSQL(Sequence $sequence)
     {
-        return 'CREATE SEQUENCE ' . $sequence->getQuotedName($this) .
+        return 'CREATE SEQUENCE ' . $this->quoteIdentifier($sequence->getName()) .
                ' START WITH ' . $sequence->getInitialValue() .
                ' MINVALUE ' . $sequence->getInitialValue() .
                ' INCREMENT BY ' . $sequence->getAllocationSize() .
@@ -369,11 +369,8 @@ class OraclePlatform extends AbstractPlatform
      */
     public function getListSequencesSQL($database)
     {
-        $database = $this->normalizeIdentifier($database);
-        $database = $this->quoteStringLiteral($database->getName());
-
         return 'SELECT sequence_name, min_value, increment_by FROM sys.all_sequences ' .
-               'WHERE SEQUENCE_OWNER = ' . $database;
+               'WHERE SEQUENCE_OWNER = ' . $this->quoteStringLiteral($this->normalizeIdentifier($database));
     }
 
     /**
@@ -414,38 +411,51 @@ class OraclePlatform extends AbstractPlatform
      *
      * @link http://ezcomponents.org/docs/api/trunk/DatabaseSchema/ezcDbSchemaOracleReader.html
      */
-    public function getListTableIndexesSQL($table, $database = null)
+    public function getListTableIndexesSQL($table, $database)
     {
-        $table = $this->normalizeIdentifier($table);
-        $table = $this->quoteStringLiteral($table->getName());
-
-        return "SELECT uind_col.index_name AS name,
-                       (
-                           SELECT uind.index_type
-                           FROM   user_indexes uind
-                           WHERE  uind.index_name = uind_col.index_name
-                       ) AS type,
-                       decode(
-                           (
-                               SELECT uind.uniqueness
-                               FROM   user_indexes uind
-                               WHERE  uind.index_name = uind_col.index_name
-                           ),
-                           'NONUNIQUE',
-                           0,
-                           'UNIQUE',
-                           1
-                       ) AS is_unique,
-                       uind_col.column_name AS column_name,
-                       uind_col.column_position AS column_pos,
-                       (
-                           SELECT ucon.constraint_type
-                           FROM   user_constraints ucon
-                           WHERE  ucon.index_name = uind_col.index_name
-                       ) AS is_primary
-             FROM      user_ind_columns uind_col
-             WHERE     uind_col.table_name = " . $table . '
-             ORDER BY  uind_col.column_position ASC';
+        return sprintf(
+            <<<'SQL'
+SELECT
+    ic.INDEX_NAME AS name,
+    (
+        SELECT i.INDEX_TYPE
+          FROM SYS.ALL_INDEXES i
+         WHERE i.OWNER = ic.INDEX_OWNER
+           AND i.INDEX_NAME = ic.INDEX_NAME
+    ) AS type,
+    decode(
+        (
+            SELECT i.UNIQUENESS
+              FROM SYS.ALL_INDEXES i
+             WHERE i.OWNER = ic.INDEX_OWNER
+               AND i.INDEX_NAME = ic.INDEX_NAME
+        ),
+        'NONUNIQUE',
+        0,
+        'UNIQUE',
+        1
+    ) AS is_unique,
+    ic.COLUMN_NAME AS column_name,
+    ic.COLUMN_POSITION AS column_pos,
+    (
+        SELECT c.CONSTRAINT_TYPE
+          FROM SYS.ALL_CONSTRAINTS c
+         WHERE c.OWNER = ic.INDEX_OWNER
+           AND c.INDEX_NAME = ic.INDEX_NAME
+    ) AS is_primary
+    FROM SYS.ALL_IND_COLUMNS ic
+   WHERE ic.INDEX_OWNER = %s
+     AND ic.TABLE_NAME = %s
+ORDER BY ic.COLUMN_POSITION
+SQL
+            ,
+            $this->quoteStringLiteral(
+                $this->normalizeIdentifier($database)
+            ),
+            $this->quoteStringLiteral(
+                $this->normalizeIdentifier($table)
+            )
+        );
     }
 
     /**
@@ -461,7 +471,18 @@ class OraclePlatform extends AbstractPlatform
      */
     public function getListViewsSQL($database)
     {
-        return 'SELECT view_name, text FROM sys.user_views';
+        return sprintf(
+            <<<'SQL'
+SELECT VIEW_NAME,
+       TEXT
+  FROM SYS.ALL_VIEWS
+ WHERE OWNER = %s
+SQL
+            ,
+            $this->quoteStringLiteral(
+                $this->normalizeIdentifier($database)
+            )
+        );
     }
 
     /**
@@ -489,55 +510,48 @@ class OraclePlatform extends AbstractPlatform
      */
     public function getCreateAutoincrementSql($name, $table, $start = 1)
     {
-        $tableIdentifier   = $this->normalizeIdentifier($table);
-        $quotedTableName   = $tableIdentifier->getQuotedName($this);
-        $unquotedTableName = $tableIdentifier->getName();
-
-        $nameIdentifier = $this->normalizeIdentifier($name);
-        $quotedName     = $nameIdentifier->getQuotedName($this);
-        $unquotedName   = $nameIdentifier->getName();
-
         $sql = [];
 
-        $autoincrementIdentifierName = $this->getAutoincrementIdentifierName($tableIdentifier);
+        $autoincrementIdentifierName = $this->getAutoincrementIdentifierName($table);
 
-        $idx = new Index($autoincrementIdentifierName, [$quotedName], true, true);
+        $idx = new Index($autoincrementIdentifierName, [$name], true, true);
 
-        $sql[] = "DECLARE
+        $sql[] = 'DECLARE
   constraints_Count NUMBER;
 BEGIN
-  SELECT COUNT(CONSTRAINT_NAME) INTO constraints_Count FROM USER_CONSTRAINTS WHERE TABLE_NAME = '" . $unquotedTableName
-            . "' AND CONSTRAINT_TYPE = 'P';
+  SELECT COUNT(CONSTRAINT_NAME) INTO constraints_Count FROM USER_CONSTRAINTS WHERE TABLE_NAME = '
+            . $this->quoteStringLiteral($table)
+            . " AND CONSTRAINT_TYPE = 'P';
   IF constraints_Count = 0 OR constraints_Count = '' THEN
-    EXECUTE IMMEDIATE '" . $this->getCreateConstraintSQL($idx, $quotedTableName) . "';
+    EXECUTE IMMEDIATE '" . $this->getCreateConstraintSQL($idx, $table) . "';
   END IF;
 END;";
 
-        $sequenceName = $this->getIdentitySequenceName(
-            $tableIdentifier->isQuoted() ? $quotedTableName : $unquotedTableName,
-            $nameIdentifier->isQuoted() ? $quotedName : $unquotedName
-        );
+        $sequenceName = $this->getIdentitySequenceName($table, $name);
         $sequence     = new Sequence($sequenceName, $start);
         $sql[]        = $this->getCreateSequenceSQL($sequence);
 
-        $sql[] = 'CREATE TRIGGER ' . $autoincrementIdentifierName . '
+        $sql[] = 'CREATE TRIGGER ' . $this->quoteIdentifier($autoincrementIdentifierName) . '
    BEFORE INSERT
-   ON ' . $quotedTableName . '
+   ON ' . $this->quoteIdentifier($this->normalizeIdentifier($table)) . '
    FOR EACH ROW
 DECLARE
    last_Sequence NUMBER;
    last_InsertID NUMBER;
 BEGIN
-   SELECT ' . $sequenceName . '.NEXTVAL INTO :NEW.' . $quotedName . ' FROM DUAL;
-   IF (:NEW.' . $quotedName . ' IS NULL OR :NEW.' . $quotedName . ' = 0) THEN
-      SELECT ' . $sequenceName . '.NEXTVAL INTO :NEW.' . $quotedName . ' FROM DUAL;
+   SELECT ' . $this->quoteIdentifier($sequenceName) . '.NEXTVAL INTO :NEW.'
+            . $this->quoteIdentifier($this->normalizeIdentifier($name)) . ' FROM DUAL;
+   IF (:NEW.' . $this->quoteIdentifier($this->normalizeIdentifier($name)) . ' IS NULL OR :NEW.'
+            . $this->quoteIdentifier($this->normalizeIdentifier($name)) . ' = 0) THEN
+      SELECT ' . $this->quoteIdentifier($sequenceName) . '.NEXTVAL INTO :NEW.'
+            . $this->quoteIdentifier($this->normalizeIdentifier($name)) . ' FROM DUAL;
    ELSE
       SELECT NVL(Last_Number, 0) INTO last_Sequence
         FROM User_Sequences
-       WHERE Sequence_Name = \'' . $sequence->getName() . '\';
-      SELECT :NEW.' . $quotedName . ' INTO last_InsertID FROM DUAL;
+       WHERE Sequence_Name = ' . $this->quoteStringLiteral($sequenceName) . ';
+      SELECT :NEW.' . $this->quoteIdentifier($this->normalizeIdentifier($name)) . ' INTO last_InsertID FROM DUAL;
       WHILE (last_InsertID > last_Sequence) LOOP
-         SELECT ' . $sequenceName . '.NEXTVAL INTO last_Sequence FROM DUAL;
+         SELECT ' . $this->quoteIdentifier($sequenceName) . '.NEXTVAL INTO last_Sequence FROM DUAL;
       END LOOP;
    END IF;
 END;';
@@ -554,35 +568,35 @@ END;';
      */
     public function getDropAutoincrementSql($table)
     {
-        $table                       = $this->normalizeIdentifier($table);
         $autoincrementIdentifierName = $this->getAutoincrementIdentifierName($table);
-        $identitySequenceName        = $this->getIdentitySequenceName(
-            $table->isQuoted() ? $table->getQuotedName($this) : $table->getName(),
-            ''
-        );
+        $identitySequenceName        = $this->getIdentitySequenceName($table, '');
 
         return [
-            'DROP TRIGGER ' . $autoincrementIdentifierName,
+            'DROP TRIGGER ' . $this->quoteIdentifier($autoincrementIdentifierName),
             $this->getDropSequenceSQL($identitySequenceName),
-            $this->getDropConstraintSQL($autoincrementIdentifierName, $table->getQuotedName($this)),
+            $this->getDropConstraintSQL(
+                $this->quoteIdentifier($autoincrementIdentifierName),
+                $this->quoteIdentifier($this->normalizeIdentifier($table))
+            ),
         ];
     }
 
     /**
      * Normalizes the given identifier.
      *
-     * Uppercases the given identifier if it is not quoted by intention
-     * to reflect Oracle's internal auto uppercasing strategy of unquoted identifiers.
-     *
-     * @param string $name The identifier to normalize.
-     *
-     * @return Identifier The normalized identifier.
+     * Upper-cases the given identifier if it is not quoted by intention
+     * to reflect Oracle's internal auto upper-casing strategy of unquoted identifiers.
      */
-    private function normalizeIdentifier($name)
+    private function normalizeIdentifier(string $name): string
     {
         $identifier = new Identifier($name);
+        $name       = $identifier->getName();
 
-        return $identifier->isQuoted() ? $identifier : new Identifier(strtoupper($name));
+        if ($identifier->isQuoted()) {
+            return $name;
+        }
+
+        return strtoupper($name);
     }
 
     /**
@@ -607,49 +621,50 @@ END;';
      * Quotes the autoincrement primary key identifier name
      * if the given table name is quoted by intention.
      *
-     * @param Identifier $table The table identifier to return the autoincrement primary key identifier name for.
+     * @param string $table The table identifier to return the autoincrement primary key identifier name for.
      *
      * @return string
      */
-    private function getAutoincrementIdentifierName(Identifier $table)
+    private function getAutoincrementIdentifierName(string $table)
     {
-        $identifierName = $this->addSuffix($table->getName(), '_AI_PK');
-
-        return $table->isQuoted()
-            ? $this->quoteSingleIdentifier($identifierName)
-            : $identifierName;
+        return $this->addSuffix($this->normalizeIdentifier($table), '_AI_PK');
     }
 
     /**
      * {@inheritDoc}
      */
-    public function getListTableForeignKeysSQL($table)
+    public function getListTableForeignKeysSQL($table, $database)
     {
-        $table = $this->normalizeIdentifier($table);
-        $table = $this->quoteStringLiteral($table->getName());
-
-        return "SELECT alc.constraint_name,
-          alc.DELETE_RULE,
-          cols.column_name \"local_column\",
-          cols.position,
-          (
-              SELECT r_cols.table_name
-              FROM   user_cons_columns r_cols
-              WHERE  alc.r_constraint_name = r_cols.constraint_name
-              AND    r_cols.position = cols.position
-          ) AS \"references_table\",
-          (
-              SELECT r_cols.column_name
-              FROM   user_cons_columns r_cols
-              WHERE  alc.r_constraint_name = r_cols.constraint_name
-              AND    r_cols.position = cols.position
-          ) AS \"foreign_column\"
-     FROM user_cons_columns cols
-     JOIN user_constraints alc
-       ON alc.constraint_name = cols.constraint_name
-      AND alc.constraint_type = 'R'
-      AND alc.table_name = " . $table . '
-    ORDER BY cols.constraint_name ASC, cols.position ASC';
+        return sprintf(
+            <<<'SQL'
+SELECT c.CONSTRAINT_NAME,
+       c.DELETE_RULE,
+       cc.COLUMN_NAME  AS "local_column",
+       cc.POSITION,
+       rcc.TABLE_NAME  AS "references_table",
+       rcc.COLUMN_NAME AS "foreign_column"
+FROM SYS.ALL_CONSTRAINTS c
+JOIN SYS.ALL_CONS_COLUMNS cc
+  ON cc.OWNER = c.OWNER
+ AND cc.CONSTRAINT_NAME = c.CONSTRAINT_NAME
+JOIN SYS.ALL_CONS_COLUMNS rcc
+  ON rcc.OWNER = c.OWNER
+ AND rcc.CONSTRAINT_NAME = c.R_CONSTRAINT_NAME
+ AND rcc.POSITION = cc.POSITION
+WHERE c.OWNER = %s
+  AND c.TABLE_NAME = %s
+  AND c.CONSTRAINT_TYPE = 'R'
+ORDER BY cc.CONSTRAINT_NAME,
+         cc.POSITION
+SQL
+            ,
+            $this->quoteStringLiteral(
+                $this->normalizeIdentifier($database)
+            ),
+            $this->quoteStringLiteral(
+                $this->normalizeIdentifier($table)
+            )
+        );
     }
 
     /**
@@ -657,8 +672,7 @@ END;';
      */
     public function getListTableConstraintsSQL($table)
     {
-        $table = $this->normalizeIdentifier($table);
-        $table = $this->quoteStringLiteral($table->getName());
+        $table = $this->quoteStringLiteral($this->normalizeIdentifier($table));
 
         return 'SELECT * FROM user_constraints WHERE table_name = ' . $table;
     }
@@ -666,44 +680,29 @@ END;';
     /**
      * {@inheritDoc}
      */
-    public function getListTableColumnsSQL($table, $database = null)
+    public function getListTableColumnsSQL($table, $database)
     {
-        $table = $this->normalizeIdentifier($table);
-        $table = $this->quoteStringLiteral($table->getName());
-
-        $tabColumnsTableName       = 'user_tab_columns';
-        $colCommentsTableName      = 'user_col_comments';
-        $tabColumnsOwnerCondition  = '';
-        $colCommentsOwnerCondition = '';
-
-        if ($database !== null && $database !== '/') {
-            $database                  = $this->normalizeIdentifier($database);
-            $database                  = $this->quoteStringLiteral($database->getName());
-            $tabColumnsTableName       = 'all_tab_columns';
-            $colCommentsTableName      = 'all_col_comments';
-            $tabColumnsOwnerCondition  = ' AND c.owner = ' . $database;
-            $colCommentsOwnerCondition = ' AND d.OWNER = c.OWNER';
-        }
-
         return sprintf(
             <<<'SQL'
-SELECT   c.*,
+SELECT   tc.*,
          (
-             SELECT d.comments
-             FROM   %s d
-             WHERE  d.TABLE_NAME = c.TABLE_NAME%s
-             AND    d.COLUMN_NAME = c.COLUMN_NAME
+             SELECT cc.comments
+             FROM   all_col_comments cc
+             WHERE  cc.TABLE_NAME = tc.TABLE_NAME
+             AND    cc.OWNER = tc.OWNER
+             AND    cc.COLUMN_NAME = tc.COLUMN_NAME
          ) AS comments
-FROM     %s c
-WHERE    c.table_name = %s%s
-ORDER BY c.column_id
+FROM     all_tab_columns tc
+WHERE    tc.owner = %s AND tc.table_name = %s
+ORDER BY tc.column_id
 SQL
             ,
-            $colCommentsTableName,
-            $colCommentsOwnerCondition,
-            $tabColumnsTableName,
-            $table,
-            $tabColumnsOwnerCondition
+            $this->quoteStringLiteral(
+                $this->normalizeIdentifier($database)
+            ),
+            $this->quoteStringLiteral(
+                $this->normalizeIdentifier($table)
+            )
         );
     }
 
@@ -713,10 +712,10 @@ SQL
     public function getDropSequenceSQL($sequence)
     {
         if ($sequence instanceof Sequence) {
-            $sequence = $sequence->getQuotedName($this);
+            $sequence = $sequence->getName();
         }
 
-        return 'DROP SEQUENCE ' . $sequence;
+        return 'DROP SEQUENCE ' . $this->quoteIdentifier($sequence);
     }
 
     /**
@@ -978,18 +977,8 @@ SQL
      */
     public function getIdentitySequenceName($tableName, $columnName)
     {
-        $table = new Identifier($tableName);
-
         // No usage of column name to preserve BC compatibility with <2.5
-        $identitySequenceName = $this->addSuffix($table->getName(), '_SEQ');
-
-        if ($table->isQuoted()) {
-            $identitySequenceName = '"' . $identitySequenceName . '"';
-        }
-
-        $identitySequenceIdentifier = $this->normalizeIdentifier($identitySequenceName);
-
-        return $identitySequenceIdentifier->getQuotedName($this);
+        return $this->addSuffix($this->normalizeIdentifier($tableName), '_SEQ');
     }
 
     /**
@@ -1174,26 +1163,22 @@ SQL
         return 'BLOB';
     }
 
-    public function getListTableCommentsSQL(string $table, ?string $database = null): string
+    public function getListTableCommentsSQL(string $table, string $database): string
     {
-        $tableCommentsName = 'user_tab_comments';
-        $ownerCondition    = '';
-
-        if ($database !== null && $database !== '/') {
-            $tableCommentsName = 'all_tab_comments';
-            $ownerCondition    = ' AND owner = ' . $this->quoteStringLiteral(
-                $this->normalizeIdentifier($database)->getName()
-            );
-        }
-
         return sprintf(
             <<<'SQL'
-SELECT comments FROM %s WHERE table_name = %s%s
+SELECT COMMENTS
+  FROM SYS.ALL_TAB_COMMENTS
+ WHERE OWNER = %s
+   AND TABLE_NAME = %s
 SQL
             ,
-            $tableCommentsName,
-            $this->quoteStringLiteral($this->normalizeIdentifier($table)->getName()),
-            $ownerCondition
+            $this->quoteStringLiteral(
+                $this->normalizeIdentifier($database)
+            ),
+            $this->quoteStringLiteral(
+                $this->normalizeIdentifier($table)
+            )
         );
     }
 }
