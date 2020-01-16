@@ -96,10 +96,10 @@ abstract class AbstractSchemaManager
      *
      * @throws Exception
      */
-    public function listSequences(?string $database = null): array
+    public function listSequences(): array
     {
         $database = $this->ensureDatabase(
-            $database ?? $this->_conn->getDatabase(),
+            $this->_conn->getDatabase(),
             __METHOD__
         );
 
@@ -184,7 +184,7 @@ abstract class AbstractSchemaManager
      */
     public function listTableNames(): array
     {
-        $sql = $this->_platform->getListTablesSQL();
+        $sql = $this->_platform->getListTablesSQL($this->_conn->getDatabase());
 
         $tables     = $this->_conn->fetchAllAssociative($sql);
         $tableNames = $this->_getPortableTablesList($tables);
@@ -273,13 +273,9 @@ abstract class AbstractSchemaManager
      *
      * @throws Exception
      */
-    public function listTableForeignKeys(string $table, ?string $database = null): array
+    public function listTableForeignKeys(string $table): array
     {
-        if ($database === null) {
-            $database = $this->_conn->getDatabase();
-        }
-
-        $sql              = $this->_platform->getListTableForeignKeysSQL($table, $database);
+        $sql              = $this->_platform->getListTableForeignKeysSQL($table, $this->_conn->getDatabase());
         $tableForeignKeys = $this->_conn->fetchAllAssociative($sql);
 
         return $this->_getPortableTableForeignKeysList($tableForeignKeys);

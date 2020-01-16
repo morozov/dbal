@@ -116,7 +116,7 @@ abstract class AbstractMySQLPlatform extends AbstractPlatform
     /**
      * @deprecated
      */
-    public function getListTableConstraintsSQL(string $table): string
+    public function getListTableConstraintsSQL(string $table, string $database): string
     {
         return 'SHOW INDEX FROM ' . $table;
     }
@@ -127,17 +127,13 @@ abstract class AbstractMySQLPlatform extends AbstractPlatform
      * Two approaches to listing the table indexes. The information_schema is
      * preferred, because it doesn't cause problems with SQL keywords such as "order" or "table".
      */
-    public function getListTableIndexesSQL(string $table, ?string $database = null): string
+    public function getListTableIndexesSQL(string $table, string $database): string
     {
-        if ($database !== null) {
-            return 'SELECT NON_UNIQUE AS Non_Unique, INDEX_NAME AS Key_name, COLUMN_NAME AS Column_Name,' .
-                ' SUB_PART AS Sub_Part, INDEX_TYPE AS Index_Type' .
-                ' FROM information_schema.STATISTICS WHERE TABLE_NAME = ' . $this->quoteStringLiteral($table) .
-                ' AND TABLE_SCHEMA = ' . $this->quoteStringLiteral($database) .
-                ' ORDER BY SEQ_IN_INDEX ASC';
-        }
-
-        return 'SHOW INDEX FROM ' . $table;
+        return 'SELECT NON_UNIQUE AS Non_Unique, INDEX_NAME AS Key_name, COLUMN_NAME AS Column_Name,' .
+            ' SUB_PART AS Sub_Part, INDEX_TYPE AS Index_Type' .
+            ' FROM information_schema.STATISTICS WHERE TABLE_NAME = ' . $this->quoteStringLiteral($table) .
+            ' AND TABLE_SCHEMA = ' . $this->quoteStringLiteral($database) .
+            ' ORDER BY SEQ_IN_INDEX ASC';
     }
 
     public function getListViewsSQL(string $database): string
@@ -145,7 +141,7 @@ abstract class AbstractMySQLPlatform extends AbstractPlatform
         return 'SELECT * FROM information_schema.VIEWS WHERE TABLE_SCHEMA = ' . $this->quoteStringLiteral($database);
     }
 
-    public function getListTableForeignKeysSQL(string $table, ?string $database = null): string
+    public function getListTableForeignKeysSQL(string $table, string $database): string
     {
         // The schema name is passed multiple times as a literal in the WHERE clause instead of using a JOIN condition
         // in order to avoid performance issues on MySQL older than 8.0 and the corresponding MariaDB versions
@@ -157,8 +153,8 @@ abstract class AbstractMySQLPlatform extends AbstractPlatform
             'c.CONSTRAINT_NAME = k.CONSTRAINT_NAME AND ' .
             'c.TABLE_NAME = k.TABLE_NAME  */ ' .
             'WHERE k.TABLE_NAME = ' . $this->quoteStringLiteral($table) . ' ' .
-            'AND k.TABLE_SCHEMA = ' . $this->getDatabaseNameSQL($database) . ' /*!50116 ' .
-            'AND c.CONSTRAINT_SCHEMA = ' . $this->getDatabaseNameSQL($database) . ' */' .
+            'AND k.TABLE_SCHEMA = ' . $this->quoteStringLiteral($database) . ' /*!50116 ' .
+            'AND c.CONSTRAINT_SCHEMA = ' . $this->quoteStringLiteral($database) . ' */' .
             'ORDER BY k.ORDINAL_POSITION';
     }
 
@@ -248,21 +244,21 @@ abstract class AbstractMySQLPlatform extends AbstractPlatform
         return true;
     }
 
-    public function getListTablesSQL(): string
+    public function getListTablesSQL(string $database): string
     {
         return "SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'";
     }
 
-    public function getListTableColumnsSQL(string $table, ?string $database = null): string
+    public function getListTableColumnsSQL(string $table, string $database): string
     {
         return 'SELECT COLUMN_NAME AS Field, COLUMN_TYPE AS Type, IS_NULLABLE AS `Null`, ' .
             'COLUMN_KEY AS `Key`, COLUMN_DEFAULT AS `Default`, EXTRA AS Extra, COLUMN_COMMENT AS Comment, ' .
             'CHARACTER_SET_NAME AS CharacterSet, COLLATION_NAME AS Collation ' .
-            'FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ' . $this->getDatabaseNameSQL($database) . ' ' .
+            'FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ' . $this->quoteStringLiteral($database) . ' ' .
             'AND TABLE_NAME = ' . $this->quoteStringLiteral($table) . ' ORDER BY ORDINAL_POSITION';
     }
 
-    public function getListTableMetadataSQL(string $table, ?string $database = null): string
+    public function getListTableMetadataSQL(string $table, string $database): string
     {
         return sprintf(
             <<<'SQL'
@@ -278,7 +274,7 @@ FROM information_schema.TABLES t
 WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = %s AND TABLE_NAME = %s
 SQL
             ,
-            $this->getDatabaseNameSQL($database),
+            $this->quoteStringLiteral($database),
             $this->quoteStringLiteral($table)
         );
     }
@@ -875,17 +871,5 @@ SQL
     public function supportsColumnLengthIndexes(): bool
     {
         return true;
-    }
-
-    /**
-     * Returns an SQL expression representing the given database name or current database name
-     */
-    private function getDatabaseNameSQL(?string $databaseName): string
-    {
-        if ($databaseName === null) {
-            return $this->getCurrentDatabaseExpression();
-        }
-
-        return $this->quoteStringLiteral($databaseName);
     }
 }

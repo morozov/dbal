@@ -754,7 +754,7 @@ class SQLServerPlatform extends AbstractPlatform
         return 'INSERT INTO ' . $quotedTableName . ' DEFAULT VALUES';
     }
 
-    public function getListTablesSQL(): string
+    public function getListTablesSQL(string $database): string
     {
         // "sysdiagrams" table must be ignored as it's internal SQL Server table for Database Diagrams
         // Category 2 must be ignored as it is "MS SQL Server 'pseudo-system' object[s]" for replication
@@ -762,7 +762,7 @@ class SQLServerPlatform extends AbstractPlatform
             . " WHERE type = 'U' AND name != 'sysdiagrams' AND category != 2 ORDER BY name";
     }
 
-    public function getListTableColumnsSQL(string $table, ?string $database = null): string
+    public function getListTableColumnsSQL(string $table, string $database): string
     {
         return "SELECT    col.name,
                           type.name AS type,
@@ -792,7 +792,7 @@ class SQLServerPlatform extends AbstractPlatform
                 AND       " . $this->getTableWhereClause($table, 'scm.name', 'obj.name');
     }
 
-    public function getListTableForeignKeysSQL(string $table, ?string $database = null): string
+    public function getListTableForeignKeysSQL(string $table, string $database): string
     {
         return 'SELECT f.name AS ForeignKey,
                 SCHEMA_NAME (f.SCHEMA_ID) AS SchemaName,
@@ -812,7 +812,7 @@ class SQLServerPlatform extends AbstractPlatform
                 ' ORDER BY fc.constraint_column_id';
     }
 
-    public function getListTableIndexesSQL(string $table, ?string $database = null): string
+    public function getListTableIndexesSQL(string $table, string $database): string
     {
         return "SELECT idx.name AS key_name,
                        col.name AS column_name,

@@ -315,7 +315,7 @@ class MySQLSchemaManager extends AbstractSchemaManager
     {
         $table = parent::listTableDetails($name);
 
-        $sql = $this->_platform->getListTableMetadataSQL($name);
+        $sql = $this->_platform->getListTableMetadataSQL($name, $this->_conn->getDatabase());
 
         $tableOptions = $this->_conn->fetchAssociative($sql);
 

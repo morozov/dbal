@@ -91,13 +91,9 @@ class SqliteSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    public function listTableForeignKeys(string $table, ?string $database = null): array
+    public function listTableForeignKeys(string $table): array
     {
-        if ($database === null) {
-            $database = $this->_conn->getDatabase();
-        }
-
-        $sql              = $this->_platform->getListTableForeignKeysSQL($table, $database);
+        $sql              = $this->_platform->getListTableForeignKeysSQL($table, $this->_conn->getDatabase());
         $tableForeignKeys = $this->_conn->fetchAllAssociative($sql);
 
         if (! empty($tableForeignKeys)) {

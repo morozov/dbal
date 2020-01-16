@@ -201,10 +201,8 @@ class DB2Platform extends AbstractPlatform
     /**
      * This code fragment is originally from the Zend_Db_Adapter_Db2 class, but has been edited.
      */
-    public function getListTableColumnsSQL(string $table, ?string $database = null): string
+    public function getListTableColumnsSQL(string $table, string $database): string
     {
-        $table = $this->quoteStringLiteral($table);
-
         // We do the funky subquery and join syscat.columns.default this crazy way because
         // as of db2 v10, the column is CLOB(64k) and the distinct operator won't allow a CLOB,
         // it wants shorter stuff like a varchar.
@@ -239,7 +237,8 @@ class DB2Platform extends AbstractPlatform
                    ON (c.tabschema = k.tabschema
                        AND c.tabname = k.tabname
                        AND c.colname = k.colname)
-               WHERE UPPER(c.tabname) = UPPER(" . $table . ')
+               WHERE UPPER(c.tabschema) = UPPER(" . $this->quoteStringLiteral($database) . ')
+                 AND UPPER(c.tabname) = UPPER(' . $this->quoteStringLiteral($table) . ')
                ORDER BY c.colno
              ) subq
           JOIN syscat.columns cols
@@ -250,7 +249,7 @@ class DB2Platform extends AbstractPlatform
         ';
     }
 
-    public function getListTablesSQL(): string
+    public function getListTablesSQL(string $database): string
     {
         return "SELECT NAME FROM SYSIBM.SYSTABLES WHERE TYPE = 'T'";
     }
@@ -260,10 +259,8 @@ class DB2Platform extends AbstractPlatform
         return 'SELECT NAME, TEXT FROM SYSIBM.SYSVIEWS';
     }
 
-    public function getListTableIndexesSQL(string $table, ?string $database = null): string
+    public function getListTableIndexesSQL(string $table, string $database): string
     {
-        $table = $this->quoteStringLiteral($table);
-
         return "SELECT   idx.INDNAME AS key_name,
                          idxcol.COLNAME AS column_name,
                          CASE
@@ -277,14 +274,13 @@ class DB2Platform extends AbstractPlatform
                 FROM     SYSCAT.INDEXES AS idx
                 JOIN     SYSCAT.INDEXCOLUSE AS idxcol
                 ON       idx.INDSCHEMA = idxcol.INDSCHEMA AND idx.INDNAME = idxcol.INDNAME
-                WHERE    idx.TABNAME = UPPER(" . $table . ')
+                WHERE    idx.TABSCHEMA = UPPER(" . $this->quoteStringLiteral($database) . ')
+                AND      idx.TABNAME = UPPER(' . $this->quoteStringLiteral($table) . ')
                 ORDER BY idxcol.COLSEQ ASC';
     }
 
-    public function getListTableForeignKeysSQL(string $table, ?string $database = null): string
+    public function getListTableForeignKeysSQL(string $table, string $database): string
     {
-        $table = $this->quoteStringLiteral($table);
-
         return "SELECT   fkcol.COLNAME AS local_column,
                          fk.REFTABNAME AS foreign_table,
                          pkcol.COLNAME AS foreign_column,
@@ -308,7 +304,8 @@ class DB2Platform extends AbstractPlatform
                 ON       fk.REFKEYNAME = pkcol.CONSTNAME
                 AND      fk.REFTABSCHEMA = pkcol.TABSCHEMA
                 AND      fk.REFTABNAME = pkcol.TABNAME
-                WHERE    fk.TABNAME = UPPER(" . $table . ')
+                WHERE    fk.TABSCHEMA = UPPER(" . $this->quoteStringLiteral($database) . ')
+                AND      fk.TABNAME = UPPER(' . $this->quoteStringLiteral($table) . ')
                 ORDER BY fkcol.COLSEQ ASC';
     }
 

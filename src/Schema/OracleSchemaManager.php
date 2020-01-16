@@ -314,7 +314,10 @@ class OracleSchemaManager extends AbstractSchemaManager
     {
         $table = parent::listTableDetails($name);
 
-        $sql = $this->_platform->getListTableCommentsSQL($name);
+        $sql = $this->_platform->getListTableCommentsSQL(
+            $this->_conn->getDatabase(),
+            $name
+        );
 
         $tableOptions = $this->_conn->fetchAssociative($sql);
 

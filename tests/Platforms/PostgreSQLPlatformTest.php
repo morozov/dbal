@@ -857,7 +857,7 @@ class PostgreSQLPlatformTest extends AbstractPlatformTestCase
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\'",
-            $this->platform->getListTableForeignKeysSQL("Foo'Bar\\")
+            $this->platform->getListTableForeignKeysSQL("Foo'Bar\\", "Foo'Bar\\")
         );
     }
 
@@ -865,7 +865,7 @@ class PostgreSQLPlatformTest extends AbstractPlatformTestCase
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\'",
-            $this->platform->getListTableForeignKeysSQL("Foo'Bar\\.baz_table")
+            $this->platform->getListTableForeignKeysSQL("Foo'Bar\\.baz_table", "Foo'Bar\\")
         );
     }
 
@@ -873,7 +873,7 @@ class PostgreSQLPlatformTest extends AbstractPlatformTestCase
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\'",
-            $this->platform->getListTableConstraintsSQL("Foo'Bar\\")
+            $this->platform->getListTableConstraintsSQL("Foo'Bar\\", "Foo'Bar\\")
         );
     }
 
@@ -881,7 +881,7 @@ class PostgreSQLPlatformTest extends AbstractPlatformTestCase
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\'",
-            $this->platform->getListTableIndexesSQL("Foo'Bar\\")
+            $this->platform->getListTableIndexesSQL("Foo'Bar\\", "Foo'Bar\\")
         );
     }
 
@@ -889,7 +889,7 @@ class PostgreSQLPlatformTest extends AbstractPlatformTestCase
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\'",
-            $this->platform->getListTableIndexesSQL("Foo'Bar\\.baz_table")
+            $this->platform->getListTableIndexesSQL("Foo'Bar\\.baz_table", "Foo'Bar\\")
         );
     }
 
@@ -897,7 +897,7 @@ class PostgreSQLPlatformTest extends AbstractPlatformTestCase
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\'",
-            $this->platform->getListTableColumnsSQL("Foo'Bar\\")
+            $this->platform->getListTableColumnsSQL("Foo'Bar\\", "Foo'Bar\\")
         );
     }
 
@@ -905,7 +905,7 @@ class PostgreSQLPlatformTest extends AbstractPlatformTestCase
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\'",
-            $this->platform->getListTableColumnsSQL("Foo'Bar\\.baz_table")
+            $this->platform->getListTableColumnsSQL("Foo'Bar\\.baz_table", "Foo'Bar\\")
         );
     }
 

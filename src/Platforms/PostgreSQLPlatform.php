@@ -177,7 +177,7 @@ class PostgreSQLPlatform extends AbstractPlatform
                 AND    sequence_schema != 'information_schema'";
     }
 
-    public function getListTablesSQL(): string
+    public function getListTablesSQL(string $database): string
     {
         return "SELECT quote_ident(table_name) AS table_name,
                        table_schema AS schema_name
@@ -198,7 +198,7 @@ class PostgreSQLPlatform extends AbstractPlatform
                 WHERE  view_definition IS NOT NULL';
     }
 
-    public function getListTableForeignKeysSQL(string $table, ?string $database = null): string
+    public function getListTableForeignKeysSQL(string $table, string $database): string
     {
         return 'SELECT quote_ident(r.conname) as conname, pg_catalog.pg_get_constraintdef(r.oid, true) as condef
                   FROM pg_catalog.pg_constraint r
@@ -214,7 +214,7 @@ class PostgreSQLPlatform extends AbstractPlatform
     /**
      * @deprecated
      */
-    public function getListTableConstraintsSQL(string $table): string
+    public function getListTableConstraintsSQL(string $table, string $database): string
     {
         $table = new Identifier($table);
         $table = $this->quoteStringLiteral($table->getName());
@@ -243,7 +243,7 @@ SQL
      *
      * @link http://ezcomponents.org/docs/api/trunk/DatabaseSchema/ezcDbSchemaPgsqlReader.html
      */
-    public function getListTableIndexesSQL(string $table, ?string $database = null): string
+    public function getListTableIndexesSQL(string $table, string $database): string
     {
         return 'SELECT quote_ident(relname) as relname, pg_index.indisunique, pg_index.indisprimary,
                        pg_index.indkey, pg_index.indrelid,
@@ -279,7 +279,7 @@ SQL
         );
     }
 
-    public function getListTableColumnsSQL(string $table, ?string $database = null): string
+    public function getListTableColumnsSQL(string $table, string $database): string
     {
         return "SELECT
                     a.attnum,

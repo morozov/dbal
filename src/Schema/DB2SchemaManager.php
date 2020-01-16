@@ -33,7 +33,7 @@ class DB2SchemaManager extends AbstractSchemaManager
      */
     public function listTableNames(): array
     {
-        $sql = $this->_platform->getListTablesSQL() . ' AND CREATOR = CURRENT_USER';
+        $sql = $this->_platform->getListTablesSQL($this->_conn->getDatabase()) . ' AND CREATOR = CURRENT_USER';
 
         $tables = $this->_conn->fetchAllAssociative($sql);
 

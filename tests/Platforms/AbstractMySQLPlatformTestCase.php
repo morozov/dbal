@@ -864,7 +864,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\\\'",
-            $this->platform->getListTableForeignKeysSQL("Foo'Bar\\")
+            $this->platform->getListTableForeignKeysSQL("Foo'Bar\\", "Foo'Bar\\")
         );
     }
 
@@ -880,7 +880,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     {
         self::assertStringContainsStringIgnoringCase(
             "'Foo''Bar\\\\'",
-            $this->platform->getListTableColumnsSQL("Foo'Bar\\")
+            $this->platform->getListTableColumnsSQL("Foo'Bar\\", "Foo'Bar\\")
         );
     }
 
@@ -890,18 +890,6 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
             "'Foo''Bar\\\\'",
             $this->platform->getListTableColumnsSQL('foo_table', "Foo'Bar\\")
         );
-    }
-
-    public function testListTableForeignKeysSQLEvaluatesDatabase(): void
-    {
-        $sql = $this->platform->getListTableForeignKeysSQL('foo');
-
-        self::assertStringContainsString('DATABASE()', $sql);
-
-        $sql = $this->platform->getListTableForeignKeysSQL('foo', 'bar');
-
-        self::assertStringContainsString('bar', $sql);
-        self::assertStringNotContainsString('DATABASE()', $sql);
     }
 
     public function testColumnCharsetDeclarationSQL(): void

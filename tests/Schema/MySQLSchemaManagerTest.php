@@ -45,7 +45,7 @@ class MySQLSchemaManagerTest extends TestCase
             ->method('fetchAllAssociative')
             ->willReturn($this->getFKDefinition());
 
-        $fkeys = $this->manager->listTableForeignKeys('dummy', 'dummy');
+        $fkeys = $this->manager->listTableForeignKeys('dummy');
         self::assertCount(1, $fkeys, 'Table has to have one foreign key.');
 
         self::assertEquals([
