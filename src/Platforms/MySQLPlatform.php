@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Doctrine\DBAL\Platforms;
 
 use Doctrine\DBAL\Exception;
-use Doctrine\DBAL\Platforms\Keywords\KeywordList;
-use Doctrine\DBAL\Platforms\Keywords\MySQLKeywords;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Identifier;
 use Doctrine\DBAL\Schema\Index;
@@ -954,11 +952,6 @@ SQL
             'varchar'    => 'string',
             'year'       => 'date',
         ];
-    }
-
-    protected function createReservedKeywordsList(): KeywordList
-    {
-        return new MySQLKeywords();
     }
 
     /**

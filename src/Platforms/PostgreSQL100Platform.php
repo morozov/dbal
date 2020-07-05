@@ -4,19 +4,11 @@ declare(strict_types=1);
 
 namespace Doctrine\DBAL\Platforms;
 
-use Doctrine\DBAL\Platforms\Keywords\KeywordList;
-use Doctrine\DBAL\Platforms\Keywords\PostgreSQL100Keywords;
-
 /**
  * Provides the behavior, features and SQL dialect of the PostgreSQL 10.0 database platform.
  */
 class PostgreSQL100Platform extends PostgreSQLPlatform
 {
-    protected function createReservedKeywordsList(): KeywordList
-    {
-        return new PostgreSQL100Keywords();
-    }
-
     public function getListSequencesSQL(string $database): string
     {
         return 'SELECT sequence_name AS relname,

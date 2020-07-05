@@ -6,8 +6,6 @@ namespace Doctrine\DBAL\Platforms;
 
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Exception\ColumnLengthRequired;
-use Doctrine\DBAL\Platforms\Keywords\KeywordList;
-use Doctrine\DBAL\Platforms\Keywords\OracleKeywords;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Identifier;
 use Doctrine\DBAL\Schema\Index;
@@ -1009,11 +1007,6 @@ SQL
     public function releaseSavePoint(string $savepoint): string
     {
         return '';
-    }
-
-    protected function createReservedKeywordsList(): KeywordList
-    {
-        return new OracleKeywords();
     }
 
     /**

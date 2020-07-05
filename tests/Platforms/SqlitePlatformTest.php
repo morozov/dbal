@@ -395,7 +395,7 @@ class SqlitePlatformTest extends AbstractPlatformTestCase
         $diff                           = new TableDiff('user');
         $diff->fromTable                = $table;
         $diff->newName                  = 'client';
-        $diff->renamedColumns['id']     = new Column('key', Type::getType('integer'), []);
+        $diff->renamedColumns['id']     = new Column('"key"', Type::getType('integer'), []);
         $diff->renamedColumns['post']   = new Column('comment', Type::getType('integer'), []);
         $diff->removedColumns['parent'] = new Column('comment', Type::getType('integer'), []);
         $diff->removedIndexes['index1'] = $table->getIndex('index1');
@@ -440,7 +440,7 @@ class SqlitePlatformTest extends AbstractPlatformTestCase
     {
         return [
             'CREATE TABLE "quoted" ("create" VARCHAR(255) NOT NULL)',
-            'CREATE INDEX IDX_22660D028FD6E0FB ON "quoted" ("create")',
+            'CREATE INDEX IDX_22660D026E9F3621 ON "quoted" ("create")',
         ];
     }
 

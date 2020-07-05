@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Doctrine\DBAL\Tools\Console;
 
-use Doctrine\DBAL\Tools\Console\Command\ReservedWordsCommand;
 use Doctrine\DBAL\Tools\Console\Command\RunSqlCommand;
 use Exception;
 use PackageVersions\Versions;
@@ -39,7 +38,6 @@ class ConsoleRunner
     {
         $cli->addCommands([
             new RunSqlCommand($connectionProvider),
-            new ReservedWordsCommand($connectionProvider),
         ]);
     }
 

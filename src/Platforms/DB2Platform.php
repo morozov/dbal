@@ -6,8 +6,6 @@ namespace Doctrine\DBAL\Platforms;
 
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Platforms\Exception\NotSupported;
-use Doctrine\DBAL\Platforms\Keywords\DB2Keywords;
-use Doctrine\DBAL\Platforms\Keywords\KeywordList;
 use Doctrine\DBAL\Schema\ColumnDiff;
 use Doctrine\DBAL\Schema\Identifier;
 use Doctrine\DBAL\Schema\Index;
@@ -757,11 +755,6 @@ class DB2Platform extends AbstractPlatform
     public function supportsSavepoints(): bool
     {
         return false;
-    }
-
-    protected function createReservedKeywordsList(): KeywordList
-    {
-        return new DB2Keywords();
     }
 
     public function getListTableCommentsSQL(string $table): string

@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Doctrine\DBAL\Platforms;
 
 use Doctrine\DBAL\Exception;
-use Doctrine\DBAL\Platforms\Keywords\KeywordList;
-use Doctrine\DBAL\Platforms\Keywords\SQLiteKeywords;
 use Doctrine\DBAL\Schema\Constraint;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Identifier;
@@ -566,11 +564,6 @@ class SqlitePlatform extends AbstractPlatform
             'varchar'          => 'string',
             'varchar2'         => 'string',
         ];
-    }
-
-    protected function createReservedKeywordsList(): KeywordList
-    {
-        return new SQLiteKeywords();
     }
 
     /**

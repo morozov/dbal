@@ -25,7 +25,6 @@ use function in_array;
 use function is_string;
 use function preg_match;
 use function sprintf;
-use function strtolower;
 use function uksort;
 
 use const ARRAY_FILTER_USE_KEY;
@@ -35,7 +34,7 @@ use const ARRAY_FILTER_USE_KEY;
  */
 class Table extends AbstractAsset
 {
-    /** @var Column[] */
+    /** @var array<string,Column> */
     protected array $_columns = [];
 
     /** @var Index[] */
@@ -318,11 +317,11 @@ class Table extends AbstractAsset
     /**
      * Drops a Column from the Table.
      */
-    public function dropColumn(string $name): self
+    public function dropColumn(string $identifier): self
     {
-        $name = $this->normalizeIdentifier($name);
+        $identifier = $this->normalizeIdentifier($identifier);
 
-        unset($this->_columns[$name]);
+        unset($this->_columns[$identifier]);
 
         return $this;
     }
@@ -332,46 +331,46 @@ class Table extends AbstractAsset
      *
      * Name is inferred from the local columns.
      *
-     * @param Table|string         $foreignTable       Table schema instance or table name
-     * @param array<int, string>   $localColumnNames
-     * @param array<int, string>   $foreignColumnNames
+     * @param Table|string         $foreignTable             Table schema instance or table name
+     * @param array<int, string>   $localColumnIdentifiers
+     * @param array<int, string>   $foreignColumnIdentifiers
      * @param array<string, mixed> $options
      *
      * @throws SchemaException
      */
     public function addForeignKeyConstraint(
         $foreignTable,
-        array $localColumnNames,
-        array $foreignColumnNames,
+        array $localColumnIdentifiers,
+        array $foreignColumnIdentifiers,
         array $options = [],
         ?string $name = null
     ): self {
         if ($name === null) {
             $name = $this->_generateIdentifierName(
-                array_merge((array) $this->getName(), $localColumnNames),
+                array_merge((array) $this->getName(), $localColumnIdentifiers),
                 'fk',
                 $this->_getMaxIdentifierLength()
             );
         }
 
         if ($foreignTable instanceof Table) {
-            foreach ($foreignColumnNames as $columnName) {
-                if (! $foreignTable->hasColumn($columnName)) {
-                    throw ColumnDoesNotExist::new($columnName, $foreignTable->getName());
+            foreach ($foreignColumnIdentifiers as $identifier) {
+                if (! $foreignTable->hasColumn($identifier)) {
+                    throw ColumnDoesNotExist::new($identifier, $foreignTable->getName());
                 }
             }
         }
 
-        foreach ($localColumnNames as $columnName) {
-            if (! $this->hasColumn($columnName)) {
-                throw ColumnDoesNotExist::new($columnName, $this->_name);
+        foreach ($localColumnIdentifiers as $identifier) {
+            if (! $this->hasColumn($identifier)) {
+                throw ColumnDoesNotExist::new($identifier, $this->_name);
             }
         }
 
         $constraint = new ForeignKeyConstraint(
-            $localColumnNames,
+            $localColumnIdentifiers,
             $foreignTable,
-            $foreignColumnNames,
+            $foreignColumnIdentifiers,
             $name,
             $options
         );
@@ -505,43 +504,50 @@ class Table extends AbstractAsset
     }
 
     /**
-     * Returns only columns that have specified names
+     * Returns only columns that have specified identifiers
      *
-     * @param string[] $columnNames
+     * @param string[] $identifiers
      *
      * @return Column[]
      */
-    private function filterColumns(array $columnNames, bool $reverse = false): array
+    private function filterColumns(array $identifiers)
     {
-        return array_filter($this->_columns, static function (string $columnName) use ($columnNames, $reverse): bool {
-            return in_array($columnName, $columnNames, true) !== $reverse;
+        return array_filter($this->_columns, static function (string $identifier) use ($identifiers): bool {
+            return in_array($identifier, $identifiers, true);
         }, ARRAY_FILTER_USE_KEY);
     }
 
     /**
      * Returns whether this table has a Column with the given name.
+     *
+     * @param string $identifier The column name.
+     *
+     * @return bool
      */
-    public function hasColumn(string $name): bool
+    public function hasColumn($identifier)
     {
-        $name = $this->normalizeIdentifier($name);
+        $identifier = $this->normalizeIdentifier($identifier);
 
-        return isset($this->_columns[$name]);
+        return isset($this->_columns[$identifier]);
     }
 
     /**
      * Returns the Column with the given name.
      *
+     * @param string $identifier The column identifier.
+     *
+     * @return Column
+     *
      * @throws SchemaException If the column does not exist.
      */
-    public function getColumn(string $name): Column
+    public function getColumn($identifier)
     {
-        $name = $this->normalizeIdentifier($name);
-
-        if (! $this->hasColumn($name)) {
-            throw ColumnDoesNotExist::new($name, $this->_name);
+        $identifier = $this->normalizeIdentifier($identifier);
+        if (! $this->hasColumn($identifier)) {
+            throw ColumnDoesNotExist::new($identifier, $this->_name);
         }
 
-        return $this->_columns[$name];
+        return $this->_columns[$identifier];
     }
 
     /**
@@ -835,13 +841,17 @@ class Table extends AbstractAsset
      *
      * Trims quotes and lowercases the given identifier.
      */
-    private function normalizeIdentifier(?string $identifier): string
+    public function normalizeIdentifier(?string $identifier): string
     {
         if ($identifier === null) {
             return '';
         }
 
-        return $this->trimQuotes(strtolower($identifier));
+        if (! $this->isIdentifierQuoted($identifier)) {
+            return $identifier;
+        }
+
+        return sprintf('"%s"', $this->trimQuotes($identifier));
     }
 
     public function setComment(string $comment): self
@@ -890,30 +900,31 @@ class Table extends AbstractAsset
     }
 
     /**
-     * @param array<int, string>   $columns
-     * @param array<int, string>   $flags
-     * @param array<string, mixed> $options
+     * @param string[] $columnIdentifiers
+     * @param string   $indexIdentifier
+     * @param bool     $isUnique
+     * @param bool     $isPrimary
+     * @param string[] $flags
+     * @param mixed[]  $options
+     *
+     * @return Index
      *
      * @throws SchemaException
      */
     private function _createIndex(
-        array $columns,
-        string $indexName,
-        bool $isUnique,
-        bool $isPrimary,
+        array $columnIdentifiers,
+        $indexIdentifier,
+        $isUnique,
+        $isPrimary,
         array $flags = [],
         array $options = []
-    ): Index {
-        if (preg_match('(([^a-zA-Z0-9_]+))', $this->normalizeIdentifier($indexName)) === 1) {
-            throw IndexNameInvalid::new($indexName);
-        }
-
-        foreach ($columns as $columnName) {
-            if (! $this->hasColumn($columnName)) {
-                throw ColumnDoesNotExist::new($columnName, $this->_name);
+    ) {
+        foreach ($columnIdentifiers as $columnIdentifier) {
+            if (! $this->hasColumn($columnIdentifier)) {
+                throw ColumnDoesNotExist::new($columnIdentifier, $this->_name);
             }
         }
 
-        return new Index($indexName, $columns, $isUnique, $isPrimary, $flags, $options);
+        return new Index($indexIdentifier, $columnIdentifiers, $isUnique, $isPrimary, $flags, $options);
     }
 }

@@ -7,8 +7,6 @@ namespace Doctrine\DBAL\Platforms;
 use Doctrine\DBAL\Exception\ColumnLengthRequired;
 use Doctrine\DBAL\Exception\InvalidLockMode;
 use Doctrine\DBAL\LockMode;
-use Doctrine\DBAL\Platforms\Keywords\KeywordList;
-use Doctrine\DBAL\Platforms\Keywords\SQLServerKeywords;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ColumnDiff;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
@@ -1364,11 +1362,6 @@ class SQLServerPlatform extends AbstractPlatform
     public function getForUpdateSQL(): string
     {
         return ' ';
-    }
-
-    protected function createReservedKeywordsList(): KeywordList
-    {
-        return new SQLServerKeywords();
     }
 
     public function quoteSingleIdentifier(string $str): string

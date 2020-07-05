@@ -20,7 +20,6 @@ use Doctrine\DBAL\Exception\InvalidLockMode;
 use Doctrine\DBAL\LockMode;
 use Doctrine\DBAL\Platforms\Exception\NoColumnsSpecifiedForTable;
 use Doctrine\DBAL\Platforms\Exception\NotSupported;
-use Doctrine\DBAL\Platforms\Keywords\KeywordList;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ColumnDiff;
 use Doctrine\DBAL\Schema\Constraint;
@@ -88,11 +87,6 @@ abstract class AbstractPlatform
     protected ?array $doctrineTypeComments = null;
 
     protected ?EventManager $_eventManager = null;
-
-    /**
-     * Holds the KeywordList instance for the current platform.
-     */
-    protected ?KeywordList $_keywords = null;
 
     /**
      * Sets the EventManager used by the Platform.
@@ -2634,27 +2628,6 @@ abstract class AbstractPlatform
     {
         return 'ROLLBACK TO SAVEPOINT ' . $savepoint;
     }
-
-    /**
-     * Returns the keyword list instance of this platform.
-     *
-     * @throws Exception If no keyword list is specified.
-     */
-    final public function getReservedKeywordsList(): KeywordList
-    {
-        // Check for an existing instantiation of the keywords class.
-        if ($this->_keywords === null) {
-            // Store the instance so it doesn't need to be generated on every request.
-            $this->_keywords = $this->createReservedKeywordsList();
-        }
-
-        return $this->_keywords;
-    }
-
-    /**
-     * Creates an instance of the reserved keyword list of this platform.
-     */
-    abstract protected function createReservedKeywordsList(): KeywordList;
 
     /**
      * Quotes a literal string.

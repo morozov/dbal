@@ -231,7 +231,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     public function getCreateTableColumnTypeCommentsSQL(): array
     {
         return [
-            "CREATE TABLE test (id INT NOT NULL, data LONGTEXT NOT NULL COMMENT '(DC2Type:array)', "
+            "CREATE TABLE test (id INT NOT NULL, `data` LONGTEXT NOT NULL COMMENT '(DC2Type:array)', "
                 . 'PRIMARY KEY(id))',
         ];
     }
@@ -267,7 +267,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     {
         return [
             'CREATE TABLE `quoted` (`create` VARCHAR(255) NOT NULL, '
-                . 'INDEX IDX_22660D028FD6E0FB (`create`))',
+                . 'INDEX IDX_22660D026E9F3621 (`create`))',
         ];
     }
 
@@ -765,9 +765,9 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
             "CHANGE `create` reserved_keyword INT NOT NULL COMMENT 'Reserved keyword 1', " .
             "CHANGE `table` `from` INT NOT NULL COMMENT 'Reserved keyword 2', " .
             "CHANGE `select` `bar` INT NOT NULL COMMENT 'Reserved keyword 3', " .
-            "CHANGE quoted1 quoted INT NOT NULL COMMENT 'Quoted 1', " .
-            "CHANGE quoted2 `and` INT NOT NULL COMMENT 'Quoted 2', " .
-            "CHANGE quoted3 `baz` INT NOT NULL COMMENT 'Quoted 3'",
+            "CHANGE `quoted1` quoted INT NOT NULL COMMENT 'Quoted 1', " .
+            "CHANGE `quoted2` `and` INT NOT NULL COMMENT 'Quoted 2', " .
+            "CHANGE `quoted3` `baz` INT NOT NULL COMMENT 'Quoted 3'",
         ];
     }
 
