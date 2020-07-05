@@ -9,6 +9,7 @@ use function crc32;
 use function dechex;
 use function explode;
 use function implode;
+use function sprintf;
 use function str_replace;
 use function strpos;
 use function strtolower;
@@ -180,13 +181,27 @@ abstract class AbstractAsset
      */
     public function getQuotedName(AbstractPlatform $platform)
     {
-        $keywords = $platform->getReservedKeywordsList();
-        $parts    = explode('.', $this->getName());
+        $parts = explode('.', $this->getName());
         foreach ($parts as $k => $v) {
-            $parts[$k] = $this->_quoted || $keywords->isKeyword($v) ? $platform->quoteIdentifier($v) : $v;
+            $parts[$k] = $this->_quoted ? $platform->quoteIdentifier($v) : $v;
         }
 
         return implode('.', $parts);
+    }
+
+    /**
+     * Returns the string that identifies the asset among its siblings. Apart from containing the asset name,
+     * the identifier will indicate whether the name is quoted.
+     *
+     * @internal
+     */
+    public function getIdentifier(): string
+    {
+        if (! $this->_quoted) {
+            return $this->getName();
+        }
+
+        return sprintf('"%s"', $this->getName());
     }
 
     /**

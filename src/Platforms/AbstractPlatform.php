@@ -13,7 +13,6 @@ use Doctrine\DBAL\Event\SchemaCreateTableColumnEventArgs;
 use Doctrine\DBAL\Event\SchemaCreateTableEventArgs;
 use Doctrine\DBAL\Event\SchemaDropTableEventArgs;
 use Doctrine\DBAL\Events;
-use Doctrine\DBAL\Platforms\Keywords\KeywordList;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ColumnDiff;
 use Doctrine\DBAL\Schema\Constraint;
@@ -84,13 +83,6 @@ abstract class AbstractPlatform
 
     /** @var EventManager|null */
     protected $_eventManager;
-
-    /**
-     * Holds the KeywordList instance for the current platform.
-     *
-     * @var KeywordList|null
-     */
-    protected $_keywords;
 
     public function __construct()
     {
@@ -3483,44 +3475,6 @@ abstract class AbstractPlatform
     public function rollbackSavePoint($savepoint)
     {
         return 'ROLLBACK TO SAVEPOINT ' . $savepoint;
-    }
-
-    /**
-     * Returns the keyword list instance of this platform.
-     *
-     * @return KeywordList
-     *
-     * @throws DBALException If no keyword list is specified.
-     */
-    final public function getReservedKeywordsList()
-    {
-        // Check for an existing instantiation of the keywords class.
-        if ($this->_keywords !== null) {
-            return $this->_keywords;
-        }
-
-        $class    = $this->getReservedKeywordsClass();
-        $keywords = new $class();
-        if (! $keywords instanceof KeywordList) {
-            throw DBALException::notSupported(__METHOD__);
-        }
-
-        // Store the instance so it doesn't need to be generated on every request.
-        $this->_keywords = $keywords;
-
-        return $keywords;
-    }
-
-    /**
-     * Returns the class name of the reserved keywords list.
-     *
-     * @return string
-     *
-     * @throws DBALException If not supported on this platform.
-     */
-    protected function getReservedKeywordsClass()
-    {
-        throw DBALException::notSupported(__METHOD__);
     }
 
     /**

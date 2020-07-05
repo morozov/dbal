@@ -95,7 +95,9 @@ class ForeignKeyConstraint extends AbstractAsset implements Constraint
         $identifiers = [];
 
         foreach ($names as $name) {
-            $identifiers[$name] = new Identifier($name);
+            $id = new Identifier($name);
+
+            $identifiers[$id->getIdentifier()] = $id;
         }
 
         return $identifiers;

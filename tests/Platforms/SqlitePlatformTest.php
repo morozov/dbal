@@ -459,7 +459,7 @@ class SqlitePlatformTest extends AbstractPlatformTestCase
     {
         return [
             'CREATE TABLE "quoted" ("create" VARCHAR(255) NOT NULL)',
-            'CREATE INDEX IDX_22660D028FD6E0FB ON "quoted" ("create")',
+            'CREATE INDEX IDX_22660D026E9F3621 ON "quoted" ("create")',
         ];
     }
 
@@ -481,7 +481,7 @@ class SqlitePlatformTest extends AbstractPlatformTestCase
     {
         return [
             'CREATE TABLE "quoted" (' .
-            '"create" VARCHAR(255) NOT NULL, foo VARCHAR(255) NOT NULL, "bar" VARCHAR(255) NOT NULL, ' .
+            'foo VARCHAR(255) NOT NULL, "create" VARCHAR(255) NOT NULL, "bar" VARCHAR(255) NOT NULL, ' .
             'CONSTRAINT FK_WITH_RESERVED_KEYWORD FOREIGN KEY ("create", foo, "bar") ' .
             'REFERENCES "foreign" ("create", bar, "foo-bar") NOT DEFERRABLE INITIALLY IMMEDIATE, ' .
             'CONSTRAINT FK_WITH_NON_RESERVED_KEYWORD FOREIGN KEY ("create", foo, "bar") ' .
