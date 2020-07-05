@@ -98,7 +98,7 @@ class DB2PlatformTest extends AbstractPlatformTestCase
     {
         return [
             'CREATE TABLE "quoted" ("create" VARCHAR(255) NOT NULL)',
-            'CREATE INDEX IDX_22660D028FD6E0FB ON "quoted" ("create")',
+            'CREATE INDEX IDX_22660D026E9F3621 ON "quoted" ("create")',
         ];
     }
 
@@ -541,16 +541,17 @@ class DB2PlatformTest extends AbstractPlatformTestCase
      */
     protected function getQuotedAlterTableRenameColumnSQL(): array
     {
-        return ['ALTER TABLE mytable ' .
+        return [
+            'ALTER TABLE mytable ' .
             'RENAME COLUMN unquoted1 TO unquoted ' .
             'RENAME COLUMN unquoted2 TO "where" ' .
             'RENAME COLUMN unquoted3 TO "foo" ' .
             'RENAME COLUMN "create" TO reserved_keyword ' .
             'RENAME COLUMN "table" TO "from" ' .
             'RENAME COLUMN "select" TO "bar" ' .
-            'RENAME COLUMN quoted1 TO quoted ' .
-            'RENAME COLUMN quoted2 TO "and" ' .
-            'RENAME COLUMN quoted3 TO "baz"',
+            'RENAME COLUMN "quoted1" TO quoted ' .
+            'RENAME COLUMN "quoted2" TO "and" ' .
+            'RENAME COLUMN "quoted3" TO "baz"',
         ];
     }
 

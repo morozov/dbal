@@ -406,7 +406,7 @@ abstract class AbstractPostgreSQLPlatformTestCase extends AbstractPlatformTestCa
     {
         return [
             'CREATE TABLE "quoted" ("create" VARCHAR(255) NOT NULL)',
-            'CREATE INDEX IDX_22660D028FD6E0FB ON "quoted" ("create")',
+            'CREATE INDEX IDX_22660D026E9F3621 ON "quoted" ("create")',
         ];
     }
 

@@ -459,7 +459,7 @@ class OraclePlatformTest extends AbstractPlatformTestCase
     {
         return [
             'CREATE TABLE "quoted" ("create" VARCHAR2(255) NOT NULL)',
-            'CREATE INDEX IDX_22660D028FD6E0FB ON "quoted" ("create")',
+            'CREATE INDEX IDX_22660D026E9F3621 ON "quoted" ("create")',
         ];
     }
 
@@ -726,19 +726,11 @@ class OraclePlatformTest extends AbstractPlatformTestCase
                 ],
             ],
             [
-                '"myTable"',
+                '"TABLE"',
                 [
-                    'DROP TRIGGER "myTable_AI_PK"',
-                    'DROP SEQUENCE "myTable_SEQ"',
-                    'ALTER TABLE "myTable" DROP CONSTRAINT "myTable_AI_PK"',
-                ],
-            ],
-            [
-                'table',
-                [
-                    'DROP TRIGGER TABLE_AI_PK',
-                    'DROP SEQUENCE TABLE_SEQ',
-                    'ALTER TABLE "TABLE" DROP CONSTRAINT TABLE_AI_PK',
+                    'DROP TRIGGER "TABLE_AI_PK"',
+                    'DROP SEQUENCE "TABLE_SEQ"',
+                    'ALTER TABLE "TABLE" DROP CONSTRAINT "TABLE_AI_PK"',
                 ],
             ],
         ];

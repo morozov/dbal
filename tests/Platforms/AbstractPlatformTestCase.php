@@ -6,7 +6,6 @@ use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Events;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
-use Doctrine\DBAL\Platforms\Keywords\KeywordList;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ColumnDiff;
 use Doctrine\DBAL\Schema\Comparator;
@@ -218,7 +217,7 @@ abstract class AbstractPlatformTestCase extends TestCase
         }
 
         $uniqueConstraintSQL = $this->platform->getUniqueConstraintDeclarationSQL('name', $uniqueConstraint);
-        $indexSQL            = $this->platform->getCreateIndexSQL($indexDef, 'table');
+        $indexSQL            = $this->platform->getCreateIndexSQL($indexDef, '`table`');
 
         $this->assertStringEndsNotWith($expected, $uniqueConstraintSQL, 'WHERE clause should NOT be present');
 
@@ -495,7 +494,7 @@ abstract class AbstractPlatformTestCase extends TestCase
     {
         $table = new Table('test');
         $table->addColumn('id', 'integer');
-        $table->addColumn('data', 'array');
+        $table->addColumn('"data"', 'array');
         $table->setPrimaryKey(['id']);
 
         self::assertEquals($this->getCreateTableColumnTypeCommentsSQL(), $this->platform->getCreateTableSQL($table));
@@ -575,19 +574,11 @@ abstract class AbstractPlatformTestCase extends TestCase
         }
     }
 
-    public function testKeywordList(): void
-    {
-        $keywordList = $this->platform->getReservedKeywordsList();
-        self::assertInstanceOf(KeywordList::class, $keywordList);
-
-        self::assertTrue($keywordList->isKeyword('table'));
-    }
-
     public function testQuotedColumnInPrimaryKeyPropagation(): void
     {
-        $table = new Table('`quoted`');
-        $table->addColumn('create', 'string');
-        $table->setPrimaryKey(['create']);
+        $table = new Table('"quoted"');
+        $table->addColumn('"create"', 'string');
+        $table->setPrimaryKey(['"create"']);
 
         $sql = $this->platform->getCreateTableSQL($table);
         self::assertEquals($this->getQuotedColumnInPrimaryKeySQL(), $sql);
@@ -615,9 +606,9 @@ abstract class AbstractPlatformTestCase extends TestCase
 
     public function testQuotedColumnInIndexPropagation(): void
     {
-        $table = new Table('`quoted`');
-        $table->addColumn('create', 'string');
-        $table->addIndex(['create']);
+        $table = new Table('"quoted');
+        $table->addColumn('"create"', 'string');
+        $table->addIndex(['"create"']);
 
         $sql = $this->platform->getCreateTableSQL($table);
         self::assertEquals($this->getQuotedColumnInIndexSQL(), $sql);
@@ -636,15 +627,15 @@ abstract class AbstractPlatformTestCase extends TestCase
     public function testQuotedColumnInForeignKeyPropagation(): void
     {
         $table = new Table('`quoted`');
-        $table->addColumn('create', 'string');
+        $table->addColumn('`create`', 'string');
         $table->addColumn('foo', 'string');
         $table->addColumn('`bar`', 'string');
 
         // Foreign table with reserved keyword as name (needs quotation).
-        $foreignTable = new Table('foreign');
+        $foreignTable = new Table('`foreign`');
 
         // Foreign column with reserved keyword as name (needs quotation).
-        $foreignTable->addColumn('create', 'string');
+        $foreignTable->addColumn('`create`', 'string');
 
         // Foreign column with non-reserved keyword as name (does not need quotation).
         $foreignTable->addColumn('bar', 'string');
@@ -654,8 +645,8 @@ abstract class AbstractPlatformTestCase extends TestCase
 
         $table->addForeignKeyConstraint(
             $foreignTable,
-            ['create', 'foo', '`bar`'],
-            ['create', 'bar', '`foo-bar`'],
+            ['`create`', 'foo', '`bar`'],
+            ['`create`', 'bar', '`foo-bar`'],
             [],
             'FK_WITH_RESERVED_KEYWORD'
         );
@@ -664,7 +655,7 @@ abstract class AbstractPlatformTestCase extends TestCase
         $foreignTable = new Table('foo');
 
         // Foreign column with reserved keyword as name (needs quotation).
-        $foreignTable->addColumn('create', 'string');
+        $foreignTable->addColumn('`create`', 'string');
 
         // Foreign column with non-reserved keyword as name (does not need quotation).
         $foreignTable->addColumn('bar', 'string');
@@ -674,8 +665,8 @@ abstract class AbstractPlatformTestCase extends TestCase
 
         $table->addForeignKeyConstraint(
             $foreignTable,
-            ['create', 'foo', '`bar`'],
-            ['create', 'bar', '`foo-bar`'],
+            ['`create`', 'foo', '`bar`'],
+            ['`create`', 'bar', '`foo-bar`'],
             [],
             'FK_WITH_NON_RESERVED_KEYWORD'
         );
@@ -684,7 +675,7 @@ abstract class AbstractPlatformTestCase extends TestCase
         $foreignTable = new Table('`foo-bar`');
 
         // Foreign column with reserved keyword as name (needs quotation).
-        $foreignTable->addColumn('create', 'string');
+        $foreignTable->addColumn('`create`', 'string');
 
         // Foreign column with non-reserved keyword as name (does not need quotation).
         $foreignTable->addColumn('bar', 'string');
@@ -694,8 +685,8 @@ abstract class AbstractPlatformTestCase extends TestCase
 
         $table->addForeignKeyConstraint(
             $foreignTable,
-            ['create', 'foo', '`bar`'],
-            ['create', 'bar', '`foo-bar`'],
+            ['`create`', 'foo', '`bar`'],
+            ['`create`', 'bar', '`foo-bar`'],
             [],
             'FK_WITH_INTENDED_QUOTATION'
         );
@@ -706,11 +697,11 @@ abstract class AbstractPlatformTestCase extends TestCase
 
     public function testQuotesReservedKeywordInUniqueConstraintDeclarationSQL(): void
     {
-        $constraint = new UniqueConstraint('select', ['foo'], [], []);
+        $constraint = new UniqueConstraint('"select"', ['foo'], [], []);
 
         self::assertSame(
             $this->getQuotesReservedKeywordInUniqueConstraintDeclarationSQL(),
-            $this->platform->getUniqueConstraintDeclarationSQL('select', $constraint)
+            $this->platform->getUniqueConstraintDeclarationSQL('"select"', $constraint)
         );
     }
 
@@ -720,7 +711,7 @@ abstract class AbstractPlatformTestCase extends TestCase
     {
         self::assertSame(
             $this->getQuotesReservedKeywordInTruncateTableSQL(),
-            $this->platform->getTruncateTableSQL('select')
+            $this->platform->getTruncateTableSQL('"select"')
         );
     }
 
@@ -728,7 +719,7 @@ abstract class AbstractPlatformTestCase extends TestCase
 
     public function testQuotesReservedKeywordInIndexDeclarationSQL(): void
     {
-        $index = new Index('select', ['foo']);
+        $index = new Index('"select"', ['foo']);
 
         if (! $this->supportsInlineIndexDeclaration()) {
             $this->expectException(Exception::class);
@@ -736,7 +727,7 @@ abstract class AbstractPlatformTestCase extends TestCase
 
         self::assertSame(
             $this->getQuotesReservedKeywordInIndexDeclarationSQL(),
-            $this->platform->getIndexDeclarationSQL('select', $index)
+            $this->platform->getIndexDeclarationSQL('"select"', $index)
         );
     }
 
@@ -769,9 +760,9 @@ abstract class AbstractPlatformTestCase extends TestCase
         $tableDiff                        = new TableDiff('mytable');
         $tableDiff->fromTable             = new Table('mytable');
         $tableDiff->changedColumns['foo'] = new ColumnDiff(
-            'select',
+            '"select"',
             new Column(
-                'select',
+                '"select"',
                 Type::getType('string')
             ),
             ['type']
@@ -878,12 +869,12 @@ abstract class AbstractPlatformTestCase extends TestCase
 
     public function testQuotesAlterTableRenameIndex(): void
     {
-        $tableDiff            = new TableDiff('table');
-        $tableDiff->fromTable = new Table('table');
+        $tableDiff            = new TableDiff('`table`');
+        $tableDiff->fromTable = new Table('`table`');
         $tableDiff->fromTable->addColumn('id', 'integer');
         $tableDiff->fromTable->setPrimaryKey(['id']);
         $tableDiff->renamedIndexes = [
-            'create' => new Index('select', ['id']),
+            '`create`' => new Index('`select`', ['id']),
             '`foo`'  => new Index('`bar`', ['id']),
         ];
 
@@ -914,9 +905,9 @@ abstract class AbstractPlatformTestCase extends TestCase
         $fromTable->addColumn('unquoted2', 'integer', ['comment' => 'Unquoted 2']);
         $fromTable->addColumn('unquoted3', 'integer', ['comment' => 'Unquoted 3']);
 
-        $fromTable->addColumn('create', 'integer', ['comment' => 'Reserved keyword 1']);
-        $fromTable->addColumn('table', 'integer', ['comment' => 'Reserved keyword 2']);
-        $fromTable->addColumn('select', 'integer', ['comment' => 'Reserved keyword 3']);
+        $fromTable->addColumn('`create`', 'integer', ['comment' => 'Reserved keyword 1']);
+        $fromTable->addColumn('`table`', 'integer', ['comment' => 'Reserved keyword 2']);
+        $fromTable->addColumn('`select`', 'integer', ['comment' => 'Reserved keyword 3']);
 
         $fromTable->addColumn('`quoted1`', 'integer', ['comment' => 'Quoted 1']);
         $fromTable->addColumn('`quoted2`', 'integer', ['comment' => 'Quoted 2']);
@@ -928,7 +919,7 @@ abstract class AbstractPlatformTestCase extends TestCase
         $toTable->addColumn('unquoted', 'integer', ['comment' => 'Unquoted 1']);
 
         // unquoted -> reserved keyword
-        $toTable->addColumn('where', 'integer', ['comment' => 'Unquoted 2']);
+        $toTable->addColumn('`where`', 'integer', ['comment' => 'Unquoted 2']);
 
         // unquoted -> quoted
         $toTable->addColumn('`foo`', 'integer', ['comment' => 'Unquoted 3']);
@@ -937,7 +928,7 @@ abstract class AbstractPlatformTestCase extends TestCase
         $toTable->addColumn('reserved_keyword', 'integer', ['comment' => 'Reserved keyword 1']);
 
         // reserved keyword -> reserved keyword
-        $toTable->addColumn('from', 'integer', ['comment' => 'Reserved keyword 2']);
+        $toTable->addColumn('`from`', 'integer', ['comment' => 'Reserved keyword 2']);
 
         // reserved keyword -> quoted
         $toTable->addColumn('`bar`', 'integer', ['comment' => 'Reserved keyword 3']);
@@ -946,7 +937,7 @@ abstract class AbstractPlatformTestCase extends TestCase
         $toTable->addColumn('quoted', 'integer', ['comment' => 'Quoted 1']);
 
         // quoted -> reserved keyword
-        $toTable->addColumn('and', 'integer', ['comment' => 'Quoted 2']);
+        $toTable->addColumn('`and`', 'integer', ['comment' => 'Quoted 2']);
 
         // quoted -> quoted
         $toTable->addColumn('`baz`', 'integer', ['comment' => 'Quoted 3']);
@@ -974,9 +965,9 @@ abstract class AbstractPlatformTestCase extends TestCase
         $fromTable->addColumn('unquoted2', 'string', ['comment' => 'Unquoted 2', 'length' => 10]);
         $fromTable->addColumn('unquoted3', 'string', ['comment' => 'Unquoted 3', 'length' => 10]);
 
-        $fromTable->addColumn('create', 'string', ['comment' => 'Reserved keyword 1', 'length' => 10]);
-        $fromTable->addColumn('table', 'string', ['comment' => 'Reserved keyword 2', 'length' => 10]);
-        $fromTable->addColumn('select', 'string', ['comment' => 'Reserved keyword 3', 'length' => 10]);
+        $fromTable->addColumn('`create`', 'string', ['comment' => 'Reserved keyword 1', 'length' => 10]);
+        $fromTable->addColumn('`table`', 'string', ['comment' => 'Reserved keyword 2', 'length' => 10]);
+        $fromTable->addColumn('`select`', 'string', ['comment' => 'Reserved keyword 3', 'length' => 10]);
 
         $toTable = new Table('mytable');
 
@@ -984,9 +975,9 @@ abstract class AbstractPlatformTestCase extends TestCase
         $toTable->addColumn('unquoted2', 'string', ['comment' => 'Unquoted 2', 'length' => 255]);
         $toTable->addColumn('unquoted3', 'string', ['comment' => 'Unquoted 3', 'length' => 255]);
 
-        $toTable->addColumn('create', 'string', ['comment' => 'Reserved keyword 1', 'length' => 255]);
-        $toTable->addColumn('table', 'string', ['comment' => 'Reserved keyword 2', 'length' => 255]);
-        $toTable->addColumn('select', 'string', ['comment' => 'Reserved keyword 3', 'length' => 255]);
+        $toTable->addColumn('`create`', 'string', ['comment' => 'Reserved keyword 1', 'length' => 255]);
+        $toTable->addColumn('`table`', 'string', ['comment' => 'Reserved keyword 2', 'length' => 255]);
+        $toTable->addColumn('`select`', 'string', ['comment' => 'Reserved keyword 3', 'length' => 255]);
 
         $comparator = new Comparator();
 
@@ -1037,7 +1028,7 @@ abstract class AbstractPlatformTestCase extends TestCase
         $tableDiff->fromTable->addColumn('id', 'integer');
         $tableDiff->fromTable->setPrimaryKey(['id']);
         $tableDiff->renamedIndexes = [
-            'create' => new Index('select', ['id']),
+            '`create`' => new Index('`select`', ['id']),
             '`foo`'  => new Index('`bar`', ['id']),
         ];
 
@@ -1068,10 +1059,10 @@ abstract class AbstractPlatformTestCase extends TestCase
             );
         }
 
-        $tableName      = 'table';
+        $tableName      = '`table`';
         $table          = new Table($tableName);
-        $foreignKeyName = 'select';
-        $foreignKey     = new ForeignKeyConstraint([], 'foo', [], 'select');
+        $foreignKeyName = '`select`';
+        $foreignKey     = new ForeignKeyConstraint([], 'foo', [], '`select`');
         $expectedSql    = $this->getQuotesDropForeignKeySQL();
 
         self::assertSame($expectedSql, $this->platform->getDropForeignKeySQL($foreignKeyName, $tableName));
@@ -1085,10 +1076,10 @@ abstract class AbstractPlatformTestCase extends TestCase
 
     public function testQuotesDropConstraintSQL(): void
     {
-        $tableName      = 'table';
+        $tableName      = '`table`';
         $table          = new Table($tableName);
-        $constraintName = 'select';
-        $constraint     = new ForeignKeyConstraint([], 'foo', [], 'select');
+        $constraintName = '`select`';
+        $constraint     = new ForeignKeyConstraint([], 'foo', [], '`select`');
         $expectedSql    = $this->getQuotesDropConstraintSQL();
 
         self::assertSame($expectedSql, $this->platform->getDropConstraintSQL($constraintName, $tableName));
@@ -1152,7 +1143,7 @@ abstract class AbstractPlatformTestCase extends TestCase
             [
                 $this->platform->getCommentOnColumnSQL('foo', 'bar', 'comment'), // regular identifiers
                 $this->platform->getCommentOnColumnSQL('`Foo`', '`BAR`', 'comment'), // explicitly quoted identifiers
-                $this->platform->getCommentOnColumnSQL('select', 'from', 'comment'), // reserved keyword identifiers
+                $this->platform->getCommentOnColumnSQL('`select`', '`from`', 'comment'), // reserved keyword identifiers
             ]
         );
     }
@@ -1301,7 +1292,7 @@ abstract class AbstractPlatformTestCase extends TestCase
 
         $tableDiff                        = new TableDiff('"foo"');
         $tableDiff->fromTable             = $table;
-        $tableDiff->newName               = 'table';
+        $tableDiff->newName               = '`table`';
         $tableDiff->addedColumns['bloo']  = new Column('bloo', Type::getType('integer'));
         $tableDiff->changedColumns['bar'] = new ColumnDiff(
             'bar',
