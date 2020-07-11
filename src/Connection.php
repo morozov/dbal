@@ -388,7 +388,7 @@ class Connection
                 $serverVersion          = $this->getServerVersion();
 
                 // Close "temporary" connection to allow connecting to the real database again.
-                $this->close();
+                $this->_conn = null;
 
                 return $serverVersion;
             }
@@ -1773,7 +1773,7 @@ class Connection
         $exception = $this->exceptionConverter->convert($message, $driverException);
 
         if ($exception instanceof ConnectionLost) {
-            $this->close();
+            $this->_conn = null;
         }
 
         return $exception;

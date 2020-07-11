@@ -325,19 +325,6 @@ class PrimaryReadReplicaConnection extends Connection
     /**
      * {@inheritDoc}
      */
-    public function close()
-    {
-        unset($this->connections['primary'], $this->connections['replica']);
-
-        parent::close();
-
-        $this->_conn       = null;
-        $this->connections = ['primary' => null, 'replica' => null];
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     public function update($tableName, array $data, array $identifier, array $types = [])
     {
         $this->ensureConnectedToPrimary();

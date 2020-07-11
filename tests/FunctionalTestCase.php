@@ -42,7 +42,6 @@ abstract class FunctionalTestCase extends TestCase
             return;
         }
 
-        self::$sharedConnection->close();
         self::$sharedConnection = null;
     }
 

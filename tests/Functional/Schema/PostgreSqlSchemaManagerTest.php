@@ -352,11 +352,7 @@ class PostgreSqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
         $this->connection->exec('CREATE SCHEMA "001_test"');
         $this->connection->exec('SET search_path TO "001_test"');
 
-        try {
-            $this->testListQuotedTable();
-        } finally {
-            $this->connection->close();
-        }
+        $this->testListQuotedTable();
     }
 
     public function testListTablesExcludesViews(): void

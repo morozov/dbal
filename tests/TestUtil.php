@@ -94,11 +94,7 @@ class TestUtil
                 $dbname = $testConnParams['user'];
             }
 
-            $testConn->close();
-
             $privConn->getSchemaManager()->dropAndCreateDatabase($dbname);
-
-            $privConn->close();
         } else {
             $sm = $testConn->getSchemaManager();
 
