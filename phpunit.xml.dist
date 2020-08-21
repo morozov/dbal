@@ -19,29 +19,6 @@
          failOnRisky="true"
          failOnWarning="true"
 >
-    <php>
-        <ini name="error_reporting" value="-1" />
-
-        <!-- Test connection parameters -->
-        <!-- Uncomment, otherwise SQLite runs
-        <var name="db_driver" value="pdo_mysql"/>
-        <var name="db_host" value="localhost" />
-        <var name="db_port" value="3306"/>
-        <var name="db_user" value="root" />
-        <var name="db_password" value="" />
-        <var name="db_dbname" value="doctrine_tests" />
-        -->
-        <!--<var name="db_event_subscribers" value="Doctrine\DBAL\Event\Listeners\OracleSessionInit">-->
-
-        <!-- Privileged user connection parameters. Used to create and drop the test database -->
-        <var name="tmpdb_driver" value="pdo_mysql"/>
-        <var name="tmpdb_host" value="localhost" />
-        <var name="tmpdb_port" value="3306"/>
-        <var name="tmpdb_user" value="root" />
-        <var name="tmpdb_password" value="" />
-        <var name="tmpdb_dbname" value="doctrine_tests_tmp" />
-    </php>
-
     <testsuites>
         <testsuite name="Doctrine DBAL Test Suite">
             <directory>tests</directory>
@@ -53,4 +30,32 @@
             <directory suffix=".php">src</directory>
         </include>
     </coverage>
+
+    <extensions>
+        <extension class="Doctrine\DBAL\Tests\Connector">
+            <arguments>
+                <array>
+                    <element key="driver">
+                        <string>mysqli</string>
+                    </element>
+                    <element key="host">
+                        <string>127.0.0.1</string>
+                    </element>
+                    <element key="user">
+                        <string>root</string>
+                    </element>
+                    <element key="dbname">
+                        <string>doctrine</string>
+                    </element>
+                    <element key="driverOptions">
+                        <array>
+                            <element key="flags">
+                                <integer>64</integer>
+                            </element>
+                        </array>
+                    </element>
+                </array>
+            </arguments>
+        </extension>
+    </extensions>
 </phpunit>
