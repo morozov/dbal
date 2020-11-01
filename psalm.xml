@@ -110,24 +110,6 @@
                 <file name="lib/Doctrine/DBAL/Driver/AbstractSQLiteDriver.php"/>
             </errorLevel>
         </NullableReturnStatement>
-        <ParamNameMismatch>
-            <errorLevel type="suppress">
-                <!--
-                    These traits contain implementations for different PHP versions in order to handle a signature
-                    change. At least one of the implementations won't match the signature expected by Psalm.
-                -->
-                <file name="lib/Doctrine/DBAL/Driver/PDOQueryImplementation.php"/>
-                <file name="lib/Doctrine/DBAL/Driver/PDOStatementImplementations.php"/>
-            </errorLevel>
-        </ParamNameMismatch>
-        <PossiblyInvalidOperand>
-            <errorLevel type="suppress">
-                <!--
-                    This code relies on certain elements of a mixed-type array to be of a certain type.
-                -->
-                <file name="lib/Doctrine/DBAL/SQLParserUtils.php"/>
-            </errorLevel>
-        </PossiblyInvalidOperand>
         <PossiblyNullArgument>
             <errorLevel type="suppress">
                 <!-- See https://github.com/doctrine/dbal/pull/3488 -->

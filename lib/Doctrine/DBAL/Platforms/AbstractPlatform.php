@@ -23,6 +23,7 @@ use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Sequence;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\TableDiff;
+use Doctrine\DBAL\SQL\Parser;
 use Doctrine\DBAL\TransactionIsolationLevel;
 use Doctrine\DBAL\Types;
 use Doctrine\DBAL\Types\Type;
@@ -3683,6 +3684,14 @@ abstract class AbstractPlatform
             addcslashes($escapeChar, '\\') . '$1',
             $inputString
         );
+    }
+
+    /**
+     * @internal
+     */
+    public function createSQLParser(): Parser
+    {
+        return new Parser(false);
     }
 
     protected function getLikeWildcardCharacters(): string

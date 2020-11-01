@@ -67,7 +67,7 @@ class StatementTest extends DbalFunctionalTestCase
             ],
             'named' => [
                 'SELECT :COL COL1 FROM DUAL',
-                [':COL' => 1],
+                ['COL' => 1],
                 ['COL1' => 1],
             ],
             'literal-with-placeholder' => [

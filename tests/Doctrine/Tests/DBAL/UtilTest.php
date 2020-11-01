@@ -1,16 +1,38 @@
 <?php
 
-namespace Doctrine\Tests\DBAL;
+declare(strict_types=1);
 
-use Doctrine\DBAL\Driver\OCI8\Statement;
-use Doctrine\Tests\DbalTestCase;
+namespace Doctrine\Tests\DBAL\Driver\OCI8;
 
-class UtilTest extends DbalTestCase
+use Doctrine\DBAL\Driver\OCI8\ConvertPositionalToNamedPlaceholders;
+use Doctrine\DBAL\SQL\Parser;
+use PHPUnit\Framework\TestCase;
+
+class ConvertPositionalToNamedPlaceholdersTest extends TestCase
 {
+    /**
+     * @param mixed[] $expectedOutputParamsMap
+     *
+     * @dataProvider positionalToNamedPlaceholdersProvider
+     */
+    public function testConvertPositionalToNamedParameters(
+        string $inputSQL,
+        string $expectedOutputSQL,
+        array $expectedOutputParamsMap
+    ): void {
+        $parser  = new Parser(false);
+        $visitor = new ConvertPositionalToNamedPlaceholders();
+
+        $parser->parse($inputSQL, $visitor);
+
+        self::assertEquals($expectedOutputSQL, $visitor->getSQL());
+        self::assertEquals($expectedOutputParamsMap, $visitor->getParameterMap());
+    }
+
     /**
      * @return mixed[][]
      */
-    public static function dataConvertPositionalToNamedParameters(): iterable
+    public static function positionalToNamedPlaceholdersProvider(): iterable
     {
         return [
             [
@@ -64,21 +86,5 @@ class UtilTest extends DbalTestCase
                 [1 => ':param1', 2 => ':param2'],
             ],
         ];
-    }
-
-    /**
-     * @param mixed[] $expectedOutputParamsMap
-     *
-     * @dataProvider dataConvertPositionalToNamedParameters
-     */
-    public function testConvertPositionalToNamedParameters(
-        string $inputSQL,
-        string $expectedOutputSQL,
-        array $expectedOutputParamsMap
-    ): void {
-        [$statement, $params] = Statement::convertPositionalToNamedPlaceholders($inputSQL);
-
-        self::assertEquals($expectedOutputSQL, $statement);
-        self::assertEquals($expectedOutputParamsMap, $params);
     }
 }

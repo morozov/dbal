@@ -10,6 +10,7 @@ use Doctrine\DBAL\Driver\Statement as StatementInterface;
 use Doctrine\DBAL\Driver\StatementIterator;
 use Doctrine\DBAL\FetchMode;
 use Doctrine\DBAL\ParameterType;
+use Doctrine\DBAL\SQL\Parser;
 use InvalidArgumentException;
 use IteratorAggregate;
 use PDO;
@@ -112,14 +113,17 @@ class OCI8Statement implements IteratorAggregate, StatementInterface, Result
      */
     public function __construct($dbh, $query, OCI8Connection $conn)
     {
-        [$query, $paramMap] = self::convertPositionalToNamedPlaceholders($query);
+        $parser  = new Parser(false);
+        $visitor = new ConvertPositionalToNamedPlaceholders();
 
-        $stmt = oci_parse($dbh, $query);
+        $parser->parse($query, $visitor);
+
+        $stmt = oci_parse($dbh, $visitor->getSQL());
         assert(is_resource($stmt));
 
         $this->_sth      = $stmt;
         $this->_dbh      = $dbh;
-        $this->_paramMap = $paramMap;
+        $this->_paramMap = $visitor->getParameterMap();
         $this->_conn     = $conn;
     }
 
