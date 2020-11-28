@@ -19,6 +19,7 @@ use function func_num_args;
 use function implode;
 use function sprintf;
 use function strpos;
+use function strtoupper;
 
 class DB2Platform extends AbstractPlatform
 {
@@ -910,5 +911,10 @@ SQL
             ,
             $this->quoteStringLiteral($table)
         );
+    }
+
+    public function normalizeIdentifier(string $identifier): string
+    {
+        return strtoupper($identifier);
     }
 }

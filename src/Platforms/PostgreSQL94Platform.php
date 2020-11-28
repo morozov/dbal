@@ -6,6 +6,7 @@ use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ColumnDiff;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Identifier;
+use Doctrine\DBAL\Schema\IdentifierV2;
 use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Sequence;
 use Doctrine\DBAL\Schema\TableDiff;
@@ -236,10 +237,7 @@ class PostgreSQL94Platform extends AbstractPlatform
                 AND    schema_name != 'information_schema'";
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function getListSequencesSQL($database)
+    public function getListSequencesSQL(IdentifierV2 $database): string
     {
         return "SELECT sequence_name AS relname,
                        sequence_schema AS schemaname

@@ -8,6 +8,7 @@ use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ColumnDiff;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Identifier;
+use Doctrine\DBAL\Schema\IdentifierV2;
 use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Sequence;
 use Doctrine\DBAL\Schema\Table;
@@ -177,10 +178,7 @@ class SQLServer2012Platform extends AbstractPlatform
         return 'DROP SEQUENCE ' . $sequence;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getListSequencesSQL($database)
+    public function getListSequencesSQL(IdentifierV2 $database): string
     {
         return 'SELECT seq.name,
                        CAST(

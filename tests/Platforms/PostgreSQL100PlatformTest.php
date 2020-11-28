@@ -6,6 +6,7 @@ namespace Doctrine\DBAL\Tests\Platforms;
 
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Platforms\PostgreSQL100Platform;
+use Doctrine\DBAL\Schema\NonQuotedIdentifier;
 
 class PostgreSQL100PlatformTest extends PostgreSQL94PlatformTest
 {
@@ -25,7 +26,7 @@ class PostgreSQL100PlatformTest extends PostgreSQL94PlatformTest
                 WHERE  sequence_catalog = 'test_db'
                 AND    sequence_schema NOT LIKE 'pg\_%'
                 AND    sequence_schema != 'information_schema'",
-            $this->platform->getListSequencesSQL('test_db')
+            $this->platform->getListSequencesSQL(new NonQuotedIdentifier('test_db'))
         );
     }
 }

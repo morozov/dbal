@@ -21,6 +21,7 @@ use Doctrine\DBAL\Schema\ColumnDiff;
 use Doctrine\DBAL\Schema\Constraint;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Identifier;
+use Doctrine\DBAL\Schema\IdentifierV2;
 use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Sequence;
 use Doctrine\DBAL\Schema\Table;
@@ -2758,7 +2759,7 @@ abstract class AbstractPlatform
      *
      * @throws Exception If not supported on this platform.
      */
-    public function getListSequencesSQL($database)
+    public function getListSequencesSQL(IdentifierV2 $database): string
     {
         throw Exception::notSupported(__METHOD__);
     }
@@ -3552,6 +3553,11 @@ abstract class AbstractPlatform
     public function createSQLParser(): Parser
     {
         return new Parser(false);
+    }
+
+    public function normalizeIdentifier(string $identifier): string
+    {
+        return $identifier;
     }
 
     protected function getLikeWildcardCharacters(): string

@@ -129,11 +129,9 @@ abstract class AbstractSchemaManager
      *
      * @throws Exception
      */
-    public function listSequences($database = null)
+    public function listSequences(?IdentifierV2 $database = null): array
     {
-        if ($database === null) {
-            $database = $this->_conn->getDatabase();
-        }
+        $database = $this->ensureDatabase($database, __METHOD__);
 
         $sql = $this->_platform->getListSequencesSQL($database);
 
@@ -161,9 +159,7 @@ abstract class AbstractSchemaManager
      */
     public function listTableColumns($table, $database = null)
     {
-        if ($database === null) {
-            $database = $this->_conn->getDatabase();
-        }
+        $database = $this->ensureDatabase($database, __METHOD__);
 
         $sql = $this->_platform->getListTableColumnsSQL($table, $database);
 
@@ -294,9 +290,10 @@ abstract class AbstractSchemaManager
      */
     public function listViews()
     {
-        $database = $this->_conn->getDatabase();
-        $sql      = $this->_platform->getListViewsSQL($database);
-        $views    = $this->_conn->fetchAllAssociative($sql);
+        $database = $this->ensureDatabase(null, __METHOD__);
+
+        $sql   = $this->_platform->getListViewsSQL($database);
+        $views = $this->_conn->fetchAllAssociative($sql);
 
         return $this->_getPortableViewsList($views);
     }
@@ -1163,5 +1160,23 @@ abstract class AbstractSchemaManager
         }
 
         return str_replace('(DC2Type:' . $type . ')', '', $comment);
+    }
+
+    /**
+     * @throws DatabaseRequired
+     */
+    private function ensureDatabase(?IdentifierV2 $database, string $methodName): IdentifierV2
+    {
+        if ($database !== null) {
+            return $database;
+        }
+
+        $database = $this->_conn->getDatabase();
+
+        if ($database !== null) {
+            return new QuotedIdentifier($database);
+        }
+
+        throw DatabaseRequired::new($methodName);
     }
 }

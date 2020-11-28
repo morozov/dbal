@@ -5,7 +5,10 @@ namespace Doctrine\DBAL\Platforms;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Identifier;
+use Doctrine\DBAL\Schema\IdentifierV2;
 use Doctrine\DBAL\Schema\Index;
+use Doctrine\DBAL\Schema\NonQuotedIdentifier;
+use Doctrine\DBAL\Schema\QuotedIdentifier;
 use Doctrine\DBAL\Schema\Sequence;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\TableDiff;
@@ -364,13 +367,10 @@ class OraclePlatform extends AbstractPlatform
         return 'SELECT username FROM all_users';
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function getListSequencesSQL($database)
+    public function getListSequencesSQL(IdentifierV2 $database): string
     {
-        return 'SELECT sequence_name, min_value, increment_by FROM sys.all_sequences ' .
-               'WHERE SEQUENCE_OWNER = ' . $this->quoteStringLiteral($this->normalizeIdentifier($database));
+        return 'SELECT SEQUENCE_NAME, MIN_VALUE, INCREMENT_BY FROM SYS.ALL_SEQUENCES WHERE SEQUENCE_OWNER = '
+            . $database->toLiteralSQL($this);
     }
 
     /**
@@ -413,6 +413,9 @@ class OraclePlatform extends AbstractPlatform
      */
     public function getListTableIndexesSQL($table, $database)
     {
+        $table    = $this->doTheHellCreateIdentifier($table);
+        $database = $this->doTheHellCreateIdentifier($database);
+
         return sprintf(
             <<<'SQL'
 SELECT
@@ -449,12 +452,8 @@ SELECT
 ORDER BY ic.COLUMN_POSITION
 SQL
             ,
-            $this->quoteStringLiteral(
-                $this->normalizeIdentifier($database)
-            ),
-            $this->quoteStringLiteral(
-                $this->normalizeIdentifier($table)
-            )
+            $database->toLiteralSQL($this),
+            $table->toLiteralSQL($this)
         );
     }
 
@@ -471,6 +470,8 @@ SQL
      */
     public function getListViewsSQL($database)
     {
+        $database = $this->doTheHellCreateIdentifier($database);
+
         return sprintf(
             <<<'SQL'
 SELECT VIEW_NAME,
@@ -479,9 +480,7 @@ SELECT VIEW_NAME,
  WHERE OWNER = %s
 SQL
             ,
-            $this->quoteStringLiteral(
-                $this->normalizeIdentifier($database)
-            )
+            $database->toLiteralSQL($this)
         );
     }
 
@@ -490,7 +489,9 @@ SQL
      */
     public function getCreateViewSQL($name, $sql)
     {
-        return 'CREATE VIEW ' . $name . ' AS ' . $sql;
+        $name = $this->doTheHellCreateIdentifier($name);
+
+        return 'CREATE VIEW ' . $name->toIdentifierSQL($this) . ' AS ' . $sql;
     }
 
     /**
@@ -498,7 +499,9 @@ SQL
      */
     public function getDropViewSQL($name)
     {
-        return 'DROP VIEW ' . $name;
+        $name = $this->doTheHellCreateIdentifier($name);
+
+        return 'DROP VIEW ' . $name->toIdentifierSQL($this);
     }
 
     /**
@@ -510,6 +513,9 @@ SQL
      */
     public function getCreateAutoincrementSql($name, $table, $start = 1)
     {
+        $name  = $this->doTheHellCreateIdentifier($name);
+        $table = $this->doTheHellCreateIdentifier($table);
+
         $sql = [];
 
         $autoincrementIdentifierName = $this->getAutoincrementIdentifierName($table);
@@ -520,7 +526,7 @@ SQL
   constraints_Count NUMBER;
 BEGIN
   SELECT COUNT(CONSTRAINT_NAME) INTO constraints_Count FROM USER_CONSTRAINTS WHERE TABLE_NAME = '
-            . $this->quoteStringLiteral($table)
+            . $table->toLiteralSQL($this)
             . " AND CONSTRAINT_TYPE = 'P';
   IF constraints_Count = 0 OR constraints_Count = '' THEN
     EXECUTE IMMEDIATE '" . $this->getCreateConstraintSQL($idx, $table) . "';
@@ -533,23 +539,23 @@ END;";
 
         $sql[] = 'CREATE TRIGGER ' . $this->quoteIdentifier($autoincrementIdentifierName) . '
    BEFORE INSERT
-   ON ' . $this->quoteIdentifier($this->normalizeIdentifier($table)) . '
+   ON ' . $table->toIdentifierSQL($this) . '
    FOR EACH ROW
 DECLARE
    last_Sequence NUMBER;
    last_InsertID NUMBER;
 BEGIN
    SELECT ' . $this->quoteIdentifier($sequenceName) . '.NEXTVAL INTO :NEW.'
-            . $this->quoteIdentifier($this->normalizeIdentifier($name)) . ' FROM DUAL;
-   IF (:NEW.' . $this->quoteIdentifier($this->normalizeIdentifier($name)) . ' IS NULL OR :NEW.'
-            . $this->quoteIdentifier($this->normalizeIdentifier($name)) . ' = 0) THEN
+            . $name->toIdentifierSQL($this) . ' FROM DUAL;
+   IF (:NEW.' . $name->toIdentifierSQL($this) . ' IS NULL OR :NEW.'
+            . $name->toIdentifierSQL($this) . ' = 0) THEN
       SELECT ' . $this->quoteIdentifier($sequenceName) . '.NEXTVAL INTO :NEW.'
-            . $this->quoteIdentifier($this->normalizeIdentifier($name)) . ' FROM DUAL;
+            . $name->toIdentifierSQL($this) . ' FROM DUAL;
    ELSE
       SELECT NVL(Last_Number, 0) INTO last_Sequence
         FROM User_Sequences
        WHERE Sequence_Name = ' . $this->quoteStringLiteral($sequenceName) . ';
-      SELECT :NEW.' . $this->quoteIdentifier($this->normalizeIdentifier($name)) . ' INTO last_InsertID FROM DUAL;
+      SELECT :NEW.' . $name->toIdentifierSQL($this) . ' INTO last_InsertID FROM DUAL;
       WHILE (last_InsertID > last_Sequence) LOOP
          SELECT ' . $this->quoteIdentifier($sequenceName) . '.NEXTVAL INTO last_Sequence FROM DUAL;
       END LOOP;
@@ -568,35 +574,19 @@ END;';
      */
     public function getDropAutoincrementSql($table)
     {
+        $table = $this->doTheHellCreateIdentifier($table);
+
         $autoincrementIdentifierName = $this->getAutoincrementIdentifierName($table);
         $identitySequenceName        = $this->getIdentitySequenceName($table, '');
 
         return [
-            'DROP TRIGGER ' . $this->quoteIdentifier($autoincrementIdentifierName),
+            'DROP TRIGGER ' . $autoincrementIdentifierName->toIdentifierSQL($this),
             $this->getDropSequenceSQL($identitySequenceName),
             $this->getDropConstraintSQL(
-                $this->quoteIdentifier($autoincrementIdentifierName),
-                $this->quoteIdentifier($this->normalizeIdentifier($table))
+                $autoincrementIdentifierName,
+                $table
             ),
         ];
-    }
-
-    /**
-     * Normalizes the given identifier.
-     *
-     * Upper-cases the given identifier if it is not quoted by intention
-     * to reflect Oracle's internal auto upper-casing strategy of unquoted identifiers.
-     */
-    private function normalizeIdentifier(string $name): string
-    {
-        $identifier = new Identifier($name);
-        $name       = $identifier->getName();
-
-        if ($identifier->isQuoted()) {
-            return $name;
-        }
-
-        return strtoupper($name);
     }
 
     /**
@@ -605,14 +595,16 @@ END;';
      * if the new string exceeds max identifier length,
      * keeps $suffix, cuts from $identifier as much as the part exceeding.
      */
-    private function addSuffix(string $identifier, string $suffix): string
+    private function addSuffix(IdentifierV2 $identifier, string $suffix): IdentifierV2
     {
+        $value = $identifier->toValue($this);
+
         $maxPossibleLengthWithoutSuffix = $this->getMaxIdentifierLength() - strlen($suffix);
-        if (strlen($identifier) > $maxPossibleLengthWithoutSuffix) {
-            $identifier = substr($identifier, 0, $maxPossibleLengthWithoutSuffix);
+        if (strlen($value) > $maxPossibleLengthWithoutSuffix) {
+            $value = substr($value, 0, $maxPossibleLengthWithoutSuffix);
         }
 
-        return $identifier . $suffix;
+        return new QuotedIdentifier($value . $suffix);
     }
 
     /**
@@ -621,13 +613,11 @@ END;';
      * Quotes the autoincrement primary key identifier name
      * if the given table name is quoted by intention.
      *
-     * @param string $table The table identifier to return the autoincrement primary key identifier name for.
-     *
-     * @return string
+     * @param IdentifierV2 $table The table identifier to return the autoincrement primary key identifier name for.
      */
-    private function getAutoincrementIdentifierName(string $table)
+    private function getAutoincrementIdentifierName(IdentifierV2 $table): IdentifierV2
     {
-        return $this->addSuffix($this->normalizeIdentifier($table), '_AI_PK');
+        return $this->addSuffix($table, '_AI_PK');
     }
 
     /**
@@ -635,6 +625,9 @@ END;';
      */
     public function getListTableForeignKeysSQL($table, $database)
     {
+        $table    = $this->doTheHellCreateIdentifier($table);
+        $database = $this->doTheHellCreateIdentifier($database);
+
         return sprintf(
             <<<'SQL'
 SELECT c.CONSTRAINT_NAME,
@@ -658,12 +651,8 @@ ORDER BY cc.CONSTRAINT_NAME,
          cc.POSITION
 SQL
             ,
-            $this->quoteStringLiteral(
-                $this->normalizeIdentifier($database)
-            ),
-            $this->quoteStringLiteral(
-                $this->normalizeIdentifier($table)
-            )
+            $database->toLiteralSQL($this),
+            $table->toLiteralSQL($this)
         );
     }
 
@@ -672,9 +661,9 @@ SQL
      */
     public function getListTableConstraintsSQL($table)
     {
-        $table = $this->quoteStringLiteral($this->normalizeIdentifier($table));
+        $table = $this->doTheHellCreateIdentifier($table);
 
-        return 'SELECT * FROM user_constraints WHERE table_name = ' . $table;
+        return 'SELECT * FROM user_constraints WHERE table_name = ' . $table->toLiteralSQL($this);
     }
 
     /**
@@ -682,6 +671,9 @@ SQL
      */
     public function getListTableColumnsSQL($table, $database)
     {
+        $table    = $this->doTheHellCreateIdentifier($table);
+        $database = $this->doTheHellCreateIdentifier($database);
+
         return sprintf(
             <<<'SQL'
 SELECT   tc.*,
@@ -697,12 +689,8 @@ WHERE    tc.owner = %s AND tc.table_name = %s
 ORDER BY tc.column_id
 SQL
             ,
-            $this->quoteStringLiteral(
-                $this->normalizeIdentifier($database)
-            ),
-            $this->quoteStringLiteral(
-                $this->normalizeIdentifier($table)
-            )
+            $database->toLiteralSQL($this),
+            $table->toLiteralSQL($this)
         );
     }
 
@@ -711,11 +699,9 @@ SQL
      */
     public function getDropSequenceSQL($sequence)
     {
-        if ($sequence instanceof Sequence) {
-            $sequence = $sequence->getName();
-        }
+        $sequence = $this->doTheHellCreateIdentifier($sequence);
 
-        return 'DROP SEQUENCE ' . $this->quoteIdentifier($sequence);
+        return 'DROP SEQUENCE ' . $sequence->toIdentifierSQL($this);
     }
 
     /**
@@ -723,18 +709,11 @@ SQL
      */
     public function getDropForeignKeySQL($foreignKey, $table)
     {
-        if (! $foreignKey instanceof ForeignKeyConstraint) {
-            $foreignKey = new Identifier($foreignKey);
-        }
+        $foreignKey = $this->doTheHellCreateIdentifier($foreignKey);
+        $table      = $this->doTheHellCreateIdentifier($table);
 
-        if (! $table instanceof Table) {
-            $table = new Identifier($table);
-        }
-
-        $foreignKey = $foreignKey->getQuotedName($this);
-        $table      = $table->getQuotedName($this);
-
-        return 'ALTER TABLE ' . $table . ' DROP CONSTRAINT ' . $foreignKey;
+        return 'ALTER TABLE ' . $table->toIdentifierSQL($this)
+            . ' DROP CONSTRAINT ' . $foreignKey->toIdentifierSQL($this);
     }
 
     /**
@@ -977,8 +956,10 @@ SQL
      */
     public function getIdentitySequenceName($tableName, $columnName)
     {
+        $tableName = $this->doTheHellCreateIdentifier($tableName);
+
         // No usage of column name to preserve BC compatibility with <2.5
-        return $this->addSuffix($this->normalizeIdentifier($tableName), '_SEQ');
+        return $this->addSuffix($tableName, '_SEQ');
     }
 
     /**
@@ -1165,6 +1146,9 @@ SQL
 
     public function getListTableCommentsSQL(string $table, string $database): string
     {
+        $table    = $this->doTheHellCreateIdentifier($table);
+        $database = $this->doTheHellCreateIdentifier($database);
+
         return sprintf(
             <<<'SQL'
 SELECT COMMENTS
@@ -1173,12 +1157,26 @@ SELECT COMMENTS
    AND TABLE_NAME = %s
 SQL
             ,
-            $this->quoteStringLiteral(
-                $this->normalizeIdentifier($database)
-            ),
-            $this->quoteStringLiteral(
-                $this->normalizeIdentifier($table)
-            )
+            $database->toLiteralSQL($this),
+            $table->toLiteralSQL($this),
         );
+    }
+
+    public function normalizeIdentifier(string $identifier): string
+    {
+        return strtoupper($identifier);
+    }
+
+    public function doTheHellCreateIdentifier($argument): ?IdentifierV2
+    {
+        if ($argument === null || $argument instanceof IdentifierV2) {
+            return $argument;
+        }
+
+        if (isset($argument[0]) && $argument[0] === '"') {
+            return new QuotedIdentifier(substr($argument, 1, -1));
+        }
+
+        return new NonQuotedIdentifier($argument);
     }
 }
