@@ -242,11 +242,11 @@ class SQLServer2012Platform extends AbstractPlatform
 
         return sprintf(
             <<<SQL
-IF EXISTS (SELECT * FROM sysobjects WHERE name = '%s')
-    ALTER TABLE %s DROP CONSTRAINT %s
-ELSE
-    DROP INDEX %s ON %s
-SQL
+                IF EXISTS (SELECT * FROM sysobjects WHERE name = '%s')
+                    ALTER TABLE %s DROP CONSTRAINT %s
+                ELSE
+                    DROP INDEX %s ON %s
+                SQL
             ,
             $index,
             $table,
@@ -1208,20 +1208,7 @@ SQL
             return $query;
         }
 
-        // Queries using OFFSET... FETCH MUST have an ORDER BY clause
-        // Find the position of the last instance of ORDER BY and ensure it is not within a parenthetical statement
-        // but can be in a newline
-        $matches      = [];
-        $matchesCount = preg_match_all('/[\\s]+order\\s+by\\s/im', $query, $matches, PREG_OFFSET_CAPTURE);
-        $orderByPos   = false;
-        if ($matchesCount > 0) {
-            $orderByPos = $matches[0][$matchesCount - 1][1];
-        }
-
-        if (
-            $orderByPos === false
-            || substr_count($query, '(', $orderByPos) !== substr_count($query, ')', $orderByPos)
-        ) {
+        if ($this->shouldAddOrderBy($query)) {
             if (preg_match('/^SELECT\s+DISTINCT/im', $query) > 0) {
                 // SQL Server won't let us order by a non-selected column in a DISTINCT query,
                 // so we have to do this madness. This says, order by the first column in the
@@ -1477,10 +1464,10 @@ SQL
     {
         return sprintf(
             <<<'SQL'
-EXEC sys.sp_addextendedproperty @name=N'MS_Description',
-  @value=N%s, @level0type=N'SCHEMA', @level0name=N'dbo',
-  @level1type=N'TABLE', @level1name=N%s
-SQL
+                EXEC sys.sp_addextendedproperty @name=N'MS_Description',
+                  @value=N%s, @level0type=N'SCHEMA', @level0name=N'dbo',
+                  @level1type=N'TABLE', @level1name=N%s
+                SQL
             ,
             $this->quoteStringLiteral($comment),
             $this->quoteStringLiteral($tableName)
@@ -1491,16 +1478,47 @@ SQL
     {
         return sprintf(
             <<<'SQL'
-SELECT
-  p.value AS [table_comment]
-FROM
-  sys.tables AS tbl
-  INNER JOIN sys.extended_properties AS p ON p.major_id=tbl.object_id AND p.minor_id=0 AND p.class=1
-WHERE
-  (tbl.name=N%s and SCHEMA_NAME(tbl.schema_id)=N'dbo' and p.name=N'MS_Description')
-SQL
+                SELECT
+                  p.value AS [table_comment]
+                FROM
+                  sys.tables AS tbl
+                  INNER JOIN sys.extended_properties AS p ON p.major_id=tbl.object_id AND p.minor_id=0 AND p.class=1
+                WHERE
+                  (tbl.name=N%s and SCHEMA_NAME(tbl.schema_id)=N'dbo' and p.name=N'MS_Description')
+                SQL
             ,
             $this->quoteStringLiteral($table)
         );
+    }
+
+    /**
+     * @param string $query
+     */
+    private function shouldAddOrderBy($query): bool
+    {
+        // Find the position of the last instance of ORDER BY and ensure it is not within a parenthetical statement
+        // but can be in a newline
+        $matches      = [];
+        $matchesCount = preg_match_all('/[\\s]+order\\s+by\\s/im', $query, $matches, PREG_OFFSET_CAPTURE);
+        if ($matchesCount === 0) {
+            return true;
+        }
+
+        // ORDER BY instance may be in a subquery after ORDER BY
+        // e.g. SELECT col1 FROM test ORDER BY (SELECT col2 from test ORDER BY col2)
+        // if in the searched query ORDER BY clause was found where
+        // number of open parentheses after the occurrence of the clause is equal to
+        // number of closed brackets after the occurrence of the clause,
+        // it means that ORDER BY is included in the query being checked
+        while ($matchesCount > 0) {
+            $orderByPos          = $matches[0][--$matchesCount][1];
+            $openBracketsCount   = substr_count($query, '(', $orderByPos);
+            $closedBracketsCount = substr_count($query, ')', $orderByPos);
+            if ($openBracketsCount === $closedBracketsCount) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
