@@ -315,6 +315,10 @@ class SQLSrvStatement implements IteratorAggregate, StatementInterface, Result
                     ];
                     break;
 
+                case ParameterType::STRING:
+                    $params[$column - 1] = (string) $variable;
+                    break;
+
                 default:
                     $params[$column - 1] =& $variable;
                     break;
