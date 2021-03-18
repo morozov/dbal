@@ -16,14 +16,6 @@
             <directory name="tests/Doctrine/Tests/DBAL/Sharding" />
         </ignoreFiles>
     </projectFiles>
-    <stubs>
-        <file name="vendor/jetbrains/phpstorm-stubs/PDO/PDO.php" />
-        <file name="vendor/jetbrains/phpstorm-stubs/ibm_db2/ibm_db2.php" />
-        <file name="vendor/jetbrains/phpstorm-stubs/mysqli/mysqli.php" />
-        <file name="vendor/jetbrains/phpstorm-stubs/oci8/oci8.php" />
-        <file name="vendor/jetbrains/phpstorm-stubs/pgsql/pgsql.php" />
-        <file name="vendor/jetbrains/phpstorm-stubs/sqlsrv/sqlsrv.php" />
-    </stubs>
     <issueHandlers>
         <ConflictingReferenceConstraint>
             <errorLevel type="suppress">
@@ -322,14 +314,6 @@
         <RedundantConditionGivenDocblockType>
             <errorLevel type="suppress">
                 <!--
-                    Requires a release of https://github.com/JetBrains/phpstorm-stubs/pull/1055
-                -->
-                <file name="lib/Doctrine/DBAL/Driver/Mysqli/MysqliStatement.php"/>
-                <!--
-                    Requires a release of https://github.com/JetBrains/phpstorm-stubs/pull/1053
-                -->
-                <file name="lib/Doctrine/DBAL/Driver/PDOStatement.php"/>
-                <!--
                     Fixing these issues requires support of union types at the language level
                     or breaking API changes.
                 -->
@@ -340,11 +324,6 @@
                 -->
                 <file name="lib/Doctrine/DBAL/Tools/Console/ConsoleRunner.php"/>
                 <file name="tests/Doctrine/Tests/DBAL/Functional/PortabilityTest.php"/>
-                <!--
-                    Requires a release of
-                    https://github.com/JetBrains/phpstorm-stubs/commit/43ce0bb13e927b9eb69cc06c16ab22f548c4735b
-                -->
-                <file name="lib/Doctrine/DBAL/Driver/Mysqli/MysqliConnection.php"/>
             </errorLevel>
         </RedundantConditionGivenDocblockType>
         <ReferenceConstraintViolation>
@@ -376,6 +355,11 @@
         <UndefinedConstant>
             <errorLevel type="suppress">
                 <directory name="lib/Doctrine/DBAL/Driver/SQLAnywhere"/>
+                <!--
+                    See https://github.com/vimeo/psalm/issues/5466
+                -->
+                <file name="lib/Doctrine/DBAL/Driver/IBMDB2/DB2Connection.php"/>
+                <file name="lib/Doctrine/DBAL/Driver/IBMDB2/DB2Statement.php"/>
             </errorLevel>
         </UndefinedConstant>
         <UndefinedFunction>
@@ -389,19 +373,11 @@
                 <file name="lib/Doctrine/DBAL/Tools/Dumper.php"/>
             </errorLevel>
         </UndefinedClass>
-        <UnimplementedInterfaceMethod>
+        <UndefinedMethod>
             <errorLevel type="suppress">
-                <!--
-                    Psalm doesn't support the proprietary annotations used in JeBrains PhpStorm stubs
-                    like #[PhpStormStubsElementAvailable(...)]. This suppression should be removed in 3.0.x,
-                    where https://github.com/doctrine/dbal/pull/4347 is no longer effective
-                -->
-                <file name="lib/Doctrine/DBAL/Driver/PDO/SQLSrv/Statement.php"/>
-                <file name="lib/Doctrine/DBAL/Driver/PDO/Statement.php"/>
-                <file name="lib/Doctrine/DBAL/Driver/PDOSqlsrv/Statement.php"/>
-                <file name="lib/Doctrine/DBAL/Driver/PDOStatement.php"/>
+                <referencedMethod name="Doctrine\DBAL\Driver\PDO\Connection::sqliteCreateFunction"/>
             </errorLevel>
-        </UnimplementedInterfaceMethod>
+        </UndefinedMethod>
         <UnsafeInstantiation>
             <errorLevel type="suppress">
                 <!-- See https://github.com/doctrine/dbal/issues/4510 -->
