@@ -22,7 +22,7 @@ class QueryCacheProfileTest extends TestCase
     /** @var int[] */
     private array $types = [ParameterType::INTEGER];
 
-    /** @var string[] */
+    /** @var array<string,string> */
     private array $connectionParams = [
         'dbname'   => 'database_name',
         'user'     => 'database_user',

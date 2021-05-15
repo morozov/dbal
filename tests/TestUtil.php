@@ -75,7 +75,7 @@ class TestUtil
         return $connection;
     }
 
-    /** @return mixed[] */
+    /** @return array<string,string> */
     public static function getConnectionParams(): array
     {
         if (self::hasRequiredConnectionParams()) {
@@ -133,7 +133,7 @@ class TestUtil
         $privConn->close();
     }
 
-    /** @return mixed[] */
+    /** @return array<string,string> */
     private static function getFallbackConnectionParams(): array
     {
         if (! extension_loaded('pdo_sqlite')) {
@@ -165,7 +165,7 @@ class TestUtil
         }
     }
 
-    /** @return mixed[] */
+    /** @return array<string,string> */
     private static function getPrivilegedConnectionParameters(): array
     {
         if (isset($GLOBALS['tmpdb_driver'])) {
@@ -178,7 +178,7 @@ class TestUtil
         return $parameters;
     }
 
-    /** @return mixed[] */
+    /** @return array<string,string> */
     private static function getTestConnectionParameters(): array
     {
         return self::mapConnectionParameters($GLOBALS, 'db_');
@@ -187,7 +187,7 @@ class TestUtil
     /**
      * @param array<string,mixed> $configuration
      *
-     * @return array<string,mixed>
+     * @return array<string,string>
      */
     private static function mapConnectionParameters(array $configuration, string $prefix): array
     {
@@ -218,7 +218,7 @@ class TestUtil
                 continue;
             }
 
-            $parameters[$parameter] = $configuration[$prefix . $parameter];
+            $parameters[$parameter] = (string) $configuration[$prefix . $parameter];
         }
 
         foreach ($configuration as $param => $value) {

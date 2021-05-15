@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <psalm
-    errorLevel="2"
+    errorLevel="1"
     phpVersion="8.1"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns="https://getpsalm.org/schema/config"
@@ -579,6 +579,30 @@
                 <file name="src/Schema/SchemaConfig.php"/>
             </errorLevel>
         </MissingConstructor>
+        <MixedArgument>
+            <errorLevel type="suppress">
+                <directory name="src"/>
+                <directory name="tests"/>
+            </errorLevel>
+        </MixedArgument>
+        <MixedAssignment>
+            <errorLevel type="suppress">
+                <directory name="src"/>
+                <directory name="tests"/>
+            </errorLevel>
+        </MixedAssignment>
+        <MixedOperand>
+            <errorLevel type="suppress">
+                <directory name="src"/>
+                <directory name="tests"/>
+            </errorLevel>
+        </MixedOperand>
+        <MixedMethodCall>
+            <errorLevel type="suppress">
+                <directory name="src"/>
+                <directory name="tests"/>
+            </errorLevel>
+        </MixedMethodCall>
         <NullableReturnStatement>
             <errorLevel type="suppress">
                 <!--

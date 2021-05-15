@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 class DataSourceNameTest extends TestCase
 {
     /**
-     * @param mixed[] $params
+     * @param array<string,mixed> $params
      *
      * @dataProvider connectionParametersProvider
      */
