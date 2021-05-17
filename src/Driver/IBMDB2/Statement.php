@@ -67,6 +67,11 @@ final class Statement implements StatementInterface
         $this->bindParam($param, $value, $type);
     }
 
+    public function bindString($param, string $value): void
+    {
+        $this->bindValue($param, $value, ParameterType::STRING);
+    }
+
     /**
      * {@inheritdoc}
      */

@@ -30,6 +30,11 @@ interface Statement
     public function bindValue($param, $value, int $type = ParameterType::STRING): void;
 
     /**
+     * @param string|int $param
+     */
+    public function bindString($param, string $value): void;
+
+    /**
      * Binds a PHP variable to a corresponding named (not supported by mysqli driver, see comment below) or question
      * mark placeholder in the SQL statement that was use to prepare the statement. Unlike {@link bindValue()},
      * the variable is bound as a reference and will only be evaluated at the time
