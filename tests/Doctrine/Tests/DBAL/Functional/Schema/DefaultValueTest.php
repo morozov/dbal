@@ -28,7 +28,7 @@ class DefaultValueTest extends DbalFunctionalTestCase
         $table->addColumn('id', 'integer');
 
         foreach (self::columnProvider() as [$name, $default]) {
-            $table->addColumn($name, 'string', [
+            $table->addColumn($name, 'datetime', [
                 'default' => $default,
                 'notnull' => false,
             ]);
@@ -83,73 +83,9 @@ class DefaultValueTest extends DbalFunctionalTestCase
     public static function columnProvider(): iterable
     {
         return [
-            'Single quote' => [
-                'single_quote',
-                "foo'bar",
-            ],
-            'Single quote, doubled' => [
-                'single_quote_doubled',
-                "foo''bar",
-            ],
-            'Double quote' => [
-                'double_quote',
-                'foo"bar',
-            ],
-            'Double quote, doubled' => [
-                'double_quote_doubled',
-                'foo""bar',
-            ],
-            'Backspace' => [
-                'backspace',
-                "foo\x08bar",
-            ],
-            'New line' => [
-                'new_line',
-                "foo\nbar",
-            ],
-            'Carriage return' => [
-                'carriage_return',
-                "foo\rbar",
-            ],
-            'Tab' => [
-                'tab',
-                "foo\tbar",
-            ],
-            'Substitute' => [
-                'substitute',
-                "foo\x1abar",
-            ],
-            'Backslash' => [
-                'backslash',
-                'foo\\bar',
-            ],
-            'Backslash, doubled' => [
-                'backslash_doubled',
-                'foo\\\\bar',
-            ],
-            'Percent' => [
-                'percent_sign',
-                'foo%bar',
-            ],
-            'Underscore' => [
-                'underscore',
-                'foo_bar',
-            ],
-            'NULL string' => [
-                'null_string',
-                'NULL',
-            ],
-            'NULL value' => [
-                'null_value',
-                null,
-            ],
-            'SQL expression' => [
-                'sql_expression',
-                "'; DROP DATABASE doctrine --",
-            ],
-            'No double conversion' => [
-                'no_double_conversion',
-                "\\'",
+            'Default date' => [
+                'metadata_exported',
+                '0001-01-01 00:00:00',
             ],
         ];
     }
