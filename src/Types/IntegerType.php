@@ -30,7 +30,11 @@ class IntegerType extends Type implements PhpIntegerMappingType
      */
     public function convertToPHPValue($value, AbstractPlatform $platform)
     {
-        return $value === null ? null : (int) $value;
+        if ($value === null || (int) $value != $value) {
+            return $value;
+        }
+
+        return (int) $value;
     }
 
     public function getBindingType(): int
