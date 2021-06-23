@@ -10,6 +10,7 @@ use Doctrine\DBAL\Cache\CachingResult;
 use Doctrine\DBAL\Cache\QueryCacheProfile;
 use Doctrine\DBAL\Driver\API\ExceptionConverter;
 use Doctrine\DBAL\Driver\Connection as DriverConnection;
+use Doctrine\DBAL\Driver\OCI8\Exception\SequenceDoesNotExist;
 use Doctrine\DBAL\Driver\ServerInfoAwareConnection;
 use Doctrine\DBAL\Driver\Statement as DriverStatement;
 use Doctrine\DBAL\Event\TransactionBeginEventArgs;
@@ -1214,6 +1215,26 @@ class Connection
         } catch (Driver\Exception $e) {
             throw $this->convertException($e);
         }
+    }
+
+    /**
+     * Returns the current value of the sequence.
+     *
+     * @return int|string The value as returned by the underlying driver. May be an integer or a numeric string.
+     *
+     * @throws Exception
+     */
+    public function getCurrentSequenceValue(string $name)
+    {
+        $value = $this->fetchOne(
+            $this->getDatabasePlatform()->getSequenceCurrentValueSQL($name)
+        );
+
+        if ($value === false) {
+            throw SequenceDoesNotExist::new();
+        }
+
+        return $value;
     }
 
     /**

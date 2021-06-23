@@ -919,6 +919,11 @@ SQL
         return parent::convertFromBoolean($item);
     }
 
+    public function getSequenceCurrentValueSQL(string $name): string
+    {
+        return 'SELECT CURRVAL(' . $this->quoteStringLiteral($name) . ')';
+    }
+
     /**
      * {@inheritDoc}
      */

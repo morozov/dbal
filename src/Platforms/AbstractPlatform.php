@@ -2915,6 +2915,14 @@ abstract class AbstractPlatform
     }
 
     /**
+     * @throws Exception If not supported on this platform.
+     */
+    public function getSequenceCurrentValueSQL(string $name): string
+    {
+        throw Exception::notSupported(__METHOD__);
+    }
+
+    /**
      * @param string $sequence
      *
      * @return string

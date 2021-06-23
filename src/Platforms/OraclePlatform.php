@@ -215,6 +215,11 @@ class OraclePlatform extends AbstractPlatform
         return '';
     }
 
+    public function getSequenceCurrentValueSQL(string $name): string
+    {
+        return 'SELECT ' . $name . '.curval FROM DUAL';
+    }
+
     /**
      * {@inheritDoc}
      */

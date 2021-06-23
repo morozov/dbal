@@ -193,6 +193,11 @@ class SQLServer2012Platform extends AbstractPlatform
                 FROM   sys.sequences AS seq';
     }
 
+    public function getSequenceCurrentValueSQL(string $name): string
+    {
+        return 'SELECT current_value FROM sys.sequences WHERE name = ' . $this->quoteStringLiteral($name);
+    }
+
     /**
      * {@inheritdoc}
      */
