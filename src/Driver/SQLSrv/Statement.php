@@ -174,6 +174,14 @@ final class Statement implements StatementInterface
                     ];
                     break;
 
+                case ParameterType::STRING:
+                    $params[$column - 1] = [
+                        &$variable,
+                        SQLSRV_PARAM_IN,
+                        SQLSRV_PHPTYPE_STRING('UTF-8'),
+                    ];
+                    break;
+
                 default:
                     $params[$column - 1] =& $variable;
                     break;
