@@ -40,6 +40,7 @@
     },
     "require-dev": {
         "doctrine/coding-standard": "10.0.0",
+        "infection/infection": "0.26.15",
         "jetbrains/phpstorm-stubs": "2022.2",
         "phpstan/phpstan": "1.8.8",
         "phpstan/phpstan-phpunit": "1.1.1",
@@ -58,7 +59,8 @@
         "sort-packages": true,
         "allow-plugins": {
             "dealerdirect/phpcodesniffer-composer-installer": true,
-            "composer/package-versions-deprecated": true
+            "composer/package-versions-deprecated": true,
+            "infection/extension-installer": true
         }
     },
     "autoload": {
