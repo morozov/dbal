@@ -584,7 +584,7 @@ class SQLServerPlatformTest extends AbstractPlatformTestCase
 
     public function testCreateNonClusteredPrimaryKey(): void
     {
-        $idx = new Index('idx', ['id'], false, true);
+        $idx = new Index('', ['id'], false, true);
         $idx->addFlag('nonclustered');
         self::assertEquals(
             'ALTER TABLE tbl ADD PRIMARY KEY NONCLUSTERED (id)',
@@ -594,7 +594,7 @@ class SQLServerPlatformTest extends AbstractPlatformTestCase
 
     public function testAlterAddPrimaryKey(): void
     {
-        $idx = new Index('idx', ['id'], false, true);
+        $idx = new Index('', ['id'], false, true);
         self::assertEquals('ALTER TABLE tbl ADD PRIMARY KEY (id)', $this->platform->getCreateIndexSQL($idx, 'tbl'));
     }
 

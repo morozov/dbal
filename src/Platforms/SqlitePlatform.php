@@ -469,7 +469,7 @@ class SqlitePlatform extends AbstractPlatform
             }
         }
 
-        return ', PRIMARY KEY(' . implode(', ', $keyColumns) . ')';
+        return ', PRIMARY KEY (' . implode(', ', $keyColumns) . ')';
     }
 
     /**

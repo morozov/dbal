@@ -29,6 +29,7 @@ use Doctrine\DBAL\Schema\Sequence;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\TableDiff;
 use Doctrine\DBAL\Schema\UniqueConstraint;
+use Doctrine\DBAL\SQL\Builder\PrimaryKey;
 use Doctrine\DBAL\SQL\Parser;
 use Doctrine\DBAL\TransactionIsolationLevel;
 use Doctrine\DBAL\Types;
@@ -40,8 +41,6 @@ use UnexpectedValueException;
 use function addcslashes;
 use function array_map;
 use function array_merge;
-use function array_unique;
-use function array_values;
 use function assert;
 use function count;
 use function explode;
@@ -2248,8 +2247,8 @@ abstract class AbstractPlatform
             }
         }
 
-        if (isset($options['primary']) && ! empty($options['primary'])) {
-            $columnListSql .= ', PRIMARY KEY(' . implode(', ', array_unique(array_values($options['primary']))) . ')';
+        if (isset($options['primary_index']) && ! empty($options['primary_index'])) {
+            $columnListSql .= ', ' . $this->getPrimaryKeySQL($options['primary_index']);
         }
 
         if (isset($options['indexes']) && ! empty($options['indexes'])) {
@@ -2276,6 +2275,15 @@ abstract class AbstractPlatform
         }
 
         return $sql;
+    }
+
+    protected function getPrimaryKeySQL(Index $index): string
+    {
+        return (new PrimaryKey(
+            $index->getQuotedName($this),
+            $index->getQuotedColumns($this),
+            $index->getFlags(),
+        ))->toString();
     }
 
     /** @return string */
@@ -2488,7 +2496,7 @@ abstract class AbstractPlatform
             $table = $table->getQuotedName($this);
         }
 
-        return 'ALTER TABLE ' . $table . ' ADD PRIMARY KEY (' . $this->getIndexFieldDeclarationListSQL($index) . ')';
+        return 'ALTER TABLE ' . $table . ' ADD ' . $this->getPrimaryKeySQL($index);
     }
 
     /**

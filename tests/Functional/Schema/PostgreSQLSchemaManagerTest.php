@@ -211,7 +211,7 @@ class PostgreSQLSchemaManagerTest extends SchemaManagerFunctionalTestCase
 
         self::assertEquals(
             [
-                'CREATE TABLE dbal91_something (id INT NOT NULL, "table" INT DEFAULT NULL, PRIMARY KEY(id))',
+                'CREATE TABLE dbal91_something (id INT NOT NULL, "table" INT DEFAULT NULL, PRIMARY KEY (id))',
                 'CREATE INDEX IDX_A9401304ECA7352B ON dbal91_something ("table")',
             ],
             $this->connection->getDatabasePlatform()->getCreateTableSQL($table),

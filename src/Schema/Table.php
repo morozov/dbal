@@ -111,19 +111,15 @@ class Table extends AbstractAsset
     /**
      * Sets the Primary Key.
      *
-     * @param string[]     $columnNames
-     * @param string|false $indexName
+     * @param string[] $columnNames
+     * @param string   $indexName
      *
      * @return self
      *
      * @throws SchemaException
      */
-    public function setPrimaryKey(array $columnNames, $indexName = false)
+    public function setPrimaryKey(array $columnNames, $indexName = '')
     {
-        if ($indexName === false) {
-            $indexName = 'primary';
-        }
-
         $this->_addIndex($this->_createIndex($columnNames, $indexName, true, true));
 
         foreach ($columnNames as $columnName) {
@@ -236,16 +232,16 @@ class Table extends AbstractAsset
     /**
      * Renames an index.
      *
-     * @param string      $oldName The name of the index to rename from.
-     * @param string|null $newName The name of the index to rename to.
-     *                                  If null is given, the index name will be auto-generated.
+     * @param string $oldName The name of the index to rename from.
+     * @param string $newName The name of the index to rename to.
+     *                        If an empty value is given, the index name will be auto-generated.
      *
      * @return self This table instance.
      *
      * @throws SchemaException If no index exists for the given current name
      *                         or if an index with the given new name already exists on this table.
      */
-    public function renameIndex($oldName, $newName = null)
+    public function renameIndex($oldName, $newName)
     {
         $oldName           = $this->normalizeIdentifier($oldName);
         $normalizedNewName = $this->normalizeIdentifier($newName);
@@ -267,7 +263,7 @@ class Table extends AbstractAsset
         if ($oldIndex->isPrimary()) {
             $this->dropPrimaryKey();
 
-            return $this->setPrimaryKey($oldIndex->getColumns(), $newName ?? false);
+            return $this->setPrimaryKey($oldIndex->getColumns(), $newName);
         }
 
         unset($this->_indexes[$oldName]);
@@ -518,6 +514,10 @@ class Table extends AbstractAsset
         }
 
         if ($indexCandidate->isPrimary()) {
+            if ($indexName === '') {
+                $indexName = 'primary';
+            }
+
             $this->_primaryKeyName = $indexName;
         }
 

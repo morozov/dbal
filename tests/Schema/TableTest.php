@@ -668,9 +668,9 @@ class TableTest extends TestCase
         self::assertEquals(new Index('uniq_new', ['bar', 'baz'], true), $table->getIndex('uniq_new'));
 
         // Rename to auto-generated name.
-        self::assertSame($table, $table->renameIndex('pk_new', null));
-        self::assertSame($table, $table->renameIndex('idx_new', null));
-        self::assertSame($table, $table->renameIndex('uniq_new', null));
+        self::assertSame($table, $table->renameIndex('pk_new', ''));
+        self::assertSame($table, $table->renameIndex('idx_new', ''));
+        self::assertSame($table, $table->renameIndex('uniq_new', ''));
 
         self::assertTrue($table->hasPrimaryKey());
         self::assertTrue($table->hasIndex('primary'));
@@ -681,8 +681,8 @@ class TableTest extends TestCase
         self::assertFalse($table->hasIndex('idx_new'));
         self::assertFalse($table->hasIndex('uniq_new'));
 
-        self::assertEquals(new Index('primary', ['id'], true, true), $table->getPrimaryKey());
-        self::assertEquals(new Index('primary', ['id'], true, true), $table->getIndex('primary'));
+        self::assertEquals(new Index('', ['id'], true, true), $table->getPrimaryKey());
+        self::assertEquals(new Index('', ['id'], true, true), $table->getIndex('primary'));
         self::assertEquals(
             new Index('IDX_D87F7E0C8C736521', ['foo'], false, false, ['flag']),
             $table->getIndex('IDX_D87F7E0C8C736521'),

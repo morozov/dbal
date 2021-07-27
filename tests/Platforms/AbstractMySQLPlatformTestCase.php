@@ -39,7 +39,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     public function getGenerateTableSql(): string
     {
         return 'CREATE TABLE test (id INT AUTO_INCREMENT NOT NULL, test VARCHAR(255) DEFAULT NULL, '
-            . 'PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8 COLLATE `utf8_unicode_ci` ENGINE = InnoDB';
+            . 'PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8 COLLATE `utf8_unicode_ci` ENGINE = InnoDB';
     }
 
     /** @return string[] */
@@ -208,7 +208,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     {
         return [
             "CREATE TABLE test (id INT NOT NULL COMMENT 'This is a comment', "
-                . 'PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8 COLLATE `utf8_unicode_ci` ENGINE = InnoDB',
+                . 'PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8 COLLATE `utf8_unicode_ci` ENGINE = InnoDB',
         ];
     }
 
@@ -231,7 +231,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     {
         return [
             "CREATE TABLE test (id INT NOT NULL, data LONGTEXT NOT NULL COMMENT '(DC2Type:array)', "
-                . 'PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8 COLLATE `utf8_unicode_ci` ENGINE = InnoDB',
+                . 'PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8 COLLATE `utf8_unicode_ci` ENGINE = InnoDB',
         ];
     }
 
@@ -239,7 +239,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     protected function getQuotedColumnInPrimaryKeySQL(): array
     {
         return ['CREATE TABLE `quoted` (`create` VARCHAR(255) NOT NULL, '
-                . 'PRIMARY KEY(`create`)) DEFAULT CHARACTER SET utf8 COLLATE `utf8_unicode_ci` ENGINE = InnoDB',
+                . 'PRIMARY KEY (`create`)) DEFAULT CHARACTER SET utf8 COLLATE `utf8_unicode_ci` ENGINE = InnoDB',
         ];
     }
 
@@ -593,7 +593,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
         self::assertSame(
             [
                 'CREATE TABLE foreign_table (id INT NOT NULL, fk_id INT NOT NULL, '
-                    . 'INDEX IDX_5690FFE2A57719D0 (fk_id), PRIMARY KEY(id)) '
+                    . 'INDEX IDX_5690FFE2A57719D0 (fk_id), PRIMARY KEY (id)) '
                     . 'DEFAULT CHARACTER SET utf8 COLLATE `utf8_unicode_ci` ENGINE = MyISAM',
             ],
             $this->platform->getCreateTableSQL(
@@ -608,7 +608,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
         self::assertSame(
             [
                 'CREATE TABLE foreign_table (id INT NOT NULL, fk_id INT NOT NULL, '
-                    . 'INDEX IDX_5690FFE2A57719D0 (fk_id), PRIMARY KEY(id)) '
+                    . 'INDEX IDX_5690FFE2A57719D0 (fk_id), PRIMARY KEY (id)) '
                     . 'DEFAULT CHARACTER SET utf8 COLLATE `utf8_unicode_ci` ENGINE = InnoDB',
                 'ALTER TABLE foreign_table ADD CONSTRAINT FK_5690FFE2A57719D0 FOREIGN KEY (fk_id)'
                     . ' REFERENCES foreign_table (id)',

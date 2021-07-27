@@ -474,7 +474,7 @@ SQL
         // attach all primary keys
         if (isset($options['primary']) && ! empty($options['primary'])) {
             $keyColumns   = array_unique(array_values($options['primary']));
-            $queryFields .= ', PRIMARY KEY(' . implode(', ', $keyColumns) . ')';
+            $queryFields .= ', PRIMARY KEY (' . implode(', ', $keyColumns) . ')';
         }
 
         $query = 'CREATE ';

@@ -120,7 +120,6 @@ class OracleSchemaManager extends AbstractSchemaManager
             $buffer  = [];
 
             if ($tableIndex['is_primary'] === 'P') {
-                $keyName              = 'primary';
                 $buffer['primary']    = true;
                 $buffer['non_unique'] = false;
             } else {

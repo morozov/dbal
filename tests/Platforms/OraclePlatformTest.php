@@ -75,7 +75,7 @@ class OraclePlatformTest extends AbstractPlatformTestCase
 
     public function getGenerateTableSql(): string
     {
-        return 'CREATE TABLE test (id NUMBER(10) NOT NULL, test VARCHAR2(255) DEFAULT NULL NULL, PRIMARY KEY(id))';
+        return 'CREATE TABLE test (id NUMBER(10) NOT NULL, test VARCHAR2(255) DEFAULT NULL NULL, PRIMARY KEY (id))';
     }
 
     /**
@@ -374,7 +374,7 @@ SQL
     public function getCreateTableColumnCommentsSQL(): array
     {
         return [
-            'CREATE TABLE test (id NUMBER(10) NOT NULL, PRIMARY KEY(id))',
+            'CREATE TABLE test (id NUMBER(10) NOT NULL, PRIMARY KEY (id))',
             "COMMENT ON COLUMN test.id IS 'This is a comment'",
         ];
     }
@@ -385,7 +385,7 @@ SQL
     public function getCreateTableColumnTypeCommentsSQL(): array
     {
         return [
-            'CREATE TABLE test (id NUMBER(10) NOT NULL, data CLOB NOT NULL, PRIMARY KEY(id))',
+            'CREATE TABLE test (id NUMBER(10) NOT NULL, data CLOB NOT NULL, PRIMARY KEY (id))',
             "COMMENT ON COLUMN test.data IS '(DC2Type:array)'",
         ];
     }
@@ -420,7 +420,7 @@ SQL
      */
     protected function getQuotedColumnInPrimaryKeySQL(): array
     {
-        return ['CREATE TABLE "quoted" ("create" VARCHAR2(255) NOT NULL, PRIMARY KEY("create"))'];
+        return ['CREATE TABLE "quoted" ("create" VARCHAR2(255) NOT NULL, PRIMARY KEY ("create"))'];
     }
 
     /**
