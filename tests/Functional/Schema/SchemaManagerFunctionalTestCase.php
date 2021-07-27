@@ -405,6 +405,20 @@ abstract class SchemaManagerFunctionalTestCase extends FunctionalTestCase
         self::assertFalse($tableIndexes['test_composite_idx']->isPrimary());
     }
 
+    public function testPrimaryKeyName(): void
+    {
+        $table = new Table('test_pk_name');
+        $table->addColumn('id', 'integer', ['notnull' => true]);
+        $table->setPrimaryKey(['id'], 'pk');
+
+        $this->schemaManager->dropAndCreateTable($table);
+
+        $tableIndexes = $this->schemaManager->listTableIndexes('test_pk_name');
+
+        self::assertArrayHasKey('primary', $tableIndexes);
+        self::assertEqualsIgnoringCase('pk', $tableIndexes['primary']->getName());
+    }
+
     public function testDropAndCreateIndex(): void
     {
         $table = $this->getTestTable('test_create_index');

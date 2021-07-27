@@ -16,8 +16,6 @@ use Doctrine\Deprecations\Deprecation;
 use InvalidArgumentException;
 
 use function array_merge;
-use function array_unique;
-use function array_values;
 use function count;
 use function crc32;
 use function dechex;
@@ -338,14 +336,8 @@ class SQLServer2012Platform extends AbstractPlatform
             }
         }
 
-        if (isset($options['primary']) && ! empty($options['primary'])) {
-            $flags = '';
-            if (isset($options['primary_index']) && $options['primary_index']->hasFlag('nonclustered')) {
-                $flags = ' NONCLUSTERED';
-            }
-
-            $columnListSql .= ', PRIMARY KEY' . $flags
-                . ' (' . implode(', ', array_unique(array_values($options['primary']))) . ')';
+        if (! empty($options['primary_index'])) {
+            $columnListSql .= ', ' . $this->getPrimaryKeySQL($options['primary_index']);
         }
 
         $query = 'CREATE TABLE ' . $name . ' (' . $columnListSql;
@@ -372,26 +364,6 @@ class SQLServer2012Platform extends AbstractPlatform
         }
 
         return array_merge($sql, $commentsSql, $defaultConstraintsSql);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function getCreatePrimaryKeySQL(Index $index, $table)
-    {
-        if ($table instanceof Table) {
-            $identifier = $table->getQuotedName($this);
-        } else {
-            $identifier = $table;
-        }
-
-        $sql = 'ALTER TABLE ' . $identifier . ' ADD PRIMARY KEY';
-
-        if ($index->hasFlag('nonclustered')) {
-            $sql .= ' NONCLUSTERED';
-        }
-
-        return $sql . ' (' . $this->getIndexFieldDeclarationListSQL($index) . ')';
     }
 
     /**

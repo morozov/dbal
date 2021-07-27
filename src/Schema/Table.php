@@ -124,7 +124,7 @@ class Table extends AbstractAsset
     public function setPrimaryKey(array $columnNames, $indexName = false)
     {
         if ($indexName === false) {
-            $indexName = 'primary';
+            $indexName = '';
         }
 
         $this->_addIndex($this->_createIndex($columnNames, $indexName, true, true));

@@ -19,11 +19,8 @@ use UnexpectedValueException;
 
 use function array_diff;
 use function array_merge;
-use function array_unique;
-use function array_values;
 use function count;
 use function explode;
-use function implode;
 use function in_array;
 use function is_array;
 use function is_bool;
@@ -768,14 +765,13 @@ SQL
      */
     protected function _getCreateTableSQL($name, array $columns, array $options = [])
     {
-        $queryFields = $this->getColumnDeclarationListSQL($columns);
+        $query = 'CREATE TABLE ' . $name . ' (' . $this->getColumnDeclarationListSQL($columns);
 
-        if (isset($options['primary']) && ! empty($options['primary'])) {
-            $keyColumns   = array_unique(array_values($options['primary']));
-            $queryFields .= ', PRIMARY KEY(' . implode(', ', $keyColumns) . ')';
+        if (isset($options['primary_index'])) {
+            $query .= ', ' . $this->getPrimaryKeySQL($options['primary_index']);
         }
 
-        $query = 'CREATE TABLE ' . $name . ' (' . $queryFields . ')';
+        $query .= ')';
 
         $sql = [$query];
 

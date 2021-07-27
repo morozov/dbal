@@ -600,7 +600,7 @@ abstract class AbstractSQLServerPlatformTestCase extends AbstractPlatformTestCas
 
     public function testCreateNonClusteredPrimaryKey(): void
     {
-        $idx = new Index('idx', ['id'], false, true);
+        $idx = new Index('', ['id'], false, true);
         $idx->addFlag('nonclustered');
         self::assertEquals(
             'ALTER TABLE tbl ADD PRIMARY KEY NONCLUSTERED (id)',

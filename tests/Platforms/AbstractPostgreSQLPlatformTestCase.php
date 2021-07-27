@@ -24,7 +24,7 @@ abstract class AbstractPostgreSQLPlatformTestCase extends AbstractPlatformTestCa
 {
     public function getGenerateTableSql(): string
     {
-        return 'CREATE TABLE test (id SERIAL NOT NULL, test VARCHAR(255) DEFAULT NULL, PRIMARY KEY(id))';
+        return 'CREATE TABLE test (id SERIAL NOT NULL, test VARCHAR(255) DEFAULT NULL, PRIMARY KEY (id))';
     }
 
     /**
@@ -359,7 +359,7 @@ abstract class AbstractPostgreSQLPlatformTestCase extends AbstractPlatformTestCa
     public function getCreateTableColumnCommentsSQL(): array
     {
         return [
-            'CREATE TABLE test (id INT NOT NULL, PRIMARY KEY(id))',
+            'CREATE TABLE test (id INT NOT NULL, PRIMARY KEY (id))',
             "COMMENT ON COLUMN test.id IS 'This is a comment'",
         ];
     }
@@ -383,7 +383,7 @@ abstract class AbstractPostgreSQLPlatformTestCase extends AbstractPlatformTestCa
     public function getCreateTableColumnTypeCommentsSQL(): array
     {
         return [
-            'CREATE TABLE test (id INT NOT NULL, data TEXT NOT NULL, PRIMARY KEY(id))',
+            'CREATE TABLE test (id INT NOT NULL, data TEXT NOT NULL, PRIMARY KEY (id))',
             "COMMENT ON COLUMN test.data IS '(DC2Type:array)'",
         ];
     }
@@ -393,7 +393,7 @@ abstract class AbstractPostgreSQLPlatformTestCase extends AbstractPlatformTestCa
      */
     protected function getQuotedColumnInPrimaryKeySQL(): array
     {
-        return ['CREATE TABLE "quoted" ("create" VARCHAR(255) NOT NULL, PRIMARY KEY("create"))'];
+        return ['CREATE TABLE "quoted" ("create" VARCHAR(255) NOT NULL, PRIMARY KEY ("create"))'];
     }
 
     /**

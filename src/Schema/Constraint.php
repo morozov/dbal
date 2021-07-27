@@ -23,7 +23,7 @@ interface Constraint
      * Returns the names of the referencing table columns
      * the constraint is associated with.
      *
-     * @return string[]
+     * @return non-empty-list<string>
      */
     public function getColumns();
 
@@ -37,7 +37,7 @@ interface Constraint
      *
      * @param AbstractPlatform $platform The platform to use for quotation.
      *
-     * @return string[]
+     * @return non-empty-list<string>
      */
     public function getQuotedColumns(AbstractPlatform $platform);
 }
