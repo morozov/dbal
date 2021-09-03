@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Doctrine\DBAL\Schema;
 
 use Doctrine\DBAL\Schema\Exception\UnknownColumnOption;
+use Doctrine\DBAL\Schema\Name\UnqualifiedName;
 use Doctrine\DBAL\Types\Type;
 
 use function array_merge;
@@ -12,9 +13,13 @@ use function method_exists;
 
 /**
  * Object representation of a database column.
+ *
+ * @implements Named<UnqualifiedName>
  */
-class Column extends AbstractAsset
+class Column implements Named
 {
+    private UnqualifiedName $name;
+
     protected Type $_type;
 
     protected ?int $_length = null;
@@ -51,11 +56,20 @@ class Column extends AbstractAsset
      *
      * @throws SchemaException
      */
-    public function __construct(string $name, Type $type, array $options = [])
+    public function __construct(UnqualifiedName $name, Type $type, array $options = [])
     {
-        $this->_setName($name);
+        $this->name = $name;
+
         $this->setType($type);
         $this->setOptions($options);
+    }
+
+    /**
+     * @return UnqualifiedName
+     */
+    public function getName(): Name
+    {
+        return $this->name;
     }
 
     /**
@@ -304,7 +318,7 @@ class Column extends AbstractAsset
     public function toArray(): array
     {
         return array_merge([
-            'name'          => $this->_name,
+            'name'          => $this->name,
             'type'          => $this->_type,
             'default'       => $this->_default,
             'notnull'       => $this->_notnull,

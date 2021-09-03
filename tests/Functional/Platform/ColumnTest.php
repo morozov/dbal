@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Doctrine\DBAL\Tests\Functional\Platform;
 
 use Doctrine\DBAL\ParameterType;
+use Doctrine\DBAL\Schema\Name;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Tests\FunctionalTestCase;
 use Doctrine\DBAL\Types\Type;
@@ -105,7 +106,7 @@ abstract class ColumnTest extends FunctionalTestCase
      */
     protected function assertColumn(string $type, array $column, string $value, int $bindType): void
     {
-        $table = new Table('column_test');
+        $table = new Table(Name::unquoted('column_test'));
         $table->addColumn('val', $type, $column);
 
         $this->dropAndCreateTable($table);

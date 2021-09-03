@@ -5,27 +5,28 @@ declare(strict_types=1);
 namespace Doctrine\DBAL\Event;
 
 use Doctrine\DBAL\Platforms\AbstractPlatform;
+use Doctrine\DBAL\Schema\Name;
 
 /**
  * Event Arguments used when the SQL query for dropping tables are generated inside {@link AbstractPlatform}.
  */
 class SchemaDropTableEventArgs extends SchemaEventArgs
 {
-    private string $table;
+    private Name $tableName;
 
     private AbstractPlatform $platform;
 
     private ?string $sql = null;
 
-    public function __construct(string $table, AbstractPlatform $platform)
+    public function __construct(Name $tableName, AbstractPlatform $platform)
     {
-        $this->table    = $table;
-        $this->platform = $platform;
+        $this->tableName = $tableName;
+        $this->platform  = $platform;
     }
 
-    public function getTable(): string
+    public function getTableName(): Name
     {
-        return $this->table;
+        return $this->tableName;
     }
 
     public function getPlatform(): AbstractPlatform

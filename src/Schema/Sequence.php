@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Doctrine\DBAL\Schema;
 
+use Doctrine\DBAL\Schema\Name\UnqualifiedName;
 use Doctrine\DBAL\Schema\Visitor\Visitor;
 
 use function count;
@@ -11,21 +12,38 @@ use function sprintf;
 
 /**
  * Sequence structure.
+ *
+ * @implements Named<UnqualifiedName>
  */
-class Sequence extends AbstractAsset
+class Sequence implements Named
 {
+    private UnqualifiedName $name;
+
     protected int $allocationSize = 1;
 
     protected int $initialValue = 1;
 
     protected ?int $cache = null;
 
-    public function __construct(string $name, int $allocationSize = 1, int $initialValue = 1, ?int $cache = null)
-    {
-        $this->_setName($name);
+    public function __construct(
+        UnqualifiedName $name,
+        int $allocationSize = 1,
+        int $initialValue = 1,
+        ?int $cache = null
+    ) {
+        $this->name = $name;
+
         $this->setAllocationSize($allocationSize);
         $this->setInitialValue($initialValue);
         $this->cache = $cache;
+    }
+
+    /**
+     * @return UnqualifiedName
+     */
+    public function getName(): Name
+    {
+        return $this->name;
     }
 
     public function getAllocationSize(): int
@@ -78,7 +96,7 @@ class Sequence extends AbstractAsset
             return false;
         }
 
-        $pkColumns = $primaryKey->getColumns();
+        $pkColumns = $primaryKey->getColumnNames();
 
         if (count($pkColumns) !== 1) {
             return false;

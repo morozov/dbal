@@ -67,7 +67,7 @@ class ForeignKeyConstraintTest extends TestCase
     ): void {
         $foreignKey = new ForeignKeyConstraint(['foo', 'bar'], $foreignTableName, ['fk_foo', 'fk_bar']);
 
-        self::assertSame($expectedUnqualifiedTableName, $foreignKey->getUnqualifiedForeignTableName());
+        self::assertSame($expectedUnqualifiedTableName, $foreignKey->getForeignTableName());
     }
 
     /**

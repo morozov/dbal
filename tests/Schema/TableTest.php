@@ -327,7 +327,7 @@ class TableTest extends TestCase
         $table->addIndex(['ID'], 'my_idx');
 
         self::assertTrue($table->hasIndex('my_idx'));
-        self::assertEquals(['ID'], $table->getIndex('my_idx')->getColumns());
+        self::assertEquals(['ID'], $table->getIndex('my_idx')->getColumnNames());
         self::assertTrue($table->getIndex('my_idx')->spansColumns(['id']));
     }
 
@@ -368,7 +368,7 @@ class TableTest extends TestCase
         self::assertNotNull($index);
 
         self::assertTrue($table->hasIndex($index->getName()));
-        self::assertEquals(['id'], $index->getColumns());
+        self::assertEquals(['id'], $index->getColumnNames());
     }
 
     public function testAddForeignKeyDoesNotCreateDuplicateIndex(): void
@@ -384,7 +384,7 @@ class TableTest extends TestCase
 
         self::assertCount(1, $table->getIndexes());
         self::assertTrue($table->hasIndex('bar_idx'));
-        self::assertSame(['bar'], $table->getIndex('bar_idx')->getColumns());
+        self::assertSame(['bar'], $table->getIndex('bar_idx')->getColumnNames());
     }
 
     public function testAddForeignKeyAddsImplicitIndexIfIndexColumnsDoNotSpan(): void
@@ -406,9 +406,9 @@ class TableTest extends TestCase
         self::assertTrue($table->hasIndex('composite_idx'));
         self::assertTrue($table->hasIndex('full_idx'));
         self::assertTrue($table->hasIndex('idx_8c73652176ff8caa78240498'));
-        self::assertSame(['baz', 'bar'], $table->getIndex('composite_idx')->getColumns());
-        self::assertSame(['bar', 'baz', 'bloo'], $table->getIndex('full_idx')->getColumns());
-        self::assertSame(['bar', 'baz'], $table->getIndex('idx_8c73652176ff8caa78240498')->getColumns());
+        self::assertSame(['baz', 'bar'], $table->getIndex('composite_idx')->getColumnNames());
+        self::assertSame(['bar', 'baz', 'bloo'], $table->getIndex('full_idx')->getColumnNames());
+        self::assertSame(['bar', 'baz'], $table->getIndex('idx_8c73652176ff8caa78240498')->getColumnNames());
     }
 
     public function testOverrulingIndexDoesNotDropOverruledIndex(): void
@@ -437,8 +437,8 @@ class TableTest extends TestCase
         self::assertCount(2, $table->getIndexes());
         self::assertTrue($table->hasIndex('bar_idx'));
         self::assertTrue($table->hasIndex('duplicate_idx'));
-        self::assertSame(['bar'], $table->getIndex('bar_idx')->getColumns());
-        self::assertSame(['bar'], $table->getIndex('duplicate_idx')->getColumns());
+        self::assertSame(['bar'], $table->getIndex('bar_idx')->getColumnNames());
+        self::assertSame(['bar'], $table->getIndex('duplicate_idx')->getColumnNames());
     }
 
     public function testAllowsAddingFulfillingIndexesBasedOnColumns(): void
@@ -452,8 +452,8 @@ class TableTest extends TestCase
         self::assertCount(2, $table->getIndexes());
         self::assertTrue($table->hasIndex('bar_idx'));
         self::assertTrue($table->hasIndex('fulfilling_idx'));
-        self::assertSame(['bar'], $table->getIndex('bar_idx')->getColumns());
-        self::assertSame(['bar', 'baz'], $table->getIndex('fulfilling_idx')->getColumns());
+        self::assertSame(['bar'], $table->getIndex('bar_idx')->getColumnNames());
+        self::assertSame(['bar', 'baz'], $table->getIndex('fulfilling_idx')->getColumnNames());
     }
 
     public function testPrimaryKeyOverrulingUniqueIndexDoesNotDropUniqueIndex(): void

@@ -7,6 +7,7 @@ namespace Doctrine\DBAL\Platforms;
 use Doctrine\DBAL\Platforms\Keywords\KeywordList;
 use Doctrine\DBAL\Platforms\Keywords\MySQL57Keywords;
 use Doctrine\DBAL\Schema\Index;
+use Doctrine\DBAL\Schema\Name;
 use Doctrine\DBAL\Schema\TableDiff;
 use Doctrine\DBAL\SQL\Parser;
 use Doctrine\DBAL\Types\Types;
@@ -53,9 +54,9 @@ class MySQL57Platform extends MySQLPlatform
     /**
      * {@inheritdoc}
      */
-    protected function getRenameIndexSQL(string $oldIndexName, Index $index, string $tableName): array
+    protected function getRenameIndexSQL(Name $oldIndexName, Index $index, Name $tableName): array
     {
-        return ['ALTER TABLE ' . $tableName . ' RENAME INDEX ' . $oldIndexName . ' TO ' . $index->getQuotedName($this)];
+        return ['ALTER TABLE ' . $tableName . ' RENAME INDEX ' . $oldIndexName . ' TO ' . $index->getName()];
     }
 
     protected function createReservedKeywordsList(): KeywordList

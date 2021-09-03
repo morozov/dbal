@@ -9,8 +9,11 @@ use Doctrine\DBAL\Platforms\Exception\NotSupported;
 use Doctrine\DBAL\Platforms\Keywords\DB2Keywords;
 use Doctrine\DBAL\Platforms\Keywords\KeywordList;
 use Doctrine\DBAL\Schema\ColumnDiff;
-use Doctrine\DBAL\Schema\Identifier;
 use Doctrine\DBAL\Schema\Index;
+use Doctrine\DBAL\Schema\Name;
+use Doctrine\DBAL\Schema\Name\QualifiedName;
+use Doctrine\DBAL\Schema\Name\UnqualifiedName;
+use Doctrine\DBAL\Schema\Name\UnquotedName;
 use Doctrine\DBAL\Schema\TableDiff;
 use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Types\Types;
@@ -18,11 +21,12 @@ use Doctrine\DBAL\Types\Types;
 use function array_merge;
 use function count;
 use function current;
-use function explode;
 use function implode;
 use function sprintf;
-use function strpos;
 
+/**
+ * @extends AbstractPlatform<UnqualifiedName>
+ */
 class DB2Platform extends AbstractPlatform
 {
     /**
@@ -194,11 +198,9 @@ class DB2Platform extends AbstractPlatform
         return 'TIME';
     }
 
-    public function getTruncateTableSQL(string $tableName, bool $cascade = false): string
+    public function getTruncateTableSQL(Name $name, bool $cascade = false): string
     {
-        $tableIdentifier = new Identifier($tableName);
-
-        return 'TRUNCATE ' . $tableIdentifier->getQuotedName($this) . ' IMMEDIATE';
+        return parent::getTruncateTableSQL($name, $cascade) . ' IMMEDIATE';
     }
 
     /**
@@ -211,13 +213,8 @@ class DB2Platform extends AbstractPlatform
         throw NotSupported::new(__METHOD__);
     }
 
-    /**
-     * This code fragment is originally from the Zend_Db_Adapter_Db2 class, but has been edited.
-     */
-    public function getListTableColumnsSQL(string $table, ?string $database = null): string
+    public function getListTableColumnsSQL(Name $name, ?UnqualifiedName $databaseName = null): string
     {
-        $table = $this->quoteStringLiteral($table);
-
         // We do the funky subquery and join syscat.columns.default this crazy way because
         // as of db2 v10, the column is CLOB(64k) and the distinct operator won't allow a CLOB,
         // it wants shorter stuff like a varchar.
@@ -252,7 +249,7 @@ class DB2Platform extends AbstractPlatform
                    ON (c.tabschema = k.tabschema
                        AND c.tabname = k.tabname
                        AND c.colname = k.colname)
-               WHERE UPPER(c.tabname) = UPPER(" . $table . ')
+               WHERE c.tabname = " . $this->buildNameLiteral($name) . '
                ORDER BY c.colno
              ) subq
           JOIN syscat.columns cols
@@ -268,15 +265,13 @@ class DB2Platform extends AbstractPlatform
         return "SELECT NAME FROM SYSIBM.SYSTABLES WHERE TYPE = 'T'";
     }
 
-    public function getListViewsSQL(string $database): string
+    public function getListViewsSQL(UnqualifiedName $databaseName): string
     {
         return 'SELECT NAME, TEXT FROM SYSIBM.SYSVIEWS';
     }
 
-    public function getListTableIndexesSQL(string $table, ?string $database = null): string
+    public function getListTableIndexesSQL(Name $name, ?UnqualifiedName $databaseName = null): string
     {
-        $table = $this->quoteStringLiteral($table);
-
         return "SELECT   idx.INDNAME AS key_name,
                          idxcol.COLNAME AS column_name,
                          CASE
@@ -290,14 +285,12 @@ class DB2Platform extends AbstractPlatform
                 FROM     SYSCAT.INDEXES AS idx
                 JOIN     SYSCAT.INDEXCOLUSE AS idxcol
                 ON       idx.INDSCHEMA = idxcol.INDSCHEMA AND idx.INDNAME = idxcol.INDNAME
-                WHERE    idx.TABNAME = UPPER(" . $table . ')
+                WHERE    idx.TABNAME = " . $this->buildNameLiteral($name) . '
                 ORDER BY idxcol.COLSEQ ASC';
     }
 
-    public function getListTableForeignKeysSQL(string $table, ?string $database = null): string
+    public function getListTableForeignKeysSQL(Name $name, ?UnqualifiedName $databaseName = null): string
     {
-        $table = $this->quoteStringLiteral($table);
-
         return "SELECT   fkcol.COLNAME AS local_column,
                          fk.REFTABNAME AS foreign_table,
                          pkcol.COLNAME AS foreign_column,
@@ -321,7 +314,7 @@ class DB2Platform extends AbstractPlatform
                 ON       fk.REFKEYNAME = pkcol.CONSTNAME
                 AND      fk.REFTABSCHEMA = pkcol.TABSCHEMA
                 AND      fk.REFTABNAME = pkcol.TABNAME
-                WHERE    fk.TABNAME = UPPER(" . $table . ')
+                WHERE    fk.TABNAME = " . $this->buildNameLiteral($name) . '
                 ORDER BY fkcol.COLSEQ ASC';
     }
 
@@ -364,7 +357,7 @@ class DB2Platform extends AbstractPlatform
     /**
      * {@inheritDoc}
      */
-    protected function _getCreateTableSQL(string $name, array $columns, array $options = []): array
+    protected function _getCreateTableSQL(Name $name, array $columns, array $options = []): array
     {
         $indexes = [];
         if (isset($options['indexes'])) {
@@ -398,7 +391,7 @@ class DB2Platform extends AbstractPlatform
             }
 
             $columnDef = $column->toArray();
-            $queryPart = 'ADD COLUMN ' . $this->getColumnDeclarationSQL($column->getQuotedName($this), $columnDef);
+            $queryPart = 'ADD COLUMN ' . $this->getColumnDeclarationSQL($column->getName(), $columnDef);
 
             // Adding non-nullable columns to a table requires a default value to be specified.
             if (
@@ -417,11 +410,7 @@ class DB2Platform extends AbstractPlatform
                 continue;
             }
 
-            $commentsSQL[] = $this->getCommentOnColumnSQL(
-                $diff->getName($this)->getQuotedName($this),
-                $column->getQuotedName($this),
-                $comment
-            );
+            $commentsSQL[] = $this->getCommentOnColumnSQL($diff->getName(), $column->getName(), $comment);
         }
 
         foreach ($diff->removedColumns as $column) {
@@ -429,7 +418,7 @@ class DB2Platform extends AbstractPlatform
                 continue;
             }
 
-            $queryParts[] =  'DROP COLUMN ' . $column->getQuotedName($this);
+            $queryParts[] =  'DROP COLUMN ' . $column->getName();
         }
 
         foreach ($diff->changedColumns as $columnDiff) {
@@ -439,8 +428,8 @@ class DB2Platform extends AbstractPlatform
 
             if ($columnDiff->hasChanged('comment')) {
                 $commentsSQL[] = $this->getCommentOnColumnSQL(
-                    $diff->getName($this)->getQuotedName($this),
-                    $columnDiff->column->getQuotedName($this),
+                    $diff->getName(),
+                    $columnDiff->column->getName(),
                     $this->getColumnComment($columnDiff->column)
                 );
 
@@ -449,7 +438,7 @@ class DB2Platform extends AbstractPlatform
                 }
             }
 
-            $this->gatherAlterColumnSQL($diff->getName($this), $columnDiff, $sql, $queryParts);
+            $this->gatherAlterColumnSQL($diff->getName(), $columnDiff, $sql, $queryParts);
         }
 
         foreach ($diff->renamedColumns as $oldColumnName => $column) {
@@ -457,22 +446,20 @@ class DB2Platform extends AbstractPlatform
                 continue;
             }
 
-            $oldColumnName = new Identifier($oldColumnName);
-
-            $queryParts[] =  'RENAME COLUMN ' . $oldColumnName->getQuotedName($this) .
-                ' TO ' . $column->getQuotedName($this);
+            $queryParts[] =  'RENAME COLUMN ' . $this->buildNameIdentifier($oldColumnName) .
+                ' TO ' . $this->buildNameIdentifier($column->getName());
         }
 
         $tableSql = [];
 
         if (! $this->onSchemaAlterTable($diff, $tableSql)) {
             if (count($queryParts) > 0) {
-                $sql[] = 'ALTER TABLE ' . $diff->getName($this)->getQuotedName($this) . ' ' . implode(' ', $queryParts);
+                $sql[] = 'ALTER TABLE ' . $diff->getName($this)->getName() . ' ' . implode(' ', $queryParts);
             }
 
             // Some table alteration operations require a table reorganization.
             if (! empty($diff->removedColumns) || ! empty($diff->changedColumns)) {
-                $sql[] = "CALL SYSPROC.ADMIN_CMD ('REORG TABLE " . $diff->getName($this)->getQuotedName($this) . "')";
+                $sql[] = "CALL SYSPROC.ADMIN_CMD ('REORG TABLE " . $diff->getName($this)->getName() . "')";
             }
 
             $sql = array_merge($sql, $commentsSQL);
@@ -482,8 +469,8 @@ class DB2Platform extends AbstractPlatform
             if ($newName !== null) {
                 $sql[] = sprintf(
                     'RENAME TABLE %s TO %s',
-                    $diff->getName($this)->getQuotedName($this),
-                    $newName->getQuotedName($this)
+                    $diff->getName($this)->getName(),
+                    $newName->getName()
                 );
             }
 
@@ -528,7 +515,7 @@ class DB2Platform extends AbstractPlatform
         // so we need to trigger a complete ALTER TABLE statement
         // for each ALTER COLUMN clause.
         foreach ($alterColumnClauses as $alterColumnClause) {
-            $sql[] = 'ALTER TABLE ' . $table->getQuotedName($this) . ' ' . $alterColumnClause;
+            $sql[] = 'ALTER TABLE ' . $table->getName() . ' ' . $alterColumnClause;
         }
     }
 
@@ -541,7 +528,7 @@ class DB2Platform extends AbstractPlatform
     {
         $column = $columnDiff->column->toArray();
 
-        $alterClause = 'ALTER COLUMN ' . $columnDiff->column->getQuotedName($this);
+        $alterClause = 'ALTER COLUMN ' . $columnDiff->column->getName();
 
         if ($column['columnDefinition'] !== null) {
             return [$alterClause . ' ' . $column['columnDefinition']];
@@ -584,20 +571,20 @@ class DB2Platform extends AbstractPlatform
     protected function getPreAlterTableIndexForeignKeySQL(TableDiff $diff): array
     {
         $sql   = [];
-        $table = $diff->getName($this)->getQuotedName($this);
+        $table = $diff->getName($this)->getName();
 
         foreach ($diff->removedIndexes as $remKey => $remIndex) {
             foreach ($diff->addedIndexes as $addKey => $addIndex) {
-                if ($remIndex->getColumns() !== $addIndex->getColumns()) {
+                if ($remIndex->getColumnNames() !== $addIndex->getColumnNames()) {
                     continue;
                 }
 
                 if ($remIndex->isPrimary()) {
                     $sql[] = 'ALTER TABLE ' . $table . ' DROP PRIMARY KEY';
                 } elseif ($remIndex->isUnique()) {
-                    $sql[] = 'ALTER TABLE ' . $table . ' DROP UNIQUE ' . $remIndex->getQuotedName($this);
+                    $sql[] = 'ALTER TABLE ' . $table . ' DROP UNIQUE ' . $remIndex->getName();
                 } else {
-                    $sql[] = $this->getDropIndexSQL($remIndex->getQuotedName($this), $table);
+                    $sql[] = $this->getDropIndexSQL($remIndex->getName(), $table);
                 }
 
                 $sql[] = $this->getCreateIndexSQL($addIndex, $table);
@@ -616,14 +603,11 @@ class DB2Platform extends AbstractPlatform
     /**
      * {@inheritdoc}
      */
-    protected function getRenameIndexSQL(string $oldIndexName, Index $index, string $tableName): array
+    protected function getRenameIndexSQL(Name $oldIndexName, Index $index, Name $tableName): array
     {
-        if (strpos($tableName, '.') !== false) {
-            [$schema]     = explode('.', $tableName);
-            $oldIndexName = $schema . '.' . $oldIndexName;
-        }
-
-        return ['RENAME INDEX ' . $oldIndexName . ' TO ' . $index->getQuotedName($this)];
+        return ['RENAME INDEX ' . $this->buildNameIdentifier($oldIndexName)
+            . ' TO ' . $this->buildNameIdentifier($index->getName()),
+        ];
     }
 
     /**
@@ -644,9 +628,9 @@ class DB2Platform extends AbstractPlatform
         return parent::getDefaultValueDeclarationSQL($column);
     }
 
-    public function getEmptyIdentityInsertSQL(string $quotedTableName, string $quotedIdentifierColumnName): string
+    public function getEmptyIdentityInsertSQL(Name $tableName, Name $identityColumnName): string
     {
-        return 'INSERT INTO ' . $quotedTableName . ' (' . $quotedIdentifierColumnName . ') VALUES (DEFAULT)';
+        return 'INSERT INTO ' . $tableName . ' (' . $identityColumnName . ') VALUES (DEFAULT)';
     }
 
     public function getCreateTemporaryTableSnippetSQL(): string
@@ -654,9 +638,9 @@ class DB2Platform extends AbstractPlatform
         return 'DECLARE GLOBAL TEMPORARY TABLE';
     }
 
-    public function getTemporaryTableName(string $tableName): string
+    public function getTemporaryTableName(Name $tableName): Name
     {
-        return 'SESSION.' . $tableName;
+        return new QualifiedName(new UnquotedName('SESSION'), $tableName);
     }
 
     protected function doModifyLimitQuery(string $query, ?int $limit, int $offset): string
@@ -748,16 +732,16 @@ class DB2Platform extends AbstractPlatform
         return new DB2Keywords();
     }
 
-    public function getListTableCommentsSQL(string $table): string
+    public function getListTableCommentsSQL(Name $name): string
     {
         return sprintf(
             <<<'SQL'
 SELECT REMARKS
   FROM SYSIBM.SYSTABLES
-  WHERE NAME = UPPER( %s )
+  WHERE NAME = %s
 SQL
             ,
-            $this->quoteStringLiteral($table)
+            $this->buildNameLiteral($name)
         );
     }
 }

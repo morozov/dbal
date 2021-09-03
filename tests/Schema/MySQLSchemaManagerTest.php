@@ -52,13 +52,13 @@ class MySQLSchemaManagerTest extends TestCase
             'column_1',
             'column_2',
             'column_3',
-        ], array_map('strtolower', $fkeys[0]->getLocalColumns()));
+        ], array_map('strtolower', $fkeys[0]->getLocalColumnNames()));
 
         self::assertEquals([
             'column_1',
             'column_2',
             'column_3',
-        ], array_map('strtolower', $fkeys[0]->getForeignColumns()));
+        ], array_map('strtolower', $fkeys[0]->getForeignColumnNames()));
     }
 
     /**

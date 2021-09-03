@@ -10,8 +10,9 @@ use Doctrine\DBAL\Platforms\Keywords\SQLiteKeywords;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\Exception\ColumnDoesNotExist;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
-use Doctrine\DBAL\Schema\Identifier;
 use Doctrine\DBAL\Schema\Index;
+use Doctrine\DBAL\Schema\Name;
+use Doctrine\DBAL\Schema\Name\UnqualifiedName;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\TableDiff;
 use Doctrine\DBAL\TransactionIsolationLevel;
@@ -273,7 +274,7 @@ class SqlitePlatform extends AbstractPlatform
     {
         return parent::getForeignKeyDeclarationSQL(new ForeignKeyConstraint(
             $foreignKey->getQuotedLocalColumns($this),
-            $foreignKey->getQuotedForeignTableName($this),
+            $foreignKey->getForeignTableName(),
             $foreignKey->getQuotedForeignColumns($this),
             $foreignKey->getName(),
             $foreignKey->getOptions()
@@ -283,7 +284,7 @@ class SqlitePlatform extends AbstractPlatform
     /**
      * {@inheritDoc}
      */
-    protected function _getCreateTableSQL(string $name, array $columns, array $options = []): array
+    protected function _getCreateTableSQL(Name $name, array $columns, array $options = []): array
     {
         $queryFields = $this->getColumnDeclarationListSQL($columns);
 
@@ -308,19 +309,19 @@ class SqlitePlatform extends AbstractPlatform
             $tableComment = $this->getInlineTableCommentSQL($comment);
         }
 
-        $query = ['CREATE TABLE ' . $name . ' ' . $tableComment . '(' . $queryFields . ')'];
+        $query = ['CREATE TABLE ' . $this->buildNameIdentifier($name) . ' ' . $tableComment . '(' . $queryFields . ')'];
 
         if (isset($options['alter']) && $options['alter'] === true) {
             return $query;
         }
 
-        if (isset($options['indexes']) && ! empty($options['indexes'])) {
+        if (isset($options['indexes'])) {
             foreach ($options['indexes'] as $indexDef) {
                 $query[] = $this->getCreateIndexSQL($indexDef, $name);
             }
         }
 
-        if (isset($options['unique']) && ! empty($options['unique'])) {
+        if (isset($options['unique'])) {
             foreach ($options['unique'] as $indexDef) {
                 $query[] = $this->getCreateIndexSQL($indexDef, $name);
             }
@@ -383,22 +384,22 @@ class SqlitePlatform extends AbstractPlatform
         return 'CLOB';
     }
 
-    public function getListTableConstraintsSQL(string $table): string
+    public function getListTableConstraintsSQL(Name $name): string
     {
         return sprintf(
             "SELECT sql FROM sqlite_master WHERE type='index' AND tbl_name = %s AND sql NOT NULL ORDER BY name",
-            $this->quoteStringLiteral($table)
+            $this->buildNameLiteral($name)
         );
     }
 
-    public function getListTableColumnsSQL(string $table, ?string $database = null): string
+    public function getListTableColumnsSQL(Name $name, ?UnqualifiedName $databaseName = null): string
     {
-        return sprintf('PRAGMA table_info(%s)', $this->quoteStringLiteral($table));
+        return sprintf('PRAGMA table_info(%s)', $this->buildNameLiteral($name));
     }
 
-    public function getListTableIndexesSQL(string $table, ?string $database = null): string
+    public function getListTableIndexesSQL(Name $name, ?UnqualifiedName $databaseName = null): string
     {
-        return sprintf('PRAGMA index_list(%s)', $this->quoteStringLiteral($table));
+        return sprintf('PRAGMA index_list(%s)', $this->buildNameLiteral($name));
     }
 
     public function getListTablesSQL(): string
@@ -412,7 +413,7 @@ class SqlitePlatform extends AbstractPlatform
             . " WHERE type = 'table' ORDER BY name";
     }
 
-    public function getListViewsSQL(string $database): string
+    public function getListViewsSQL(UnqualifiedName $databaseName): string
     {
         return "SELECT name, sql FROM sqlite_master WHERE type='view' AND sql NOT NULL";
     }
@@ -457,11 +458,9 @@ class SqlitePlatform extends AbstractPlatform
         return true;
     }
 
-    public function getTruncateTableSQL(string $tableName, bool $cascade = false): string
+    public function getTruncateTableSQL(Name $name, bool $cascade = false): string
     {
-        $tableIdentifier = new Identifier($tableName);
-
-        return 'DELETE FROM ' . $tableIdentifier->getQuotedName($this);
+        return 'DELETE FROM ' . $this->buildNameIdentifier($name);
     }
 
     public function getForUpdateSQL(): string
@@ -544,7 +543,7 @@ class SqlitePlatform extends AbstractPlatform
                 continue;
             }
 
-            $sql[] = $this->getDropIndexSQL($index->getQuotedName($this), $diff->name);
+            $sql[] = $this->getDropIndexSQL($index->getName(), $diff->getName());
         }
 
         return $sql;
@@ -564,18 +563,14 @@ class SqlitePlatform extends AbstractPlatform
         }
 
         $sql       = [];
-        $tableName = $diff->getNewName();
-
-        if ($tableName === null) {
-            $tableName = $diff->getName($this);
-        }
+        $tableName = $diff->getNewName() ?? $diff->getName();
 
         foreach ($this->getIndexesInAlteredTable($diff, $fromTable) as $index) {
             if ($index->isPrimary()) {
                 continue;
             }
 
-            $sql[] = $this->getCreateIndexSQL($index, $tableName->getQuotedName($this));
+            $sql[] = $this->getCreateIndexSQL($index, $tableName);
         }
 
         return $sql;
@@ -598,27 +593,22 @@ class SqlitePlatform extends AbstractPlatform
         return 'BLOB';
     }
 
-    public function getTemporaryTableName(string $tableName): string
-    {
-        return $tableName;
-    }
-
     public function supportsForeignKeyConstraints(): bool
     {
         return false;
     }
 
-    public function getCreatePrimaryKeySQL(Index $index, string $table): string
+    public function getCreatePrimaryKeySQL(Index $index, Name $table): string
     {
         throw new Exception('Sqlite platform does not support alter primary key.');
     }
 
-    public function getCreateForeignKeySQL(ForeignKeyConstraint $foreignKey, string $table): string
+    public function getCreateForeignKeySQL(ForeignKeyConstraint $foreignKey, Name $tableName): string
     {
         throw new Exception('Sqlite platform does not support alter foreign key.');
     }
 
-    public function getDropForeignKeySQL(string $foreignKey, string $table): string
+    public function getDropForeignKeySQL(Name $name, Name $tableName): string
     {
         throw new Exception('Sqlite platform does not support alter foreign key.');
     }
@@ -633,9 +623,9 @@ class SqlitePlatform extends AbstractPlatform
         return parent::getCreateTableSQL($table, $createFlags);
     }
 
-    public function getListTableForeignKeysSQL(string $table, ?string $database = null): string
+    public function getListTableForeignKeysSQL(Name $name, ?UnqualifiedName $databaseName = null): string
     {
-        return sprintf('PRAGMA foreign_key_list(%s)', $this->quoteStringLiteral($table));
+        return sprintf('PRAGMA foreign_key_list(%s)', $this->buildNameLiteral($name));
     }
 
     /**
@@ -663,9 +653,9 @@ class SqlitePlatform extends AbstractPlatform
         $columnSql      = [];
 
         foreach ($table->getColumns() as $column) {
-            $columnName                  = strtolower($column->getName());
+            $columnName                  = $column->getName();
             $columns[$columnName]        = $column;
-            $oldColumnNames[$columnName] = $newColumnNames[$columnName] = $column->getQuotedName($this);
+            $oldColumnNames[$columnName] = $newColumnNames[$columnName] = $column->getName();
         }
 
         foreach ($diff->removedColumns as $columnName => $column) {
@@ -673,7 +663,6 @@ class SqlitePlatform extends AbstractPlatform
                 continue;
             }
 
-            $columnName = strtolower($columnName);
             if (! isset($columns[$columnName])) {
                 continue;
             }
@@ -697,7 +686,7 @@ class SqlitePlatform extends AbstractPlatform
                 continue;
             }
 
-            $newColumnNames[$oldColumnName] = $column->getQuotedName($this);
+            $newColumnNames[$oldColumnName] = $column->getName();
         }
 
         foreach ($diff->changedColumns as $oldColumnName => $columnDiff) {
@@ -712,7 +701,7 @@ class SqlitePlatform extends AbstractPlatform
                 continue;
             }
 
-            $newColumnNames[$oldColumnName] = $columnDiff->column->getQuotedName($this);
+            $newColumnNames[$oldColumnName] = $columnDiff->column->getName();
         }
 
         foreach ($diff->addedColumns as $columnName => $column) {
@@ -720,17 +709,22 @@ class SqlitePlatform extends AbstractPlatform
                 continue;
             }
 
-            $columns[strtolower($columnName)] = $column;
+            $columns[$columnName] = $column;
         }
 
         $sql      = [];
         $tableSql = [];
 
         if (! $this->onSchemaAlterTable($diff, $tableSql)) {
-            $dataTable = new Table('__temp__' . $table->getName());
+            $dataTable = new Table(
+                $table->getName()
+                    ->generate(static function (string $name): string {
+                        return '__temp__' . $name;
+                    })
+            );
 
             $newTable = new Table(
-                $table->getQuotedName($this),
+                $table->getName(),
                 $columns,
                 $this->getPrimaryIndexInAlteredTable($diff, $fromTable),
                 [],
@@ -744,29 +738,29 @@ class SqlitePlatform extends AbstractPlatform
 
             $sql[] = sprintf(
                 'CREATE TEMPORARY TABLE %s AS SELECT %s FROM %s',
-                $dataTable->getQuotedName($this),
+                $this->buildNameIdentifier($dataTable->getName()),
                 implode(', ', $oldColumnNames),
-                $table->getQuotedName($this)
+                $this->buildNameIdentifier($table->getName())
             );
-            $sql[] = $this->getDropTableSQL($fromTable->getQuotedName($this));
+            $sql[] = $this->getDropTableSQL($fromTable->getName());
 
             $sql   = array_merge($sql, $this->getCreateTableSQL($newTable));
             $sql[] = sprintf(
                 'INSERT INTO %s (%s) SELECT %s FROM %s',
-                $newTable->getQuotedName($this),
+                $this->buildNameIdentifier($newTable->getName()),
                 implode(', ', $newColumnNames),
                 implode(', ', $oldColumnNames),
-                $dataTable->getQuotedName($this)
+                $this->buildNameIdentifier($dataTable->getName())
             );
-            $sql[] = $this->getDropTableSQL($dataTable->getQuotedName($this));
+            $sql[] = $this->getDropTableSQL($dataTable->getName());
 
             $newName = $diff->getNewName();
 
             if ($newName !== null) {
                 $sql[] = sprintf(
                     'ALTER TABLE %s RENAME TO %s',
-                    $newTable->getQuotedName($this),
-                    $newName->getQuotedName($this)
+                    $this->buildNameIdentifier($newTable->getName()),
+                    $this->buildNameIdentifier($newName)
                 );
             }
 
@@ -785,7 +779,7 @@ class SqlitePlatform extends AbstractPlatform
      *
      * @throws Exception
      */
-    private function replaceColumn(string $tableName, array $columns, string $columnName, Column $column): array
+    private function replaceColumn(Name $tableName, array $columns, string $columnName, Column $column): array
     {
         $keys  = array_keys($columns);
         $index = array_search($columnName, $keys, true);
@@ -796,7 +790,7 @@ class SqlitePlatform extends AbstractPlatform
 
         $values = array_values($columns);
 
-        $keys[$index]   = strtolower($column->getName());
+        $keys[$index]   = $column->getName();
         $values[$index] = $column;
 
         return array_combine($keys, $values);
@@ -848,7 +842,7 @@ class SqlitePlatform extends AbstractPlatform
             return false;
         }
 
-        $table = new Table($diff->name);
+        $table = new Table($diff->getName());
 
         $sql       = [];
         $tableSql  = [];
@@ -875,21 +869,19 @@ class SqlitePlatform extends AbstractPlatform
                     return false;
             }
 
-            $definition['name'] = $column->getQuotedName($this);
+            $definition['name'] = $column->getName();
             if ($type instanceof Types\StringType && $definition['length'] === null) {
                 $definition['length'] = 255;
             }
 
-            $sql[] = 'ALTER TABLE ' . $table->getQuotedName($this) . ' ADD COLUMN '
-                . $this->getColumnDeclarationSQL($definition['name'], $definition);
+            $sql[] = 'ALTER TABLE ' . $this->buildNameIdentifier($table->getName())
+                . ' ADD COLUMN ' . $this->getColumnDeclarationSQL($definition['name'], $definition);
         }
 
         if (! $this->onSchemaAlterTable($diff, $tableSql)) {
             if ($diff->newName !== null) {
-                $newTable = new Identifier($diff->newName);
-
-                $sql[] = 'ALTER TABLE ' . $table->getQuotedName($this) . ' RENAME TO '
-                    . $newTable->getQuotedName($this);
+                $sql[] = 'ALTER TABLE ' . $this->buildNameIdentifier($table->getName())
+                    . ' RENAME TO ' . $this->buildNameIdentifier($diff->getNewName());
             }
         }
 
@@ -904,12 +896,11 @@ class SqlitePlatform extends AbstractPlatform
         $columns = [];
 
         foreach ($fromTable->getColumns() as $column) {
-            $columnName                       = $column->getName();
-            $columns[strtolower($columnName)] = $columnName;
+            $columnName           = $column->getName();
+            $columns[$columnName] = $columnName;
         }
 
         foreach ($diff->removedColumns as $columnName => $column) {
-            $columnName = strtolower($columnName);
             if (! isset($columns[$columnName])) {
                 continue;
             }
@@ -918,20 +909,20 @@ class SqlitePlatform extends AbstractPlatform
         }
 
         foreach ($diff->renamedColumns as $oldColumnName => $column) {
-            $columnName                          = $column->getName();
-            $columns[strtolower($oldColumnName)] = $columnName;
-            $columns[strtolower($columnName)]    = $columnName;
+            $columnName              = $column->getName();
+            $columns[$oldColumnName] = $columnName;
+            $columns[$columnName]    = $columnName;
         }
 
         foreach ($diff->changedColumns as $oldColumnName => $columnDiff) {
-            $columnName                          = $columnDiff->column->getName();
-            $columns[strtolower($oldColumnName)] = $columnName;
-            $columns[strtolower($columnName)]    = $columnName;
+            $columnName              = $columnDiff->column->getName();
+            $columns[$oldColumnName] = $columnName;
+            $columns[$columnName]    = $columnName;
         }
 
         foreach ($diff->addedColumns as $column) {
-            $columnName                       = $column->getName();
-            $columns[strtolower($columnName)] = $columnName;
+            $columnName           = $column->getName();
+            $columns[$columnName] = $columnName;
         }
 
         return $columns;
@@ -947,7 +938,7 @@ class SqlitePlatform extends AbstractPlatform
 
         foreach ($indexes as $key => $index) {
             foreach ($diff->renamedIndexes as $oldIndexName => $renamedIndex) {
-                if (strtolower($key) !== strtolower($oldIndexName)) {
+                if ($key !== $oldIndexName) {
                     continue;
                 }
 
@@ -956,15 +947,14 @@ class SqlitePlatform extends AbstractPlatform
 
             $changed      = false;
             $indexColumns = [];
-            foreach ($index->getColumns() as $columnName) {
-                $normalizedColumnName = strtolower($columnName);
-                if (! isset($columnNames[$normalizedColumnName])) {
+            foreach ($index->getColumnNames() as $columnName) {
+                if (! isset($columnNames[$columnName])) {
                     unset($indexes[$key]);
                     continue 2;
                 }
 
-                $indexColumns[] = $columnNames[$normalizedColumnName];
-                if ($columnName === $columnNames[$normalizedColumnName]) {
+                $indexColumns[] = $columnNames[$columnName];
+                if ($columnName === $columnNames[$columnName]) {
                     continue;
                 }
 
@@ -991,17 +981,11 @@ class SqlitePlatform extends AbstractPlatform
                 continue;
             }
 
-            unset($indexes[strtolower($indexName)]);
+            unset($indexes[$indexName]);
         }
 
         foreach (array_merge($diff->changedIndexes, $diff->addedIndexes, $diff->renamedIndexes) as $index) {
-            $indexName = $index->getName();
-
-            if ($indexName !== '') {
-                $indexes[strtolower($indexName)] = $index;
-            } else {
-                $indexes[] = $index;
-            }
+            $indexes[$index->getName()] = $index;
         }
 
         return $indexes;
@@ -1018,15 +1002,14 @@ class SqlitePlatform extends AbstractPlatform
         foreach ($foreignKeys as $key => $constraint) {
             $changed      = false;
             $localColumns = [];
-            foreach ($constraint->getLocalColumns() as $columnName) {
-                $normalizedColumnName = strtolower($columnName);
-                if (! isset($columnNames[$normalizedColumnName])) {
+            foreach ($constraint->getLocalColumnNames() as $columnName) {
+                if (! isset($columnNames[$columnName])) {
                     unset($foreignKeys[$key]);
                     continue 2;
                 }
 
-                $localColumns[] = $columnNames[$normalizedColumnName];
-                if ($columnName === $columnNames[$normalizedColumnName]) {
+                $localColumns[] = $columnNames[$columnName];
+                if ($columnName === $columnNames[$columnName]) {
                     continue;
                 }
 
@@ -1040,7 +1023,7 @@ class SqlitePlatform extends AbstractPlatform
             $foreignKeys[$key] = new ForeignKeyConstraint(
                 $localColumns,
                 $constraint->getForeignTableName(),
-                $constraint->getForeignColumns(),
+                $constraint->getForeignColumnNames(),
                 $constraint->getName(),
                 $constraint->getOptions()
             );
@@ -1053,17 +1036,11 @@ class SqlitePlatform extends AbstractPlatform
                 continue;
             }
 
-            unset($foreignKeys[strtolower($constraintName)]);
+            unset($foreignKeys[$constraintName]);
         }
 
         foreach (array_merge($diff->changedForeignKeys, $diff->addedForeignKeys) as $constraint) {
-            $constraintName = $constraint->getName();
-
-            if ($constraintName !== '') {
-                $foreignKeys[strtolower($constraintName)] = $constraint;
-            } else {
-                $foreignKeys[] = $constraint;
-            }
+            $foreignKeys[$constraint->getName()] = $constraint;
         }
 
         return $foreignKeys;

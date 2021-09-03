@@ -23,8 +23,8 @@ class Graphviz extends AbstractVisitor
     public function acceptForeignKey(Table $localTable, ForeignKeyConstraint $fkConstraint): void
     {
         $this->output .= $this->createNodeRelation(
-            $localTable->getName() . ':col' . current($fkConstraint->getLocalColumns()) . ':se',
-            $fkConstraint->getForeignTableName() . ':col' . current($fkConstraint->getForeignColumns()) . ':se',
+            $localTable->getName()->toString() . ':col' . current($fkConstraint->getLocalColumnNames()) . ':se',
+            $fkConstraint->getForeignTableName() . ':col' . current($fkConstraint->getForeignColumnNames()) . ':se',
             [
                 'dir'       => 'back',
                 'arrowtail' => 'dot',
@@ -46,7 +46,7 @@ class Graphviz extends AbstractVisitor
     public function acceptTable(Table $table): void
     {
         $this->output .= $this->createNode(
-            $table->getName(),
+            $table->getName()->toString(),
             [
                 'label' => $this->createTableLabel($table),
                 'shape' => 'plaintext',
@@ -61,7 +61,8 @@ class Graphviz extends AbstractVisitor
 
         // The title
         $label .= '<TR><TD BORDER="1" COLSPAN="3" ALIGN="CENTER" BGCOLOR="#fcaf3e">'
-            . '<FONT COLOR="#2e3436" FACE="Helvetica" POINT-SIZE="12">' . $table->getName() . '</FONT></TD></TR>';
+            . '<FONT COLOR="#2e3436" FACE="Helvetica" POINT-SIZE="12">' . $table->getName()->toString()
+            . '</FONT></TD></TR>';
 
         // The attributes block
         foreach ($table->getColumns() as $column) {
@@ -80,7 +81,7 @@ class Graphviz extends AbstractVisitor
 
             $primaryKey = $table->getPrimaryKey();
 
-            if ($primaryKey !== null && in_array($column->getName(), $primaryKey->getColumns(), true)) {
+            if ($primaryKey !== null && in_array($column->getName(), $primaryKey->getColumnNames(), true)) {
                 $label .= "\xe2\x9c\xb7";
             }
 

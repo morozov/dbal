@@ -402,7 +402,7 @@ class Comparator
             return true;
         }
 
-        if ($key1->getUnqualifiedForeignTableName() !== $key2->getUnqualifiedForeignTableName()) {
+        if ($key1->getForeignTableName() !== $key2->getForeignTableName()) {
             return true;
         }
 

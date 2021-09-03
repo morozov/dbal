@@ -1230,7 +1230,7 @@ class Connection implements ServerVersionProvider
             throw SavepointsNotSupported::new();
         }
 
-        $this->executeStatement($platform->rollbackSavePoint($savepoint));
+        $this->executeStatement($platform->rollBackSavePoint($savepoint));
     }
 
     /**

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Doctrine\DBAL\Tests\Schema;
 
 use Doctrine\DBAL\Platforms\AbstractPlatform;
-use Doctrine\DBAL\Schema\Identifier;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\TableDiff;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -25,7 +24,7 @@ class TableDiffTest extends TestCase
     {
         $tableDiff = new TableDiff('foo');
 
-        self::assertEquals(new Identifier('foo'), $tableDiff->getName($this->platform));
+        self::assertEquals('foo', $tableDiff->getName());
     }
 
     public function testPrefersNameFromTableObject(): void
@@ -42,7 +41,7 @@ class TableDiffTest extends TestCase
             ->with($this->platform)
             ->willReturn('foo');
 
-        self::assertEquals(new Identifier('foo'), $tableDiff->getName($this->platform));
+        self::assertEquals('foo', $tableDiff->getName());
     }
 
     public function testReturnsNewName(): void
@@ -53,6 +52,6 @@ class TableDiffTest extends TestCase
 
         $tableDiff->newName = 'bar';
 
-        self::assertEquals(new Identifier('bar'), $tableDiff->getNewName());
+        self::assertEquals('bar', $tableDiff->getNewName());
     }
 }

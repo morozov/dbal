@@ -302,7 +302,7 @@ abstract class AbstractPlatformTestCase extends TestCase
 
     public function getGenerateConstraintForeignKeySql(ForeignKeyConstraint $fk): string
     {
-        $quotedForeignTable = $fk->getQuotedForeignTableName($this->platform);
+        $quotedForeignTable = $fk->getForeignTableName();
 
         return sprintf(
             'ALTER TABLE test ADD CONSTRAINT constraint_fk FOREIGN KEY (fk_name) REFERENCES %s (id)',

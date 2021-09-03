@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Doctrine\DBAL\Schema\Exception;
 
+use Doctrine\DBAL\Schema\Name;
 use Doctrine\DBAL\Schema\SchemaException;
 
 use function sprintf;
@@ -13,10 +14,14 @@ use function sprintf;
  */
 final class UniqueConstraintDoesNotExist extends SchemaException
 {
-    public static function new(string $constraintName, string $table): self
+    public static function new(string $constraintName, Name $tableName): self
     {
         return new self(
-            sprintf('There exists no unique constraint with the name "%s" on table "%s".', $constraintName, $table),
+            sprintf(
+                'There exists no unique constraint with the name "%s" on table "%s".',
+                $constraintName,
+                $tableName->getValue()
+            ),
             self::CONSTRAINT_DOESNT_EXIST
         );
     }

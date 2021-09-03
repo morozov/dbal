@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Doctrine\DBAL\Schema;
 
-use Doctrine\DBAL\Platforms\AbstractPlatform;
-
 /**
  * Table Diff.
  */
@@ -13,7 +11,7 @@ class TableDiff
 {
     public string $name;
 
-    public ?string $newName = null;
+    public ?Name $newName = null;
 
     /**
      * All added columns
@@ -124,22 +122,13 @@ class TableDiff
         $this->fromTable      = $fromTable;
     }
 
-    /**
-     * @param AbstractPlatform $platform The platform to use for retrieving this table diff's name.
-     */
-    public function getName(AbstractPlatform $platform): Identifier
+    public function getName(): Name
     {
-        return new Identifier(
-            $this->fromTable instanceof Table ? $this->fromTable->getQuotedName($platform) : $this->name
-        );
+        return $this->fromTable->getName();
     }
 
-    public function getNewName(): ?Identifier
+    public function getNewName(): ?Name
     {
-        if ($this->newName === null) {
-            return null;
-        }
-
-        return new Identifier($this->newName);
+        return $this->newName;
     }
 }

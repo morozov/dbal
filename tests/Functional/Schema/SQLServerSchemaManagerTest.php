@@ -205,6 +205,6 @@ class SQLServerSchemaManagerTest extends SchemaManagerFunctionalTestCase
         $firstIndex = array_shift($indexes);
         self::assertNotNull($firstIndex);
 
-        self::assertSame(['colB', 'colA'], $firstIndex->getColumns());
+        self::assertSame(['colB', 'colA'], $firstIndex->getColumnNames());
     }
 }

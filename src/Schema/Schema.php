@@ -43,7 +43,7 @@ use function strtolower;
  * execute them. Only the queries for the currently connected database are
  * executed.
  */
-class Schema extends AbstractAsset
+class Schema
 {
     /**
      * The namespaces in this schema.
@@ -52,11 +52,11 @@ class Schema extends AbstractAsset
      */
     private array $namespaces = [];
 
-    /** @var array<string, Table> */
-    protected array $_tables = [];
+    /** @var ObjectMap<Table> */
+    private ObjectMap $tables;
 
-    /** @var array<string, Sequence> */
-    protected array $_sequences = [];
+    /** @var ObjectMap<Sequence> */
+    private ObjectMap $sequences;
 
     protected SchemaConfig $_schemaConfig;
 
@@ -330,7 +330,7 @@ class Schema extends AbstractAsset
      *
      * @throws SchemaException
      */
-    public function dropTable(string $name): self
+    public function dropTable(Name $name): self
     {
         $name = $this->getFullQualifiedAssetName($name);
         $this->getTable($name);

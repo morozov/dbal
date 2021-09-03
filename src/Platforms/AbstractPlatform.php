@@ -18,18 +18,22 @@ use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Exception\ColumnLengthRequired;
 use Doctrine\DBAL\Exception\InvalidLockMode;
 use Doctrine\DBAL\LockMode;
+use Doctrine\DBAL\Platform\NameNormalizer;
 use Doctrine\DBAL\Platforms\Exception\NoColumnsSpecifiedForTable;
 use Doctrine\DBAL\Platforms\Exception\NotSupported;
 use Doctrine\DBAL\Platforms\Keywords\KeywordList;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ColumnDiff;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
-use Doctrine\DBAL\Schema\Identifier;
 use Doctrine\DBAL\Schema\Index;
+use Doctrine\DBAL\Schema\Name;
+use Doctrine\DBAL\Schema\Name\UnqualifiedName;
 use Doctrine\DBAL\Schema\Sequence;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\TableDiff;
 use Doctrine\DBAL\Schema\UniqueConstraint;
+use Doctrine\DBAL\SQL\Builder\IdentifierBuilder;
+use Doctrine\DBAL\SQL\Builder\LiteralBuilder;
 use Doctrine\DBAL\SQL\Parser;
 use Doctrine\DBAL\TransactionIsolationLevel;
 use Doctrine\DBAL\Types;
@@ -39,13 +43,11 @@ use InvalidArgumentException;
 use UnexpectedValueException;
 
 use function addcslashes;
-use function array_map;
 use function array_merge;
 use function array_unique;
 use function array_values;
 use function assert;
 use function count;
-use function explode;
 use function implode;
 use function in_array;
 use function is_array;
@@ -57,8 +59,6 @@ use function preg_quote;
 use function preg_replace;
 use function sprintf;
 use function str_replace;
-use function strlen;
-use function strpos;
 use function strtolower;
 use function strtoupper;
 
@@ -68,6 +68,7 @@ use function strtoupper;
  * They are a passive source of information.
  *
  * @todo Remove any unnecessary methods.
+ * @template N of Name
  */
 abstract class AbstractPlatform
 {
@@ -92,6 +93,20 @@ abstract class AbstractPlatform
      * Holds the KeywordList instance for the current platform.
      */
     protected ?KeywordList $_keywords = null;
+
+    protected NameNormalizer $nameNormalizer;
+    protected IdentifierBuilder $identifierBuilder;
+    protected LiteralBuilder $literalBuilder;
+
+    public function __construct(
+        NameNormalizer $nameNormalizer,
+        IdentifierBuilder $identifierBuilder,
+        LiteralBuilder $literalBuilder
+    ) {
+        $this->nameNormalizer    = $nameNormalizer;
+        $this->identifierBuilder = $identifierBuilder;
+        $this->literalBuilder    = $literalBuilder;
+    }
 
     /**
      * Sets the EventManager used by the Platform.
@@ -902,10 +917,10 @@ abstract class AbstractPlatform
     /**
      * Returns the SQL snippet to drop an existing table.
      */
-    public function getDropTableSQL(string $table): string
+    public function getDropTableSQL(Name $name): string
     {
         if ($this->_eventManager !== null && $this->_eventManager->hasListeners(Events::onSchemaDropTable)) {
-            $eventArgs = new SchemaDropTableEventArgs($table, $this);
+            $eventArgs = new SchemaDropTableEventArgs($name, $this);
             $this->_eventManager->dispatchEvent(Events::onSchemaDropTable, $eventArgs);
 
             if ($eventArgs->isDefaultPrevented()) {
@@ -921,23 +936,23 @@ abstract class AbstractPlatform
             }
         }
 
-        return 'DROP TABLE ' . $table;
+        return 'DROP TABLE ' . $this->buildNameIdentifier($name);
     }
 
     /**
      * Returns the SQL to safely drop a temporary table WITHOUT implicitly committing an open transaction.
      */
-    public function getDropTemporaryTableSQL(string $table): string
+    public function getDropTemporaryTableSQL(Name $name): string
     {
-        return $this->getDropTableSQL($table);
+        return $this->getDropTableSQL($name);
     }
 
     /**
      * Returns the SQL to drop an index from a table.
      */
-    public function getDropIndexSQL(string $name, string $table): string
+    public function getDropIndexSQL(Name $name, Name $tableName): string
     {
-        return 'DROP INDEX ' . $name;
+        return 'DROP INDEX ' . $this->buildNameIdentifier($name);
     }
 
     /**
@@ -945,17 +960,19 @@ abstract class AbstractPlatform
      *
      * @internal The method should be only used from within the {@link AbstractPlatform} class hierarchy.
      */
-    protected function getDropConstraintSQL(string $name, string $table): string
+    protected function getDropConstraintSQL(Name $name, Name $tableName): string
     {
-        return 'ALTER TABLE ' . $table . ' DROP CONSTRAINT ' . $name;
+        return 'ALTER TABLE ' . $this->buildNameIdentifier($tableName)
+            . ' DROP CONSTRAINT ' . $this->buildNameIdentifier($name);
     }
 
     /**
      * Returns the SQL to drop a foreign key.
      */
-    public function getDropForeignKeySQL(string $foreignKey, string $table): string
+    public function getDropForeignKeySQL(Name $name, Name $tableName): string
     {
-        return 'ALTER TABLE ' . $table . ' DROP FOREIGN KEY ' . $foreignKey;
+        return 'ALTER TABLE ' . $this->buildNameIdentifier($tableName)
+            . ' DROP FOREIGN KEY ' . $this->buildNameIdentifier($name);
     }
 
     /**
@@ -980,7 +997,7 @@ abstract class AbstractPlatform
             throw NoColumnsSpecifiedForTable::new($table->getName());
         }
 
-        $tableName                    = $table->getQuotedName($this);
+        $tableName                    = $table->getName();
         $options                      = $table->getOptions();
         $options['uniqueConstraints'] = [];
         $options['indexes']           = [];
@@ -989,7 +1006,7 @@ abstract class AbstractPlatform
         if (($createFlags & self::CREATE_INDEXES) > 0) {
             foreach ($table->getIndexes() as $index) {
                 if (! $index->isPrimary()) {
-                    $options['indexes'][$index->getQuotedName($this)] = $index;
+                    $options['indexes'][$index->getName()] = $index;
 
                     continue;
                 }
@@ -999,7 +1016,7 @@ abstract class AbstractPlatform
             }
 
             foreach ($table->getUniqueConstraints() as $uniqueConstraint) {
-                $options['uniqueConstraints'][$uniqueConstraint->getQuotedName($this)] = $uniqueConstraint;
+                $options['uniqueConstraints'][$uniqueConstraint->getName()] = $uniqueConstraint;
             }
         }
 
@@ -1063,33 +1080,28 @@ abstract class AbstractPlatform
                     continue;
                 }
 
-                $sql[] = $this->getCommentOnColumnSQL($tableName, $column->getQuotedName($this), $comment);
+                $sql[] = $this->getCommentOnColumnSQL($tableName, $column->getName(), $comment);
             }
         }
 
         return array_merge($sql, $columnSql);
     }
 
-    protected function getCommentOnTableSQL(string $tableName, string $comment): string
+    protected function getCommentOnTableSQL(Name $name, string $comment): string
     {
-        $tableName = new Identifier($tableName);
-
         return sprintf(
             'COMMENT ON TABLE %s IS %s',
-            $tableName->getQuotedName($this),
+            $this->buildNameIdentifier($name),
             $this->quoteStringLiteral($comment)
         );
     }
 
-    public function getCommentOnColumnSQL(string $tableName, string $columnName, string $comment): string
+    public function getCommentOnColumnSQL(Name $name, Name $columnName, string $comment): string
     {
-        $tableName  = new Identifier($tableName);
-        $columnName = new Identifier($columnName);
-
         return sprintf(
             'COMMENT ON COLUMN %s.%s IS %s',
-            $tableName->getQuotedName($this),
-            $columnName->getQuotedName($this),
+            $this->buildNameIdentifier($name),
+            $this->buildNameIdentifier($columnName),
             $this->quoteStringLiteral($comment)
         );
     }
@@ -1116,7 +1128,7 @@ abstract class AbstractPlatform
      *
      * @return array<int, string>
      */
-    protected function _getCreateTableSQL(string $name, array $columns, array $options = []): array
+    protected function _getCreateTableSQL(Name $name, array $columns, array $options = []): array
     {
         $columnListSql = $this->getColumnDeclarationListSQL($columns);
 
@@ -1136,7 +1148,7 @@ abstract class AbstractPlatform
             }
         }
 
-        $query = 'CREATE TABLE ' . $name . ' (' . $columnListSql;
+        $query = 'CREATE TABLE ' . $this->buildNameIdentifier($name) . ' (' . $columnListSql;
         $check = $this->getCheckDeclarationSQL($columns);
 
         if (! empty($check)) {
@@ -1186,37 +1198,38 @@ abstract class AbstractPlatform
      *
      * @throws Exception If not supported on this platform.
      */
-    public function getDropSequenceSQL(string $name): string
+    public function getDropSequenceSQL(Name $name): string
     {
         if (! $this->supportsSequences()) {
             throw NotSupported::new(__METHOD__);
         }
 
-        return 'DROP SEQUENCE ' . $name;
+        return 'DROP SEQUENCE ' . $this->buildNameIdentifier($name);
     }
 
     /**
      * Returns the SQL to create an index on a table on this platform.
      *
+     * @param Name $tableName The name of the table on which the index is to be created.
+     *
      * @throws InvalidArgumentException
      */
-    public function getCreateIndexSQL(Index $index, string $table): string
+    public function getCreateIndexSQL(Index $index, Name $tableName): string
     {
-        $name    = $index->getQuotedName($this);
-        $columns = $index->getColumns();
+        $columns = $index->getColumnNames();
 
         if (count($columns) === 0) {
             throw new InvalidArgumentException('Incomplete definition. "columns" required.');
         }
 
         if ($index->isPrimary()) {
-            return $this->getCreatePrimaryKeySQL($index, $table);
+            return $this->getCreatePrimaryKeySQL($index, $tableName);
         }
 
-        $query  = 'CREATE ' . $this->getCreateIndexSQLFlags($index) . 'INDEX ' . $name . ' ON ' . $table;
-        $query .= ' (' . $this->getIndexFieldDeclarationListSQL($index) . ')' . $this->getPartialIndexSQL($index);
-
-        return $query;
+        return 'CREATE ' . $this->getCreateIndexSQLFlags($index)
+            . 'INDEX ' . $this->buildNameIdentifier($index->getName())
+            . ' ON ' . $this->buildNameIdentifier($tableName)
+            . ' (' . $this->getIndexFieldDeclarationListSQL($index) . ')' . $this->getPartialIndexSQL($index);
     }
 
     /**
@@ -1242,9 +1255,10 @@ abstract class AbstractPlatform
     /**
      * Returns the SQL to create an unnamed primary key constraint.
      */
-    public function getCreatePrimaryKeySQL(Index $index, string $table): string
+    public function getCreatePrimaryKeySQL(Index $index, Name $table): string
     {
-        return 'ALTER TABLE ' . $table . ' ADD PRIMARY KEY (' . $this->getIndexFieldDeclarationListSQL($index) . ')';
+        return 'ALTER TABLE ' . $this->buildNameIdentifier($table)
+            . ' ADD PRIMARY KEY (' . $this->getIndexFieldDeclarationListSQL($index) . ')';
     }
 
     /**
@@ -1252,7 +1266,7 @@ abstract class AbstractPlatform
      *
      * @throws Exception If not supported on this platform.
      */
-    public function getCreateSchemaSQL(string $schemaName): string
+    public function getCreateSchemaSQL(Name $schemaName): string
     {
         if (! $this->supportsSchemas()) {
             throw NotSupported::new(__METHOD__);
@@ -1275,62 +1289,35 @@ abstract class AbstractPlatform
      *
      * @throws Exception If not supported on this platform.
      */
-    public function getDropSchemaSQL(string $schemaName): string
+    public function getDropSchemaSQL(Name $name): string
     {
-        if (! $this->supportsSchemas()) {
+        if (!$this->supportsSchemas()) {
             throw NotSupported::new(__METHOD__);
         }
 
-        return 'DROP SCHEMA ' . $schemaName;
+        return 'DROP SCHEMA ' . $this->buildNameIdentifier($name);
     }
 
-    /**
-     * Quotes a string so that it can be safely used as a table or column name,
-     * even if it is a reserved word of the platform. This also detects identifier
-     * chains separated by dot and quotes them independently.
-     *
-     * NOTE: Just because you CAN use quoted identifiers doesn't mean
-     * you SHOULD use them. In general, they end up causing way more
-     * problems than they solve.
-     *
-     * @param string $identifier The identifier name to be quoted.
-     *
-     * @return string The quoted identifier string.
-     */
-    public function quoteIdentifier(string $identifier): string
+    protected function buildNameIdentifier(Name $name): string
     {
-        if (strpos($identifier, '.') !== false) {
-            $parts = array_map([$this, 'quoteSingleIdentifier'], explode('.', $identifier));
-
-            return implode('.', $parts);
-        }
-
-        return $this->quoteSingleIdentifier($identifier);
+        return $name->toIdentifier($this->nameNormalizer, $this->identifierBuilder);
     }
 
-    /**
-     * Quotes a single identifier (no dot chain separation).
-     *
-     * @param string $str The identifier name to be quoted.
-     *
-     * @return string The quoted identifier string.
-     */
-    public function quoteSingleIdentifier(string $str): string
+    protected function buildNameLiteral(UnqualifiedName $name): string
     {
-        $c = $this->getIdentifierQuoteCharacter();
-
-        return $c . str_replace($c, $c . $c, $str) . $c;
+        return $name->toLiteral($this->nameNormalizer, $this->literalBuilder);
     }
 
     /**
      * Returns the SQL to create a new foreign key.
      *
      * @param ForeignKeyConstraint $foreignKey The foreign key constraint.
-     * @param string               $table      The name of the table on which the foreign key is to be created.
+     * @param Name                 $tableName  The name of the table on which the foreign key is to be created.
      */
-    public function getCreateForeignKeySQL(ForeignKeyConstraint $foreignKey, string $table): string
+    public function getCreateForeignKeySQL(ForeignKeyConstraint $foreignKey, Name $tableName): string
     {
-        return 'ALTER TABLE ' . $table . ' ADD ' . $this->getForeignKeyDeclarationSQL($foreignKey);
+        return 'ALTER TABLE ' . $this->buildNameIdentifier($tableName)
+            . ' ADD ' . $this->getForeignKeyDeclarationSQL($foreignKey);
     }
 
     /**
@@ -1411,7 +1398,7 @@ abstract class AbstractPlatform
      * @param string[] $columnSql
      */
     protected function onSchemaAlterTableRenameColumn(
-        string $oldColumnName,
+        Name $oldColumnName,
         Column $column,
         TableDiff $diff,
         array &$columnSql
@@ -1458,25 +1445,25 @@ abstract class AbstractPlatform
      */
     protected function getPreAlterTableIndexForeignKeySQL(TableDiff $diff): array
     {
-        $tableName = $diff->getName($this)->getQuotedName($this);
+        $tableName = $diff->getName();
 
         $sql = [];
         if ($this->supportsForeignKeyConstraints()) {
             foreach ($diff->removedForeignKeys as $foreignKey) {
-                $sql[] = $this->getDropForeignKeySQL($foreignKey->getQuotedName($this), $tableName);
+                $sql[] = $this->getDropForeignKeySQL($foreignKey->getName(), $tableName);
             }
 
             foreach ($diff->changedForeignKeys as $foreignKey) {
-                $sql[] = $this->getDropForeignKeySQL($foreignKey->getQuotedName($this), $tableName);
+                $sql[] = $this->getDropForeignKeySQL($foreignKey->getName(), $tableName);
             }
         }
 
         foreach ($diff->removedIndexes as $index) {
-            $sql[] = $this->getDropIndexSQL($index->getQuotedName($this), $tableName);
+            $sql[] = $this->getDropIndexSQL($index->getName(), $tableName);
         }
 
         foreach ($diff->changedIndexes as $index) {
-            $sql[] = $this->getDropIndexSQL($index->getQuotedName($this), $tableName);
+            $sql[] = $this->getDropIndexSQL($index->getName(), $tableName);
         }
 
         return $sql;
@@ -1487,14 +1474,8 @@ abstract class AbstractPlatform
      */
     protected function getPostAlterTableIndexForeignKeySQL(TableDiff $diff): array
     {
-        $sql     = [];
-        $newName = $diff->getNewName();
-
-        if ($newName !== null) {
-            $tableName = $newName->getQuotedName($this);
-        } else {
-            $tableName = $diff->getName($this)->getQuotedName($this);
-        }
+        $sql       = [];
+        $tableName = $diff->getNewName() ?? $diff->getName();
 
         if ($this->supportsForeignKeyConstraints()) {
             foreach ($diff->addedForeignKeys as $foreignKey) {
@@ -1515,10 +1496,9 @@ abstract class AbstractPlatform
         }
 
         foreach ($diff->renamedIndexes as $oldIndexName => $index) {
-            $oldIndexName = new Identifier($oldIndexName);
-            $sql          = array_merge(
+            $sql = array_merge(
                 $sql,
-                $this->getRenameIndexSQL($oldIndexName->getQuotedName($this), $index, $tableName)
+                $this->getRenameIndexSQL($oldIndexName, $index, $tableName)
             );
         }
 
@@ -1528,13 +1508,13 @@ abstract class AbstractPlatform
     /**
      * Returns the SQL for renaming an index on a table.
      *
-     * @param string $oldIndexName The name of the index to rename from.
-     * @param Index  $index        The definition of the index to rename to.
-     * @param string $tableName    The table to rename the given index on.
+     * @param Name  $oldIndexName The name of the index to rename from.
+     * @param Index $index        The definition of the index to rename to.
+     * @param Name  $tableName    The table to rename the given index on.
      *
      * @return string[] The sequence of SQL statements for renaming the given index.
      */
-    protected function getRenameIndexSQL(string $oldIndexName, Index $index, string $tableName): array
+    protected function getRenameIndexSQL(Name $oldIndexName, Index $index, Name $tableName): array
     {
         return [
             $this->getDropIndexSQL($oldIndexName, $tableName),
@@ -1584,7 +1564,7 @@ abstract class AbstractPlatform
      * Obtains DBMS specific SQL code portion needed to declare a generic type
      * column to be used in statements like CREATE TABLE.
      *
-     * @param string  $name   The name the column to be declared.
+     * @param Name    $name   The name the column to be declared.
      * @param mixed[] $column An associative array with the name of the properties
      *                        of the column being declared as array indexes. Currently, the types
      *                        of supported column properties are as follows:
@@ -1615,7 +1595,7 @@ abstract class AbstractPlatform
      *
      * @throws Exception
      */
-    public function getColumnDeclarationSQL(string $name, array $column): string
+    public function getColumnDeclarationSQL(Name $name, array $column): string
     {
         if (isset($column['columnDefinition'])) {
             $declaration = $this->getCustomTypeDeclarationSQL($column);
@@ -1642,7 +1622,7 @@ abstract class AbstractPlatform
             }
         }
 
-        return $name . ' ' . $declaration;
+        return $this->buildNameIdentifier($name) . ' ' . $declaration;
     }
 
     /**
@@ -1751,19 +1731,13 @@ abstract class AbstractPlatform
      */
     public function getUniqueConstraintDeclarationSQL(UniqueConstraint $constraint): string
     {
-        $columns = $constraint->getColumns();
+        $columns = $constraint->getColumnNames();
 
         if (count($columns) === 0) {
             throw new InvalidArgumentException('Incomplete definition. "columns" required.');
         }
 
-        $chunks = ['CONSTRAINT'];
-
-        if ($constraint->getName() !== '') {
-            $chunks[] = $constraint->getQuotedName($this);
-        }
-
-        $chunks[] = 'UNIQUE';
+        $chunks = ['CONSTRAINT', $this->buildNameIdentifier($constraint->getName()), 'UNIQUE'];
 
         if ($constraint->hasFlag('clustered')) {
             $chunks[] = 'CLUSTERED';
@@ -1786,13 +1760,13 @@ abstract class AbstractPlatform
      */
     public function getIndexDeclarationSQL(Index $index): string
     {
-        $columns = $index->getColumns();
+        $columns = $index->getColumnNames();
 
         if (count($columns) === 0) {
             throw new InvalidArgumentException('Incomplete definition. "columns" required.');
         }
 
-        return $this->getCreateIndexSQLFlags($index) . 'INDEX ' . $index->getQuotedName($this)
+        return $this->getCreateIndexSQLFlags($index) . 'INDEX ' . $this->buildNameIdentifier($index->getName())
             . ' (' . $this->getIndexFieldDeclarationListSQL($index) . ')' . $this->getPartialIndexSQL($index);
     }
 
@@ -1841,7 +1815,7 @@ abstract class AbstractPlatform
     /**
      * Some vendors require temporary table names to be qualified specially.
      */
-    public function getTemporaryTableName(string $tableName): string
+    public function getTemporaryTableName(Name $tableName): Name
     {
         return $tableName;
     }
@@ -1912,28 +1886,19 @@ abstract class AbstractPlatform
      */
     public function getForeignKeyBaseDeclarationSQL(ForeignKeyConstraint $foreignKey): string
     {
-        $sql = '';
-        if ($foreignKey->getName() !== '') {
-            $sql .= 'CONSTRAINT ' . $foreignKey->getQuotedName($this) . ' ';
-        }
+        $sql = 'CONSTRAINT ' . $this->buildNameIdentifier($foreignKey->getName()) . ' FOREIGN KEY (';
 
-        $sql .= 'FOREIGN KEY (';
-
-        if (count($foreignKey->getLocalColumns()) === 0) {
+        if (count($foreignKey->getLocalColumnNames()) === 0) {
             throw new InvalidArgumentException('Incomplete definition. "local" required.');
         }
 
-        if (count($foreignKey->getForeignColumns()) === 0) {
+        if (count($foreignKey->getForeignColumnNames()) === 0) {
             throw new InvalidArgumentException('Incomplete definition. "foreign" required.');
-        }
-
-        if (strlen($foreignKey->getForeignTableName()) === 0) {
-            throw new InvalidArgumentException('Incomplete definition. "foreignTable" required.');
         }
 
         return $sql . implode(', ', $foreignKey->getQuotedLocalColumns($this))
             . ') REFERENCES '
-            . $foreignKey->getQuotedForeignTableName($this) . ' ('
+            . $this->buildNameIdentifier($foreignKey->getForeignTableName()) . ' ('
             . implode(', ', $foreignKey->getQuotedForeignColumns($this)) . ')';
     }
 
@@ -2096,7 +2061,7 @@ abstract class AbstractPlatform
     /**
      * @throws Exception If not supported on this platform.
      */
-    public function getListSequencesSQL(string $database): string
+    public function getListSequencesSQL(UnqualifiedName $databaseName): string
     {
         throw NotSupported::new(__METHOD__);
     }
@@ -2104,19 +2069,22 @@ abstract class AbstractPlatform
     /**
      * @throws Exception If not supported on this platform.
      */
-    public function getListTableConstraintsSQL(string $table): string
+    public function getListTableConstraintsSQL(Name $name): string
     {
         throw NotSupported::new(__METHOD__);
     }
 
-    abstract public function getListTableColumnsSQL(string $table, ?string $database = null): string;
+    /**
+     * @param N $name
+     */
+    abstract public function getListTableColumnsSQL(Name $name, ?UnqualifiedName $databaseName = null): string;
 
     abstract public function getListTablesSQL(): string;
 
     /**
      * Returns the SQL to list all views of a database or user.
      */
-    abstract public function getListViewsSQL(string $database): string;
+    abstract public function getListViewsSQL(UnqualifiedName $databaseName): string;
 
     /**
      * Returns the list of indexes for the current database.
@@ -2128,24 +2096,24 @@ abstract class AbstractPlatform
      * are connected with that database. Cross-database information schema
      * requests may be impossible.
      */
-    abstract public function getListTableIndexesSQL(string $table, ?string $database = null): string;
+    abstract public function getListTableIndexesSQL(Name $name, ?UnqualifiedName $databaseName = null): string;
 
-    abstract public function getListTableForeignKeysSQL(string $table, ?string $database = null): string;
+    abstract public function getListTableForeignKeysSQL(Name $name, ?UnqualifiedName $databaseName = null): string;
 
-    public function getCreateViewSQL(string $name, string $sql): string
+    public function getCreateViewSQL(Name $name, string $sql): string
     {
-        return 'CREATE VIEW ' . $name . ' AS ' . $sql;
+        return 'CREATE VIEW ' . $this->buildNameIdentifier($name) . ' AS ' . $sql;
     }
 
-    public function getDropViewSQL(string $name): string
+    public function getDropViewSQL(Name $name): string
     {
-        return 'DROP VIEW ' . $name;
+        return 'DROP VIEW ' . $this->buildNameIdentifier($name);
     }
 
     /**
      * @throws Exception If not supported on this platform.
      */
-    public function getSequenceNextValSQL(string $sequence): string
+    public function getSequenceNextValSQL(Name $name): string
     {
         throw NotSupported::new(__METHOD__);
     }
@@ -2153,17 +2121,17 @@ abstract class AbstractPlatform
     /**
      * Returns the SQL to create a new database.
      *
-     * @param string $name The name of the database that should be created.
+     * @param Name $name The name of the database that should be created.
      *
      * @throws Exception If not supported on this platform.
      */
-    public function getCreateDatabaseSQL(string $name): string
+    public function getCreateDatabaseSQL(Name $name): string
     {
         if (! $this->supportsCreateDropDatabase()) {
             throw NotSupported::new(__METHOD__);
         }
 
-        return 'CREATE DATABASE ' . $name;
+        return 'CREATE DATABASE ' . $this->buildNameIdentifier($name);
     }
 
     /**
@@ -2173,13 +2141,13 @@ abstract class AbstractPlatform
      *
      * @throws Exception If not supported on this platform.
      */
-    public function getDropDatabaseSQL(string $name): string
+    public function getDropDatabaseSQL(Name $name): string
     {
         if (! $this->supportsCreateDropDatabase()) {
             throw NotSupported::new(__METHOD__);
         }
 
-        return 'DROP DATABASE ' . $name;
+        return 'DROP DATABASE ' . $this->buildNameIdentifier($name);
     }
 
     /**
@@ -2277,14 +2245,12 @@ abstract class AbstractPlatform
     /**
      * Returns the name of the sequence for a particular identity column in a particular table.
      *
-     * @see usesSequenceEmulatedIdentityColumns
-     *
-     * @param string $tableName  The name of the table to return the sequence name for.
-     * @param string $columnName The name of the identity column in the table to return the sequence name for.
+     * @param Name $tableName  The name of the table to return the sequence name for.
+     * @param Name $columnName The name of the identity column in the table to return the sequence name for.
      *
      * @throws Exception If not supported on this platform.
      */
-    public function getIdentitySequenceName(string $tableName, string $columnName): string
+    public function getIdentitySequenceName(Name $tableName, Name $columnName): Name
     {
         throw NotSupported::new(__METHOD__);
     }
@@ -2485,9 +2451,10 @@ abstract class AbstractPlatform
     /**
      * Returns the insert SQL for an empty insert statement.
      */
-    public function getEmptyIdentityInsertSQL(string $quotedTableName, string $quotedIdentifierColumnName): string
+    public function getEmptyIdentityInsertSQL(Name $tableName, Name $identityColumnName): string
     {
-        return 'INSERT INTO ' . $quotedTableName . ' (' . $quotedIdentifierColumnName . ') VALUES (null)';
+        return 'INSERT INTO ' . $this->buildNameIdentifier($tableName)
+            . ' (' . $this->buildNameIdentifier($identityColumnName) . ') VALUES (NULL)';
     }
 
     /**
@@ -2496,11 +2463,9 @@ abstract class AbstractPlatform
      * Cascade is not supported on many platforms but would optionally cascade the truncate by
      * following the foreign keys.
      */
-    public function getTruncateTableSQL(string $tableName, bool $cascade = false): string
+    public function getTruncateTableSQL(Name $name, bool $cascade = false): string
     {
-        $tableIdentifier = new Identifier($tableName);
-
-        return 'TRUNCATE ' . $tableIdentifier->getQuotedName($this);
+        return 'TRUNCATE ' . $this->buildNameIdentifier($name);
     }
 
     /**
@@ -2514,25 +2479,25 @@ abstract class AbstractPlatform
     /**
      * Returns the SQL to create a new savepoint.
      */
-    public function createSavePoint(string $savepoint): string
+    public function createSavePoint(Name $name): string
     {
-        return 'SAVEPOINT ' . $savepoint;
+        return 'SAVEPOINT ' . $this->buildNameIdentifier($name);
     }
 
     /**
      * Returns the SQL to release a savepoint.
      */
-    public function releaseSavePoint(string $savepoint): string
+    public function releaseSavePoint(Name $name): string
     {
-        return 'RELEASE SAVEPOINT ' . $savepoint;
+        return 'RELEASE SAVEPOINT ' . $this->buildNameIdentifier($name);
     }
 
     /**
-     * Returns the SQL to rollback a savepoint.
+     * Returns the SQL to roll back a savepoint.
      */
-    public function rollbackSavePoint(string $savepoint): string
+    public function rollBackSavePoint(Name $name): string
     {
-        return 'ROLLBACK TO SAVEPOINT ' . $savepoint;
+        return 'ROLLBACK TO SAVEPOINT ' . $this->buildNameIdentifier($name);
     }
 
     /**
@@ -2609,7 +2574,7 @@ abstract class AbstractPlatform
     private function columnToArray(Column $column): array
     {
         return array_merge($column->toArray(), [
-            'name' => $column->getQuotedName($this),
+            'name' => $column->getName(),
             'version' => $column->hasPlatformOption('version') ? $column->getPlatformOption('version') : false,
             'comment' => $this->getColumnComment($column),
         ]);

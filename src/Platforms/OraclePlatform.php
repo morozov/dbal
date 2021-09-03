@@ -8,8 +8,9 @@ use Doctrine\DBAL\Exception\ColumnLengthRequired;
 use Doctrine\DBAL\Platforms\Keywords\KeywordList;
 use Doctrine\DBAL\Platforms\Keywords\OracleKeywords;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
-use Doctrine\DBAL\Schema\Identifier;
 use Doctrine\DBAL\Schema\Index;
+use Doctrine\DBAL\Schema\Name;
+use Doctrine\DBAL\Schema\Name\UnqualifiedName;
 use Doctrine\DBAL\Schema\Sequence;
 use Doctrine\DBAL\Schema\TableDiff;
 use Doctrine\DBAL\TransactionIsolationLevel;
@@ -119,22 +120,22 @@ class OraclePlatform extends AbstractPlatform
                 . '+' . $value2 . ')';
     }
 
-    public function getCreatePrimaryKeySQL(Index $index, string $table): string
+    public function getCreatePrimaryKeySQL(Index $index, Name $table): string
     {
-        return 'ALTER TABLE ' . $table . ' ADD CONSTRAINT ' . $index->getQuotedName($this)
+        return 'ALTER TABLE ' . $this->buildNameIdentifier($table) . ' ADD CONSTRAINT ' . $index->getQuotedName($this)
             . ' PRIMARY KEY (' . $this->getIndexFieldDeclarationListSQL($index) . ')';
     }
 
     /**
      * {@inheritDoc}
      *
-     * Need to specifiy minvalue, since start with is hidden in the system and MINVALUE <= START WITH.
-     * Therefore we can use MINVALUE to be able to get a hint what START WITH was for later introspection
+     * Need to specify minvalue, since start with is hidden in the system and MINVALUE <= START WITH.
+     * Therefore, we can use MINVALUE to be able to get a hint what START WITH was for later introspection
      * in {@see listSequences()}
      */
     public function getCreateSequenceSQL(Sequence $sequence): string
     {
-        return 'CREATE SEQUENCE ' . $sequence->getQuotedName($this) .
+        return 'CREATE SEQUENCE ' . $this->buildNameIdentifier($sequence->getName()) .
                ' START WITH ' . $sequence->getInitialValue() .
                ' MINVALUE ' . $sequence->getInitialValue() .
                ' INCREMENT BY ' . $sequence->getAllocationSize() .
@@ -143,7 +144,7 @@ class OraclePlatform extends AbstractPlatform
 
     public function getAlterSequenceSQL(Sequence $sequence): string
     {
-        return 'ALTER SEQUENCE ' . $sequence->getQuotedName($this) .
+        return 'ALTER SEQUENCE ' . $this->buildNameIdentifier($sequence->getName()) .
                ' INCREMENT BY ' . $sequence->getAllocationSize()
                . $this->getSequenceCacheSQL($sequence);
     }
@@ -168,9 +169,9 @@ class OraclePlatform extends AbstractPlatform
         return '';
     }
 
-    public function getSequenceNextValSQL(string $sequence): string
+    public function getSequenceNextValSQL(Name $name): string
     {
-        return 'SELECT ' . $sequence . '.nextval FROM DUAL';
+        return 'SELECT ' . $this->buildNameIdentifier($name) . '.NEXTVAL FROM DUAL';
     }
 
     public function getSetTransactionIsolationSQL(int $level): string
@@ -304,18 +305,16 @@ class OraclePlatform extends AbstractPlatform
         return 'SELECT username FROM all_users';
     }
 
-    public function getListSequencesSQL(string $database): string
+    public function getListSequencesSQL(UnqualifiedName $databaseName): string
     {
         return 'SELECT SEQUENCE_NAME, MIN_VALUE, INCREMENT_BY FROM SYS.ALL_SEQUENCES WHERE SEQUENCE_OWNER = '
-            . $this->quoteStringLiteral(
-                $this->normalizeIdentifier($database)->getName()
-            );
+            . $this->buildNameLiteral($databaseName);
     }
 
     /**
      * {@inheritDoc}
      */
-    protected function _getCreateTableSQL(string $name, array $columns, array $options = []): array
+    protected function _getCreateTableSQL(Name $name, array $columns, array $options = []): array
     {
         $indexes            = $options['indexes'] ?? [];
         $options['indexes'] = [];
@@ -347,10 +346,9 @@ class OraclePlatform extends AbstractPlatform
      *
      * @link http://ezcomponents.org/docs/api/trunk/DatabaseSchema/ezcDbSchemaOracleReader.html
      */
-    public function getListTableIndexesSQL(string $table, ?string $database = null): string
+    public function getListTableIndexesSQL(Name $name, ?UnqualifiedName $databaseName = null): string
     {
-        $table = $this->normalizeIdentifier($table);
-        $table = $this->quoteStringLiteral($table->getName());
+        $name = $this->buildNameLiteral($name->getName());
 
         return "SELECT uind_col.index_name AS name,
                        (
@@ -377,7 +375,7 @@ class OraclePlatform extends AbstractPlatform
                            WHERE  ucon.index_name = uind_col.index_name
                        ) AS is_primary
              FROM      user_ind_columns uind_col
-             WHERE     uind_col.table_name = " . $table . '
+             WHERE     uind_col.table_name = " . $name . '
              ORDER BY  uind_col.column_position ASC';
     }
 
@@ -386,7 +384,7 @@ class OraclePlatform extends AbstractPlatform
         return 'SELECT * FROM sys.user_tables';
     }
 
-    public function getListViewsSQL(string $database): string
+    public function getListViewsSQL(UnqualifiedName $databaseName): string
     {
         return 'SELECT view_name, text FROM sys.user_views';
     }
@@ -394,19 +392,19 @@ class OraclePlatform extends AbstractPlatform
     /**
      * @return array<int, string>
      */
-    protected function getCreateAutoincrementSql(string $name, string $table, int $start = 1): array
+    protected function getCreateAutoincrementSql(Name $columnName, Name $tableName, int $start = 1): array
     {
-        $tableIdentifier   = $this->normalizeIdentifier($table);
-        $quotedTableName   = $tableIdentifier->getQuotedName($this);
+        $tableIdentifier   = $tableName;
+        $quotedTableName   = $tableIdentifier->getName();
         $unquotedTableName = $tableIdentifier->getName();
 
-        $nameIdentifier = $this->normalizeIdentifier($name);
-        $quotedName     = $nameIdentifier->getQuotedName($this);
+        $nameIdentifier = $columnName;
+        $quotedName     = $nameIdentifier->getName();
         $unquotedName   = $nameIdentifier->getName();
 
         $sql = [];
 
-        $autoincrementIdentifierName = $this->getAutoincrementIdentifierName($tableIdentifier);
+        $autoincrementIdentifierName = $this->getAutoincrementIdentifierName($tableName);
 
         $idx = new Index($autoincrementIdentifierName, [$quotedName], true, true);
 
@@ -422,10 +420,7 @@ BEGIN
   END IF;
 END;";
 
-        $sequenceName = $this->getIdentitySequenceName(
-            $tableIdentifier->isQuoted() ? $quotedTableName : $unquotedTableName,
-            $nameIdentifier->isQuoted() ? $quotedName : $unquotedName
-        );
+        $sequenceName = $this->getIdentitySequenceName($tableName, $columnName);
         $sequence     = new Sequence($sequenceName, $start);
         $sql[]        = $this->getCreateSequenceSQL($sequence);
 
@@ -465,33 +460,17 @@ END;';
      */
     public function getDropAutoincrementSql(string $table): array
     {
-        $table                       = $this->normalizeIdentifier($table);
         $autoincrementIdentifierName = $this->getAutoincrementIdentifierName($table);
         $identitySequenceName        = $this->getIdentitySequenceName(
-            $table->isQuoted() ? $table->getQuotedName($this) : $table->getName(),
+            $table->isQuoted() ? $table->getName() : $table->getName(),
             ''
         );
 
         return [
             'DROP TRIGGER ' . $autoincrementIdentifierName,
             $this->getDropSequenceSQL($identitySequenceName),
-            $this->getDropConstraintSQL($autoincrementIdentifierName, $table->getQuotedName($this)),
+            $this->getDropConstraintSQL($autoincrementIdentifierName, $table->getName()),
         ];
-    }
-
-    /**
-     * Normalizes the given identifier.
-     *
-     * Uppercases the given identifier if it is not quoted by intention
-     * to reflect Oracle's internal auto uppercasing strategy of unquoted identifiers.
-     *
-     * @param string $name The identifier to normalize.
-     */
-    private function normalizeIdentifier(string $name): Identifier
-    {
-        $identifier = new Identifier($name);
-
-        return $identifier->isQuoted() ? $identifier : new Identifier(strtoupper($name));
     }
 
     /**
@@ -500,14 +479,14 @@ END;';
      * if the new string exceeds max identifier length,
      * keeps $suffix, cuts from $identifier as much as the part exceeding.
      */
-    private function addSuffix(string $identifier, string $suffix): string
+    private function addSuffix(Name $name, string $suffix): string
     {
         $maxPossibleLengthWithoutSuffix = $this->getMaxIdentifierLength() - strlen($suffix);
-        if (strlen($identifier) > $maxPossibleLengthWithoutSuffix) {
-            $identifier = substr($identifier, 0, $maxPossibleLengthWithoutSuffix);
+        if (strlen($name) > $maxPossibleLengthWithoutSuffix) {
+            $name = substr($name, 0, $maxPossibleLengthWithoutSuffix);
         }
 
-        return $identifier . $suffix;
+        return $name . $suffix;
     }
 
     /**
@@ -515,20 +494,17 @@ END;';
      *
      * Quotes the autoincrement primary key identifier name
      * if the given table name is quoted by intention.
+     *
+     * @param Name $tableName The name of the table to return the autoincrement primary key identifier name for.
      */
-    private function getAutoincrementIdentifierName(Identifier $table): string
+    private function getAutoincrementIdentifierName(Name $tableName): string
     {
-        $identifierName = $this->addSuffix($table->getName(), '_AI_PK');
-
-        return $table->isQuoted()
-            ? $this->quoteSingleIdentifier($identifierName)
-            : $identifierName;
+        return $this->addSuffix($tableName, '_AI_PK');
     }
 
-    public function getListTableForeignKeysSQL(string $table, ?string $database = null): string
+    public function getListTableForeignKeysSQL(Name $name, ?UnqualifiedName $databaseName = null): string
     {
-        $table = $this->normalizeIdentifier($table);
-        $table = $this->quoteStringLiteral($table->getName());
+        $name = $this->buildNameLiteral($name->getName());
 
         return "SELECT alc.constraint_name,
           alc.DELETE_RULE,
@@ -550,34 +526,31 @@ END;';
      JOIN user_constraints alc
        ON alc.constraint_name = cols.constraint_name
       AND alc.constraint_type = 'R'
-      AND alc.table_name = " . $table . '
+      AND alc.table_name = " . $name . '
     ORDER BY cols.constraint_name ASC, cols.position ASC';
     }
 
-    public function getListTableConstraintsSQL(string $table): string
+    public function getListTableConstraintsSQL(Name $name): string
     {
-        $table = $this->normalizeIdentifier($table);
-        $table = $this->quoteStringLiteral($table->getName());
+        $name = $this->buildNameLiteral($name->getName());
 
-        return 'SELECT * FROM user_constraints WHERE table_name = ' . $table;
+        return 'SELECT * FROM user_constraints WHERE table_name = ' . $name;
     }
 
-    public function getListTableColumnsSQL(string $table, ?string $database = null): string
+    public function getListTableColumnsSQL(Name $name, ?UnqualifiedName $databaseName = null): string
     {
-        $table = $this->normalizeIdentifier($table);
-        $table = $this->quoteStringLiteral($table->getName());
+        $name = $this->buildNameLiteral($name->getName());
 
         $tabColumnsTableName       = 'user_tab_columns';
         $colCommentsTableName      = 'user_col_comments';
         $tabColumnsOwnerCondition  = '';
         $colCommentsOwnerCondition = '';
 
-        if ($database !== null && $database !== '/') {
-            $database                  = $this->normalizeIdentifier($database);
-            $database                  = $this->quoteStringLiteral($database->getName());
+        if ($databaseName !== null && $databaseName !== '/') {
+            $databaseName              = $this->buildNameLiteral($databaseName->getName());
             $tabColumnsTableName       = 'all_tab_columns';
             $colCommentsTableName      = 'all_col_comments';
-            $tabColumnsOwnerCondition  = ' AND c.owner = ' . $database;
+            $tabColumnsOwnerCondition  = ' AND c.owner = ' . $databaseName;
             $colCommentsOwnerCondition = ' AND d.OWNER = c.OWNER';
         }
 
@@ -598,14 +571,14 @@ SQL
             $colCommentsTableName,
             $colCommentsOwnerCondition,
             $tabColumnsTableName,
-            $table,
+            $name,
             $tabColumnsOwnerCondition
         );
     }
 
-    public function getDropForeignKeySQL(string $foreignKey, string $table): string
+    public function getDropForeignKeySQL(Name $name, Name $tableName): string
     {
-        return $this->getDropConstraintSQL($foreignKey, $table);
+        return $this->getDropConstraintSQL($name, $tableName);
     }
 
     public function getAdvancedForeignKeyOptionsSQL(ForeignKeyConstraint $foreignKey): string
@@ -644,14 +617,14 @@ SQL
         }
     }
 
-    public function getCreateDatabaseSQL(string $name): string
+    public function getCreateDatabaseSQL(Name $name): string
     {
-        return 'CREATE USER ' . $name;
+        return 'CREATE USER ' . $this->buildNameIdentifier($name);
     }
 
-    public function getDropDatabaseSQL(string $name): string
+    public function getDropDatabaseSQL(Name $name): string
     {
-        return 'DROP USER ' . $name . ' CASCADE';
+        return 'DROP USER ' . $this->buildNameIdentifier($name) . ' CASCADE';
     }
 
     /**
@@ -670,7 +643,7 @@ SQL
                 continue;
             }
 
-            $fields[] = $this->getColumnDeclarationSQL($column->getQuotedName($this), $column->toArray());
+            $fields[] = $this->getColumnDeclarationSQL($column->getName(), $column->toArray());
             $comment  = $this->getColumnComment($column);
 
             if ($comment === '') {
@@ -678,14 +651,14 @@ SQL
             }
 
             $commentsSQL[] = $this->getCommentOnColumnSQL(
-                $diff->getName($this)->getQuotedName($this),
-                $column->getQuotedName($this),
+                $diff->getName($this)->getName(),
+                $column->getName(),
                 $comment
             );
         }
 
         if (count($fields) > 0) {
-            $sql[] = 'ALTER TABLE ' . $diff->getName($this)->getQuotedName($this)
+            $sql[] = 'ALTER TABLE ' . $diff->getName($this)->getName()
                 . ' ADD (' . implode(', ', $fields) . ')';
         }
 
@@ -720,7 +693,7 @@ SQL
                     unset($columnInfo['notnull']);
                 }
 
-                $fields[] = $column->getQuotedName($this) . $this->getColumnDeclarationSQL('', $columnInfo);
+                $fields[] = $column->getName() . $this->getColumnDeclarationSQL('', $columnInfo);
             }
 
             if (! $columnHasChangedComment) {
@@ -728,14 +701,14 @@ SQL
             }
 
             $commentsSQL[] = $this->getCommentOnColumnSQL(
-                $diff->getName($this)->getQuotedName($this),
-                $column->getQuotedName($this),
+                $diff->getName($this)->getName(),
+                $column->getName(),
                 $this->getColumnComment($column)
             );
         }
 
         if (count($fields) > 0) {
-            $sql[] = 'ALTER TABLE ' . $diff->getName($this)->getQuotedName($this)
+            $sql[] = 'ALTER TABLE ' . $diff->getName($this)->getName()
                 . ' MODIFY (' . implode(', ', $fields) . ')';
         }
 
@@ -744,10 +717,9 @@ SQL
                 continue;
             }
 
-            $oldColumnName = new Identifier($oldColumnName);
-
-            $sql[] = 'ALTER TABLE ' . $diff->getName($this)->getQuotedName($this) .
-                ' RENAME COLUMN ' . $oldColumnName->getQuotedName($this) . ' TO ' . $column->getQuotedName($this);
+            $sql[] = 'ALTER TABLE ' . $this->buildNameIdentifier($diff->getName())
+                . ' RENAME COLUMN ' . $this->buildNameIdentifier($oldColumnName)
+                . ' TO ' . $this->buildNameIdentifier($column->getName());
         }
 
         $fields = [];
@@ -756,11 +728,11 @@ SQL
                 continue;
             }
 
-            $fields[] = $column->getQuotedName($this);
+            $fields[] = $column->getName();
         }
 
         if (count($fields) > 0) {
-            $sql[] = 'ALTER TABLE ' . $diff->getName($this)->getQuotedName($this)
+            $sql[] = 'ALTER TABLE ' . $diff->getName($this)->getName()
                 . ' DROP (' . implode(', ', $fields) . ')';
         }
 
@@ -774,8 +746,8 @@ SQL
             if ($newName !== null) {
                 $sql[] = sprintf(
                     'ALTER TABLE %s RENAME TO %s',
-                    $diff->getName($this)->getQuotedName($this),
-                    $newName->getQuotedName($this)
+                    $diff->getName($this)->getName(),
+                    $newName->getName()
                 );
             }
 
@@ -792,7 +764,7 @@ SQL
     /**
      * {@inheritdoc}
      */
-    public function getColumnDeclarationSQL(string $name, array $column): string
+    public function getColumnDeclarationSQL(Name $name, array $column): string
     {
         if (isset($column['columnDefinition'])) {
             $columnDef = $this->getCustomTypeDeclarationSQL($column);
@@ -814,20 +786,20 @@ SQL
             $columnDef = $typeDecl . $default . $notnull . $unique . $check;
         }
 
-        return $name . ' ' . $columnDef;
+        return $this->buildNameIdentifier($name) . ' ' . $columnDef;
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function getRenameIndexSQL(string $oldIndexName, Index $index, string $tableName): array
+    protected function getRenameIndexSQL(Name $oldIndexName, Index $index, Name $tableName): array
     {
         if (strpos($tableName, '.') !== false) {
             [$schema]     = explode('.', $tableName);
             $oldIndexName = $schema . '.' . $oldIndexName;
         }
 
-        return ['ALTER INDEX ' . $oldIndexName . ' RENAME TO ' . $index->getQuotedName($this)];
+        return ['ALTER INDEX ' . $oldIndexName . ' RENAME TO ' . $index->getName()];
     }
 
     public function usesSequenceEmulatedIdentityColumns(): bool
@@ -835,20 +807,10 @@ SQL
         return true;
     }
 
-    public function getIdentitySequenceName(string $tableName, string $columnName): string
+    public function getIdentitySequenceName(Name $tableName, Name $columnName): Name
     {
-        $table = new Identifier($tableName);
-
         // No usage of column name to preserve BC compatibility with <2.5
-        $identitySequenceName = $this->addSuffix($table->getName(), '_SEQ');
-
-        if ($table->isQuoted()) {
-            $identitySequenceName = '"' . $identitySequenceName . '"';
-        }
-
-        $identitySequenceIdentifier = $this->normalizeIdentifier($identitySequenceName);
-
-        return $identitySequenceIdentifier->getQuotedName($this);
+        return $this->addSuffix($tableName, '_SEQ');
     }
 
     public function supportsCommentOnStatement(): bool
@@ -922,11 +884,9 @@ SQL
         return false;
     }
 
-    public function getTruncateTableSQL(string $tableName, bool $cascade = false): string
+    public function getTruncateTableSQL(Name $name, bool $cascade = false): string
     {
-        $tableIdentifier = new Identifier($tableName);
-
-        return 'TRUNCATE TABLE ' . $tableIdentifier->getQuotedName($this);
+        return 'TRUNCATE TABLE ' . $this->buildNameIdentifier($name);
     }
 
     public function getDummySelectSQL(string $expression = '1'): string
@@ -963,7 +923,7 @@ SQL
         ];
     }
 
-    public function releaseSavePoint(string $savepoint): string
+    public function releaseSavePoint(Name $name): string
     {
         return '';
     }
@@ -988,7 +948,7 @@ SQL
 
         if ($database !== null && $database !== '/') {
             $tableCommentsName = 'all_tab_comments';
-            $ownerCondition    = ' AND owner = ' . $this->quoteStringLiteral(
+            $ownerCondition    = ' AND owner = ' . $this->buildNameLiteral(
                 $this->normalizeIdentifier($database)->getName()
             );
         }
@@ -999,7 +959,7 @@ SELECT comments FROM %s WHERE table_name = %s%s
 SQL
             ,
             $tableCommentsName,
-            $this->quoteStringLiteral($this->normalizeIdentifier($table)->getName()),
+            $this->buildNameLiteral($this->normalizeIdentifier($table)->getName()),
             $ownerCondition
         );
     }

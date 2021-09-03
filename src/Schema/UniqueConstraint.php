@@ -4,23 +4,24 @@ declare(strict_types=1);
 
 namespace Doctrine\DBAL\Schema;
 
-use Doctrine\DBAL\Platforms\AbstractPlatform;
+use Doctrine\DBAL\Schema\Name\UnqualifiedName;
 
 use function array_keys;
-use function array_map;
 use function strtolower;
 
 /**
  * Class for a unique constraint.
  */
-class UniqueConstraint extends AbstractAsset
+class UniqueConstraint
 {
+    private Name $name;
+
     /**
-     * Asset identifier instances of the column names the unique constraint is associated with.
+     * The column names the unique constraint is associated with.
      *
-     * @var array<string, Identifier>
+     * @var NameSet<UnqualifiedName>
      */
-    protected array $columns = [];
+    protected NameSet $columnNames;
 
     /**
      * Platform specific flags
@@ -37,53 +38,32 @@ class UniqueConstraint extends AbstractAsset
     private array $options;
 
     /**
-     * @param array<string>        $columns
+     * @param list<Name>           $columnNames
      * @param array<string>        $flags
      * @param array<string, mixed> $options
      */
-    public function __construct(string $name, array $columns, array $flags = [], array $options = [])
+    public function __construct(Name $name, array $columnNames, array $flags = [], array $options = [])
     {
-        $this->_setName($name);
-
-        $this->options = $options;
-
-        foreach ($columns as $column) {
-            $this->addColumn($column);
-        }
+        $this->name        = $name;
+        $this->columnNames = new NameSet($columnNames);
+        $this->options     = $options;
 
         foreach ($flags as $flag) {
             $this->addFlag($flag);
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getColumns(): array
+    public function getName(): Name
     {
-        return array_keys($this->columns);
+        return $this->name;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getQuotedColumns(AbstractPlatform $platform): array
+    public function getColumnNames(): array
     {
-        $columns = [];
-
-        foreach ($this->columns as $column) {
-            $columns[] = $column->getQuotedName($platform);
-        }
-
-        return $columns;
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    public function getUnquotedColumns(): array
-    {
-        return array_map([$this, 'trimQuotes'], $this->getColumns());
+        return $this->columnNames->toArray();
     }
 
     /**
@@ -147,8 +127,8 @@ class UniqueConstraint extends AbstractAsset
         return $this->options;
     }
 
-    protected function addColumn(string $column): void
+    protected function addColumnName(UnqualifiedName $columnName): void
     {
-        $this->columns[$column] = new Identifier($column);
+        $this->columnNames[] = $columnName;
     }
 }

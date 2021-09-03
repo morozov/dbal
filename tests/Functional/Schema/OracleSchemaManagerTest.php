@@ -231,7 +231,7 @@ class OracleSchemaManagerTest extends SchemaManagerFunctionalTestCase
         $tableIndexes = $this->schemaManager->listTableIndexes('list_table_indexes_pk_id_test');
 
         self::assertArrayHasKey('primary', $tableIndexes, 'listTableIndexes() has to return a "primary" array key.');
-        self::assertEquals(['id'], array_map('strtolower', $tableIndexes['primary']->getColumns()));
+        self::assertEquals(['id'], array_map('strtolower', $tableIndexes['primary']->getColumnNames()));
         self::assertTrue($tableIndexes['primary']->isUnique());
         self::assertTrue($tableIndexes['primary']->isPrimary());
     }

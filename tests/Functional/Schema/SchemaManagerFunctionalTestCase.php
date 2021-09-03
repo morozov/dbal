@@ -373,17 +373,20 @@ abstract class SchemaManagerFunctionalTestCase extends FunctionalTestCase
         self::assertEquals(3, count($tableIndexes));
 
         self::assertArrayHasKey('primary', $tableIndexes, 'listTableIndexes() has to return a "primary" array key.');
-        self::assertEquals(['id', 'other_id'], array_map('strtolower', $tableIndexes['primary']->getColumns()));
+        self::assertEquals(['id', 'other_id'], array_map('strtolower', $tableIndexes['primary']->getColumnNames()));
         self::assertTrue($tableIndexes['primary']->isUnique());
         self::assertTrue($tableIndexes['primary']->isPrimary());
 
         self::assertEquals('test_index_name', strtolower($tableIndexes['test_index_name']->getName()));
-        self::assertEquals(['test'], array_map('strtolower', $tableIndexes['test_index_name']->getColumns()));
+        self::assertEquals(['test'], array_map('strtolower', $tableIndexes['test_index_name']->getColumnNames()));
         self::assertTrue($tableIndexes['test_index_name']->isUnique());
         self::assertFalse($tableIndexes['test_index_name']->isPrimary());
 
         self::assertEquals('test_composite_idx', strtolower($tableIndexes['test_composite_idx']->getName()));
-        self::assertEquals(['id', 'test'], array_map('strtolower', $tableIndexes['test_composite_idx']->getColumns()));
+        self::assertEquals(['id', 'test'], array_map(
+            'strtolower',
+            $tableIndexes['test_composite_idx']->getColumnNames()
+        ));
         self::assertFalse($tableIndexes['test_composite_idx']->isUnique());
         self::assertFalse($tableIndexes['test_composite_idx']->isPrimary());
     }
@@ -400,7 +403,7 @@ abstract class SchemaManagerFunctionalTestCase extends FunctionalTestCase
         $tableIndexes = $this->schemaManager->listTableIndexes('test_create_index');
 
         self::assertEquals('test', strtolower($tableIndexes['test']->getName()));
-        self::assertEquals(['test'], array_map('strtolower', $tableIndexes['test']->getColumns()));
+        self::assertEquals(['test'], array_map('strtolower', $tableIndexes['test']->getColumnNames()));
         self::assertTrue($tableIndexes['test']->isUnique());
         self::assertFalse($tableIndexes['test']->isPrimary());
     }
@@ -486,8 +489,8 @@ abstract class SchemaManagerFunctionalTestCase extends FunctionalTestCase
 
         self::assertCount(1, $fkeys, "Table 'test_create_fk1' has to have one foreign key.");
 
-        self::assertEquals(['foreign_key_test'], array_map('strtolower', $fkeys[0]->getLocalColumns()));
-        self::assertEquals(['id'], array_map('strtolower', $fkeys[0]->getForeignColumns()));
+        self::assertEquals(['foreign_key_test'], array_map('strtolower', $fkeys[0]->getLocalColumnNames()));
+        self::assertEquals(['id'], array_map('strtolower', $fkeys[0]->getForeignColumnNames()));
         self::assertEquals('test_create_fk2', strtolower($fkeys[0]->getForeignTableName()));
 
         if (! $fkeys[0]->hasOption('onDelete')) {
@@ -570,7 +573,7 @@ abstract class SchemaManagerFunctionalTestCase extends FunctionalTestCase
         $table = $this->schemaManager->listTableDetails('alter_table');
         self::assertEquals(2, count($table->getIndexes()));
         self::assertTrue($table->hasIndex('foo_idx'));
-        self::assertEquals(['foo'], array_map('strtolower', $table->getIndex('foo_idx')->getColumns()));
+        self::assertEquals(['foo'], array_map('strtolower', $table->getIndex('foo_idx')->getColumnNames()));
         self::assertFalse($table->getIndex('foo_idx')->isPrimary());
         self::assertFalse($table->getIndex('foo_idx')->isUnique());
 
@@ -585,7 +588,7 @@ abstract class SchemaManagerFunctionalTestCase extends FunctionalTestCase
         self::assertTrue($table->hasIndex('foo_idx'));
         self::assertEquals(
             ['foo', 'foreign_key_test'],
-            array_map('strtolower', $table->getIndex('foo_idx')->getColumns())
+            array_map('strtolower', $table->getIndex('foo_idx')->getColumnNames())
         );
 
         $tableDiff                            = new TableDiff('alter_table');
@@ -600,7 +603,7 @@ abstract class SchemaManagerFunctionalTestCase extends FunctionalTestCase
         self::assertFalse($table->hasIndex('foo_idx'));
         self::assertEquals(
             ['foo', 'foreign_key_test'],
-            array_map('strtolower', $table->getIndex('bar_idx')->getColumns())
+            array_map('strtolower', $table->getIndex('bar_idx')->getColumnNames())
         );
         self::assertFalse($table->getIndex('bar_idx')->isPrimary());
         self::assertFalse($table->getIndex('bar_idx')->isUnique());
@@ -953,8 +956,8 @@ abstract class SchemaManagerFunctionalTestCase extends FunctionalTestCase
 
         self::assertCount(1, $fkeys, "Table 'test_create_fk3' has to have one foreign key.");
 
-        self::assertEquals(['id', 'foreign_key_test'], array_map('strtolower', $fkeys[0]->getLocalColumns()));
-        self::assertEquals(['id', 'other_id'], array_map('strtolower', $fkeys[0]->getForeignColumns()));
+        self::assertEquals(['id', 'foreign_key_test'], array_map('strtolower', $fkeys[0]->getLocalColumnNames()));
+        self::assertEquals(['id', 'other_id'], array_map('strtolower', $fkeys[0]->getForeignColumnNames()));
     }
 
     public function testColumnDefaultLifecycle(): void

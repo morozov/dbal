@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Doctrine\DBAL\Schema;
 
+use Doctrine\DBAL\Schema\Name\UnqualifiedName;
+
 use function in_array;
 
 /**
@@ -11,7 +13,7 @@ use function in_array;
  */
 class ColumnDiff
 {
-    public string $oldColumnName;
+    public UnqualifiedName $oldColumnName;
 
     public Column $column;
 
@@ -40,8 +42,8 @@ class ColumnDiff
         return in_array($propertyName, $this->changedProperties, true);
     }
 
-    public function getOldColumnName(): Identifier
+    public function getOldColumnName(): UnqualifiedName
     {
-        return new Identifier($this->oldColumnName, $this->fromColumn->isQuoted());
+        return $this->oldColumnName;
     }
 }

@@ -5,13 +5,18 @@ declare(strict_types=1);
 namespace Doctrine\DBAL\Platforms;
 
 use Doctrine\DBAL\Exception;
+use Doctrine\DBAL\Platform\NameNormalizer\DefaultNameNormalizer;
 use Doctrine\DBAL\Platforms\Keywords\KeywordList;
 use Doctrine\DBAL\Platforms\Keywords\MySQLKeywords;
+use Doctrine\DBAL\Platforms\MySQL\LiteralBuilder;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
-use Doctrine\DBAL\Schema\Identifier;
 use Doctrine\DBAL\Schema\Index;
+use Doctrine\DBAL\Schema\Name;
+use Doctrine\DBAL\Schema\Name\UnqualifiedName;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\TableDiff;
+use Doctrine\DBAL\SQL\Builder\IdentifierBuilder\DefaultIdentifierBuilder;
+use Doctrine\DBAL\SQL\Builder\LiteralBuilder\DefaultLiteralBuilder;
 use Doctrine\DBAL\TransactionIsolationLevel;
 use Doctrine\DBAL\Types\BlobType;
 use Doctrine\DBAL\Types\TextType;
@@ -25,7 +30,6 @@ use function implode;
 use function in_array;
 use function is_numeric;
 use function sprintf;
-use function str_replace;
 use function strcasecmp;
 use function strtoupper;
 use function trim;
@@ -44,6 +48,15 @@ class MySQLPlatform extends AbstractPlatform
     public const LENGTH_LIMIT_TINYBLOB   = 255;
     public const LENGTH_LIMIT_BLOB       = 65535;
     public const LENGTH_LIMIT_MEDIUMBLOB = 16777215;
+
+    public function __construct()
+    {
+        parent::__construct(
+            new DefaultNameNormalizer(),
+            new DefaultIdentifierBuilder('`', '`'),
+            new LiteralBuilder(new DefaultLiteralBuilder())
+        );
+    }
 
     protected function doModifyLimitQuery(string $query, ?int $limit, int $offset): string
     {
@@ -116,9 +129,9 @@ class MySQLPlatform extends AbstractPlatform
         return 'SHOW DATABASES';
     }
 
-    public function getListTableConstraintsSQL(string $table): string
+    public function getListTableConstraintsSQL(Name $name): string
     {
-        return 'SHOW INDEX FROM ' . $table;
+        return 'SHOW INDEX FROM ' . $this->buildNameIdentifier($name);
     }
 
     /**
@@ -127,39 +140,35 @@ class MySQLPlatform extends AbstractPlatform
      * Two approaches to listing the table indexes. The information_schema is
      * preferred, because it doesn't cause problems with SQL keywords such as "order" or "table".
      */
-    public function getListTableIndexesSQL(string $table, ?string $database = null): string
+    public function getListTableIndexesSQL(Name $name, ?UnqualifiedName $databaseName = null): string
     {
-        if ($database !== null) {
-            $database = $this->quoteStringLiteral($database);
-            $table    = $this->quoteStringLiteral($table);
-
+        if ($databaseName !== null) {
             return 'SELECT NON_UNIQUE AS Non_Unique, INDEX_NAME AS Key_name, COLUMN_NAME AS Column_Name,' .
                    ' SUB_PART AS Sub_Part, INDEX_TYPE AS Index_Type' .
-                   ' FROM information_schema.STATISTICS WHERE TABLE_NAME = ' . $table .
-                   ' AND TABLE_SCHEMA = ' . $database .
+                   ' FROM information_schema.STATISTICS WHERE TABLE_NAME = ' . $this->buildNameLiteral($name) .
+                   ' AND TABLE_SCHEMA = ' . $this->buildNameLiteral($databaseName) .
                    ' ORDER BY SEQ_IN_INDEX ASC';
         }
 
-        return 'SHOW INDEX FROM ' . $table;
+        return 'SHOW INDEX FROM ' . $this->buildNameIdentifier($name);
     }
 
-    public function getListViewsSQL(string $database): string
+    public function getListViewsSQL(UnqualifiedName $databaseName): string
     {
-        return 'SELECT * FROM information_schema.VIEWS WHERE TABLE_SCHEMA = ' . $this->quoteStringLiteral($database);
+        return 'SELECT * FROM information_schema.VIEWS WHERE TABLE_SCHEMA = ' . $this->buildNameLiteral($databaseName);
     }
 
-    public function getListTableForeignKeysSQL(string $table, ?string $database = null): string
+    public function getListTableForeignKeysSQL(Name $name, ?UnqualifiedName $databaseName = null): string
     {
-        $table = $this->quoteStringLiteral($table);
-
         $sql = 'SELECT DISTINCT k.`CONSTRAINT_NAME`, k.`COLUMN_NAME`, k.`REFERENCED_TABLE_NAME`, ' .
                'k.`REFERENCED_COLUMN_NAME`, k.`ORDINAL_POSITION` /*!50116 , c.update_rule, c.delete_rule */ ' .
                'FROM information_schema.key_column_usage k /*!50116 ' .
                'INNER JOIN information_schema.referential_constraints c ON ' .
                '  c.constraint_name = k.constraint_name AND ' .
-               '  c.table_name = ' . $table . ' */ WHERE k.table_name = ' . $table;
+               '  c.table_name = ' . $this->buildNameLiteral($name) .
+               ' */ WHERE k.table_name = ' . $this->buildNameLiteral($name);
 
-        $databaseNameSql = $this->getDatabaseNameSql($database);
+        $databaseNameSql = $this->getDatabaseNameSql($databaseName);
 
         return $sql . ' AND k.table_schema = ' . $databaseNameSql
             . ' /*!50116 AND c.constraint_schema = ' . $databaseNameSql . ' */'
@@ -269,16 +278,16 @@ class MySQLPlatform extends AbstractPlatform
         return "SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'";
     }
 
-    public function getListTableColumnsSQL(string $table, ?string $database = null): string
+    public function getListTableColumnsSQL(Name $name, ?UnqualifiedName $databaseName = null): string
     {
         return 'SELECT COLUMN_NAME AS Field, COLUMN_TYPE AS Type, IS_NULLABLE AS `Null`, ' .
                'COLUMN_KEY AS `Key`, COLUMN_DEFAULT AS `Default`, EXTRA AS Extra, COLUMN_COMMENT AS Comment, ' .
                'CHARACTER_SET_NAME AS CharacterSet, COLLATION_NAME AS Collation ' .
-               'FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ' . $this->getDatabaseNameSql($database) . ' ' .
-               'AND TABLE_NAME = ' . $this->quoteStringLiteral($table) . ' ORDER BY ORDINAL_POSITION';
+               'FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = ' . $this->getDatabaseNameSql($databaseName) .
+               ' AND TABLE_NAME = ' . $this->buildNameLiteral($name) . ' ORDER BY ORDINAL_POSITION';
     }
 
-    public function getListTableMetadataSQL(string $table, ?string $database = null): string
+    public function getListTableMetadataSQL(Name $name, ?UnqualifiedName $databaseName = null): string
     {
         return sprintf(
             <<<'SQL'
@@ -294,28 +303,28 @@ FROM information_schema.TABLES t
 WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = %s AND TABLE_NAME = %s
 SQL
             ,
-            $database !== null ? $this->quoteStringLiteral($database) : 'DATABASE()',
-            $this->quoteStringLiteral($table)
+            $this->getDatabaseNameSql($databaseName),
+            $this->buildNameLiteral($name)
         );
     }
 
     /**
      * {@inheritDoc}
      */
-    protected function _getCreateTableSQL(string $name, array $columns, array $options = []): array
+    protected function _getCreateTableSQL(Name $name, array $columns, array $options = []): array
     {
         $queryFields = $this->getColumnDeclarationListSQL($columns);
 
         if (isset($options['uniqueConstraints']) && ! empty($options['uniqueConstraints'])) {
-            foreach ($options['uniqueConstraints'] as $definition) {
-                $queryFields .= ', ' . $this->getUniqueConstraintDeclarationSQL($definition);
+            foreach ($options['uniqueConstraints'] as $constraint) {
+                $queryFields .= ', ' . $this->getUniqueConstraintDeclarationSQL($constraint);
             }
         }
 
         // add all indexes
         if (isset($options['indexes']) && ! empty($options['indexes'])) {
-            foreach ($options['indexes'] as $definition) {
-                $queryFields .= ', ' . $this->getIndexDeclarationSQL($definition);
+            foreach ($options['indexes'] as $index) {
+                $queryFields .= ', ' . $this->getIndexDeclarationSQL($index);
             }
         }
 
@@ -350,8 +359,8 @@ SQL
             isset($options['foreignKeys'])
             && (! isset($options['engine']) || strcasecmp($options['engine'], 'InnoDB') === 0)
         ) {
-            foreach ($options['foreignKeys'] as $definition) {
-                $sql[] = $this->getCreateForeignKeySQL($definition, $name);
+            foreach ($options['foreignKeys'] as $foreignKey) {
+                $sql[] = $this->getCreateForeignKeySQL($foreignKey, $name);
             }
         }
 
@@ -403,7 +412,7 @@ SQL
 
         // Comment
         if (isset($options['comment'])) {
-            $tableOptions[] = sprintf('COMMENT = %s ', $this->quoteStringLiteral($options['comment']));
+            $tableOptions[] = sprintf('COMMENT = %s ', $this->buildNameLiteral($options['comment']));
         }
 
         // Row format
@@ -424,7 +433,7 @@ SQL
         $newName    = $diff->getNewName();
 
         if ($newName !== null) {
-            $queryParts[] = 'RENAME TO ' . $newName->getQuotedName($this);
+            $queryParts[] = 'RENAME TO ' . $newName->getName();
         }
 
         foreach ($diff->addedColumns as $column) {
@@ -436,7 +445,7 @@ SQL
                 'comment' => $this->getColumnComment($column),
             ]);
 
-            $queryParts[] = 'ADD ' . $this->getColumnDeclarationSQL($column->getQuotedName($this), $columnArray);
+            $queryParts[] = 'ADD ' . $this->getColumnDeclarationSQL($column->getName(), $columnArray);
         }
 
         foreach ($diff->removedColumns as $column) {
@@ -444,7 +453,7 @@ SQL
                 continue;
             }
 
-            $queryParts[] =  'DROP ' . $column->getQuotedName($this);
+            $queryParts[] =  'DROP ' . $column->getName();
         }
 
         foreach ($diff->changedColumns as $columnDiff) {
@@ -465,8 +474,8 @@ SQL
             }
 
             $columnArray['comment'] = $this->getColumnComment($column);
-            $queryParts[]           =  'CHANGE ' . ($columnDiff->getOldColumnName()->getQuotedName($this)) . ' '
-                    . $this->getColumnDeclarationSQL($column->getQuotedName($this), $columnArray);
+            $queryParts[]           =  'CHANGE ' . ($columnDiff->getOldColumnName()->getName()) . ' '
+                    . $this->getColumnDeclarationSQL($column->getName(), $columnArray);
         }
 
         foreach ($diff->renamedColumns as $oldColumnName => $column) {
@@ -474,22 +483,21 @@ SQL
                 continue;
             }
 
-            $oldColumnName          = new Identifier($oldColumnName);
             $columnArray            = $column->toArray();
             $columnArray['comment'] = $this->getColumnComment($column);
-            $queryParts[]           =  'CHANGE ' . $oldColumnName->getQuotedName($this) . ' '
-                    . $this->getColumnDeclarationSQL($column->getQuotedName($this), $columnArray);
+            $queryParts[]           =  'CHANGE ' . $this->buildNameIdentifier($oldColumnName) . ' '
+                    . $this->getColumnDeclarationSQL($column->getName(), $columnArray);
         }
 
         if (isset($diff->addedIndexes['primary'])) {
-            $keyColumns   = array_unique(array_values($diff->addedIndexes['primary']->getColumns()));
+            $keyColumns   = array_unique(array_values($diff->addedIndexes['primary']->getColumnNames()));
             $queryParts[] = 'ADD PRIMARY KEY (' . implode(', ', $keyColumns) . ')';
             unset($diff->addedIndexes['primary']);
         } elseif (isset($diff->changedIndexes['primary'])) {
             // Necessary in case the new primary key includes a new auto_increment column
-            foreach ($diff->changedIndexes['primary']->getColumns() as $columnName) {
+            foreach ($diff->changedIndexes['primary']->getColumnNames() as $columnName) {
                 if (isset($diff->addedColumns[$columnName]) && $diff->addedColumns[$columnName]->getAutoincrement()) {
-                    $keyColumns   = array_unique(array_values($diff->changedIndexes['primary']->getColumns()));
+                    $keyColumns   = array_unique(array_values($diff->changedIndexes['primary']->getColumnNames()));
                     $queryParts[] = 'DROP PRIMARY KEY';
                     $queryParts[] = 'ADD PRIMARY KEY (' . implode(', ', $keyColumns) . ')';
                     unset($diff->changedIndexes['primary']);
@@ -503,7 +511,7 @@ SQL
 
         if (! $this->onSchemaAlterTable($diff, $tableSql)) {
             if (count($queryParts) > 0) {
-                $sql[] = 'ALTER TABLE ' . $diff->getName($this)->getQuotedName($this) . ' '
+                $sql[] = 'ALTER TABLE ' . $diff->getName($this)->getName() . ' '
                     . implode(', ', $queryParts);
             }
 
@@ -523,7 +531,7 @@ SQL
     protected function getPreAlterTableIndexForeignKeySQL(TableDiff $diff): array
     {
         $sql   = [];
-        $table = $diff->getName($this)->getQuotedName($this);
+        $table = $diff->getName($this)->getName();
 
         foreach ($diff->changedIndexes as $changedIndex) {
             $sql = array_merge($sql, $this->getPreAlterTableAlterPrimaryKeySQL($diff, $changedIndex));
@@ -533,7 +541,7 @@ SQL
             $sql = array_merge($sql, $this->getPreAlterTableAlterPrimaryKeySQL($diff, $remIndex));
 
             foreach ($diff->addedIndexes as $addKey => $addIndex) {
-                if ($remIndex->getColumns() !== $addIndex->getColumns()) {
+                if ($remIndex->getColumnNames() !== $addIndex->getColumnNames()) {
                     continue;
                 }
 
@@ -593,10 +601,10 @@ SQL
             return $sql;
         }
 
-        $tableName = $diff->getName($this)->getQuotedName($this);
+        $tableName = $diff->getName($this)->getName();
 
         // Dropping primary keys requires to unset autoincrement attribute on the particular column first.
-        foreach ($index->getColumns() as $columnName) {
+        foreach ($index->getColumnNames() as $columnName) {
             if (! $diff->fromTable->hasColumn($columnName)) {
                 continue;
             }
@@ -610,7 +618,7 @@ SQL
             $column->setAutoincrement(false);
 
             $sql[] = 'ALTER TABLE ' . $tableName . ' MODIFY ' .
-                $this->getColumnDeclarationSQL($column->getQuotedName($this), $column->toArray());
+                $this->getColumnDeclarationSQL($column->getName(), $column->toArray());
 
             // original autoincrement information might be needed later on by other parts of the table alteration
             $column->setAutoincrement(true);
@@ -629,7 +637,7 @@ SQL
     private function getPreAlterTableAlterIndexForeignKeySQL(TableDiff $diff): array
     {
         $sql   = [];
-        $table = $diff->getName($this)->getQuotedName($this);
+        $table = $diff->getName($this)->getName();
 
         foreach ($diff->changedIndexes as $changedIndex) {
             // Changed primary key
@@ -641,7 +649,7 @@ SQL
                 $column = $diff->fromTable->getColumn($columnName);
 
                 // Check if an autoincrement column was dropped from the primary key.
-                if (! $column->getAutoincrement() || in_array($columnName, $changedIndex->getColumns(), true)) {
+                if (! $column->getAutoincrement() || in_array($columnName, $changedIndex->getColumnNames(), true)) {
                     continue;
                 }
 
@@ -650,7 +658,7 @@ SQL
                 $column->setAutoincrement(false);
 
                 $sql[] = 'ALTER TABLE ' . $table . ' MODIFY ' .
-                    $this->getColumnDeclarationSQL($column->getQuotedName($this), $column->toArray());
+                    $this->getColumnDeclarationSQL($column->getName(), $column->toArray());
 
                 // Restore the autoincrement attribute as it might be needed later on
                 // by other parts of the table alteration.
@@ -669,14 +677,14 @@ SQL
     protected function getPreAlterTableRenameIndexForeignKeySQL(TableDiff $diff): array
     {
         $sql       = [];
-        $tableName = $diff->getName($this)->getQuotedName($this);
+        $tableName = $diff->getName($this)->getName();
 
         foreach ($this->getRemainingForeignKeyConstraintsRequiringRenamedIndexes($diff) as $foreignKey) {
             if (in_array($foreignKey, $diff->changedForeignKeys, true)) {
                 continue;
             }
 
-            $sql[] = $this->getDropForeignKeySQL($foreignKey->getQuotedName($this), $tableName);
+            $sql[] = $this->getDropForeignKeySQL($foreignKey->getName(), $tableName);
         }
 
         return $sql;
@@ -740,9 +748,9 @@ SQL
         $newName = $diff->getNewName();
 
         if ($newName !== null) {
-            $tableName = $newName->getQuotedName($this);
+            $tableName = $newName->getName();
         } else {
-            $tableName = $diff->getName($this)->getQuotedName($this);
+            $tableName = $diff->getName($this)->getName();
         }
 
         foreach ($this->getRemainingForeignKeyConstraintsRequiringRenamedIndexes($diff) as $foreignKey) {
@@ -855,9 +863,14 @@ SQL
         return $query;
     }
 
-    public function getDropIndexSQL(string $name, string $table): string
+    public function getDropIndexSQL(Name $name, Name $tableName): string
     {
-        return 'DROP INDEX ' . $name . ' ON ' . $table;
+        return 'DROP INDEX ' . $this->buildNameIdentifier($name) . ' ON ' . $this->buildNameIdentifier($tableName);
+    }
+
+    protected function getDropPrimaryKeySQL(Name $tableName): string
+    {
+        return 'ALTER TABLE ' . $this->buildNameIdentifier($tableName) . ' DROP PRIMARY KEY';
     }
 
     /**
@@ -927,9 +940,9 @@ SQL
      * MySQL commits a transaction implicitly when DROP TABLE is executed, however not
      * if DROP TEMPORARY TABLE is executed.
      */
-    public function getDropTemporaryTableSQL(string $table): string
+    public function getDropTemporaryTableSQL(Name $name): string
     {
-        return 'DROP TEMPORARY TABLE ' . $table;
+        return 'DROP TEMPORARY TABLE ' . $this->buildNameIdentifier($name);
     }
 
     /**
@@ -962,13 +975,6 @@ SQL
         return 'LONGBLOB';
     }
 
-    public function quoteStringLiteral(string $str): string
-    {
-        $str = str_replace('\\', '\\\\', $str); // MySQL requires backslashes to be escaped aswell.
-
-        return parent::quoteStringLiteral($str);
-    }
-
     public function getDefaultTransactionIsolationLevel(): int
     {
         return TransactionIsolationLevel::REPEATABLE_READ;
@@ -982,14 +988,14 @@ SQL
     /**
      * Returns an SQL expression representing the given database name or current database name
      *
-     * @param string|null $database Database name
+     * @param Name|null $name Database name
      */
-    private function getDatabaseNameSql(?string $database): string
+    private function getDatabaseNameSql(?Name $name): string
     {
-        if ($database === null) {
-            return 'DATABASE()';
+        if ($name === null) {
+            return $this->getCurrentDatabaseExpression();
         }
 
-        return $this->quoteStringLiteral($database);
+        return $this->buildNameLiteral($name);
     }
 }

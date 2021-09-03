@@ -7,7 +7,7 @@ namespace Doctrine\DBAL\Schema;
 /**
  * Representation of a Database View.
  */
-class View extends AbstractAsset
+class View
 {
     private string $sql;
 

@@ -21,7 +21,7 @@ class IndexTest extends TestCase
     {
         $idx = $this->createIndex();
         self::assertEquals('foo', $idx->getName());
-        $columns = $idx->getColumns();
+        $columns = $idx->getColumnNames();
         self::assertCount(2, $columns);
         self::assertEquals(['bar', 'baz'], $columns);
         self::assertFalse($idx->isUnique());

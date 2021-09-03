@@ -5,23 +5,24 @@ declare(strict_types=1);
 namespace Doctrine\DBAL\Schema;
 
 use Doctrine\DBAL\Platforms\AbstractPlatform;
+use Doctrine\DBAL\Schema\Name\UnqualifiedName;
 
 use function array_filter;
 use function array_keys;
-use function array_map;
-use function array_search;
 use function array_shift;
 use function count;
 use function strtolower;
 
-class Index extends AbstractAsset
+class Index
 {
+    private Name $name;
+
     /**
-     * Asset identifier instances of the column names the index is associated with.
+     * The names of the columns the index is associated with.
      *
-     * @var array<string, Identifier>
+     * @var list<UnqualifiedName>
      */
-    protected array $_columns = [];
+    protected array $columnNames = [];
 
     protected bool $_isUnique = false;
 
@@ -43,52 +44,44 @@ class Index extends AbstractAsset
     private array $options;
 
     /**
-     * @param array<int, string>   $columns
-     * @param array<int, string>   $flags
-     * @param array<string, mixed> $options
+     * @param list<UnqualifiedName> $columnNames
+     * @param array<int, string>    $flags
+     * @param array<string, mixed>  $options
      */
     public function __construct(
-        ?string $name,
-        array $columns,
+        Name $name,
+        array $columnNames,
         bool $isUnique = false,
         bool $isPrimary = false,
         array $flags = [],
         array $options = []
     ) {
-        $isUnique = $isUnique || $isPrimary;
-
-        if ($name !== null) {
-            $this->_setName($name);
-        }
-
-        $this->_isUnique  = $isUnique;
-        $this->_isPrimary = $isPrimary;
-        $this->options    = $options;
-
-        foreach ($columns as $column) {
-            $this->_addColumn($column);
-        }
+        $this->name        = $name;
+        $this->columnNames = $columnNames;
+        $this->_isUnique   = $isUnique || $isPrimary;
+        $this->_isPrimary  = $isPrimary;
+        $this->options     = $options;
 
         foreach ($flags as $flag) {
             $this->addFlag($flag);
         }
     }
 
-    protected function _addColumn(string $column): void
+    public function getName(): Name
     {
-        $this->_columns[$column] = new Identifier($column);
+        return $this->name;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getColumns(): array
+    public function getColumnNames(): array
     {
-        return array_keys($this->_columns);
+        return $this->columnNames;
     }
 
     /**
-     * {@inheritdoc}
+     * @return list<string>
      */
     public function getQuotedColumns(AbstractPlatform $platform): array
     {
@@ -97,7 +90,7 @@ class Index extends AbstractAsset
 
         $columns = [];
 
-        foreach ($this->_columns as $column) {
+        foreach ($this->columnNames as $column) {
             $length = array_shift($subParts);
 
             $quotedColumn = $column->getQuotedName($platform);
@@ -110,14 +103,6 @@ class Index extends AbstractAsset
         }
 
         return $columns;
-    }
-
-    /**
-     * @return array<int, string>
-     */
-    public function getUnquotedColumns(): array
-    {
-        return array_map([$this, 'trimQuotes'], $this->getColumns());
     }
 
     /**
@@ -138,14 +123,6 @@ class Index extends AbstractAsset
         return $this->_isPrimary;
     }
 
-    public function hasColumnAtPosition(string $name, int $pos = 0): bool
-    {
-        $name         = $this->trimQuotes(strtolower($name));
-        $indexColumns = array_map('strtolower', $this->getUnquotedColumns());
-
-        return array_search($name, $indexColumns, true) === $pos;
-    }
-
     /**
      * Checks if this index exactly spans the given column names in the correct order.
      *
@@ -153,14 +130,14 @@ class Index extends AbstractAsset
      */
     public function spansColumns(array $columnNames): bool
     {
-        $columns         = $this->getColumns();
-        $numberOfColumns = count($columns);
+        $columns         = $this->getColumnNames();
+        $numberOfColumns = count($columnNames);
         $sameColumns     = true;
 
         for ($i = 0; $i < $numberOfColumns; $i++) {
             if (
                 isset($columnNames[$i])
-                && $this->trimQuotes(strtolower($columns[$i])) === $this->trimQuotes(strtolower($columnNames[$i]))
+                && $columns[$i] === $columnNames[$i]
             ) {
                 continue;
             }
@@ -178,12 +155,12 @@ class Index extends AbstractAsset
     {
         // allow the other index to be equally large only. It being larger is an option
         // but it creates a problem with scenarios of the kind PRIMARY KEY(foo,bar) UNIQUE(foo)
-        if (count($other->getColumns()) !== count($this->getColumns())) {
+        if (count($other->getColumnNames()) !== count($this->getColumnNames())) {
             return false;
         }
 
         // Check if columns are the same, and even in the same order
-        $sameColumns = $this->spansColumns($other->getColumns());
+        $sameColumns = $this->spansColumns($other->getColumnNames());
 
         if ($sameColumns) {
             if (! $this->samePartialIndex($other)) {
@@ -213,7 +190,7 @@ class Index extends AbstractAsset
     }
 
     /**
-     * Detects if the other index is a non-unique, non primary index that can be overwritten by this one.
+     * Detects if the other index is a non-unique, non-primary index that can be overwritten by this one.
      */
     public function overrules(Index $other): bool
     {
@@ -225,7 +202,7 @@ class Index extends AbstractAsset
             return false;
         }
 
-        return $this->spansColumns($other->getColumns())
+        return $this->spansColumns($other->getColumnNames())
             && ($this->isPrimary() || $this->isUnique())
             && $this->samePartialIndex($other);
     }

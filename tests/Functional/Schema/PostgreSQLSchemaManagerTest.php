@@ -152,7 +152,7 @@ class PostgreSQLSchemaManagerTest extends SchemaManagerFunctionalTestCase
 
         $primaryKey = $nestedSchemaTable->getPrimaryKey();
         self::assertNotNull($primaryKey);
-        self::assertEquals(['id'], $primaryKey->getColumns());
+        self::assertEquals(['id'], $primaryKey->getColumnNames());
 
         $relatedFks = $nestedSchemaTable->getForeignKeys();
         self::assertCount(1, $relatedFks);
@@ -240,8 +240,8 @@ class PostgreSQLSchemaManagerTest extends SchemaManagerFunctionalTestCase
         self::assertEquals(count($foreignKeys), count($fkeys));
 
         for ($i = 0; $i < count($fkeys); $i++) {
-            self::assertEquals(['foreign_key_test' . $i], array_map('strtolower', $fkeys[$i]->getLocalColumns()));
-            self::assertEquals(['id'], array_map('strtolower', $fkeys[$i]->getForeignColumns()));
+            self::assertEquals(['foreign_key_test' . $i], array_map('strtolower', $fkeys[$i]->getLocalColumnNames()));
+            self::assertEquals(['id'], array_map('strtolower', $fkeys[$i]->getForeignColumnNames()));
             self::assertEquals('test_create_fk2', strtolower($fkeys[0]->getForeignTableName()));
             if ($foreignKeys[$i]->getOption('onDelete') === 'NO ACTION') {
                 self::assertFalse($fkeys[$i]->hasOption('onDelete'));

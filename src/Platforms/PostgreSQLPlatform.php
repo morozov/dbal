@@ -8,8 +8,9 @@ use Doctrine\DBAL\Platforms\Keywords\KeywordList;
 use Doctrine\DBAL\Platforms\Keywords\PostgreSQLKeywords;
 use Doctrine\DBAL\Schema\ColumnDiff;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
-use Doctrine\DBAL\Schema\Identifier;
 use Doctrine\DBAL\Schema\Index;
+use Doctrine\DBAL\Schema\Name;
+use Doctrine\DBAL\Schema\Name\UnqualifiedName;
 use Doctrine\DBAL\Schema\Sequence;
 use Doctrine\DBAL\Schema\TableDiff;
 use Doctrine\DBAL\Types\BigIntType;
@@ -145,7 +146,7 @@ class PostgreSQLPlatform extends AbstractPlatform
         return true;
     }
 
-    public function getIdentitySequenceName(string $tableName, string $columnName): string
+    public function getIdentitySequenceName(Name $tableName, Name $columnName): Name
     {
         return $tableName . '_' . $columnName . '_seq';
     }
@@ -165,7 +166,7 @@ class PostgreSQLPlatform extends AbstractPlatform
         return 'SELECT datname FROM pg_database';
     }
 
-    public function getListSequencesSQL(string $database): string
+    public function getListSequencesSQL(UnqualifiedName $databaseName): string
     {
         return "SELECT sequence_name AS relname,
                        sequence_schema AS schemaname
@@ -186,7 +187,7 @@ class PostgreSQLPlatform extends AbstractPlatform
                 AND    table_type != 'VIEW'";
     }
 
-    public function getListViewsSQL(string $database): string
+    public function getListViewsSQL(UnqualifiedName $databaseName): string
     {
         return 'SELECT quote_ident(table_name) AS viewname,
                        table_schema AS schemaname,
@@ -195,7 +196,7 @@ class PostgreSQLPlatform extends AbstractPlatform
                 WHERE  view_definition IS NOT NULL';
     }
 
-    public function getListTableForeignKeysSQL(string $table, ?string $database = null): string
+    public function getListTableForeignKeysSQL(Name $name, ?UnqualifiedName $databaseName = null): string
     {
         return 'SELECT quote_ident(r.conname) as conname, pg_catalog.pg_get_constraintdef(r.oid, true) as condef
                   FROM pg_catalog.pg_constraint r
@@ -203,16 +204,13 @@ class PostgreSQLPlatform extends AbstractPlatform
                   (
                       SELECT c.oid
                       FROM pg_catalog.pg_class c, pg_catalog.pg_namespace n
-                      WHERE ' . $this->getTableWhereClause($table) . " AND n.oid = c.relnamespace
+                      WHERE ' . $this->getTableWhereClause($name) . " AND n.oid = c.relnamespace
                   )
                   AND r.contype = 'f'";
     }
 
-    public function getListTableConstraintsSQL(string $table): string
+    public function getListTableConstraintsSQL(Name $name): string
     {
-        $table = new Identifier($table);
-        $table = $this->quoteStringLiteral($table->getName());
-
         return sprintf(
             <<<'SQL'
 SELECT
@@ -228,7 +226,7 @@ WHERE oid IN (
     )
 SQL
             ,
-            $table
+            $this->buildNameLiteral($name)
         );
     }
 
@@ -237,7 +235,7 @@ SQL
      *
      * @link http://ezcomponents.org/docs/api/trunk/DatabaseSchema/ezcDbSchemaPgsqlReader.html
      */
-    public function getListTableIndexesSQL(string $table, ?string $database = null): string
+    public function getListTableIndexesSQL(Name $name, ?UnqualifiedName $databaseName = null): string
     {
         return 'SELECT quote_ident(relname) as relname, pg_index.indisunique, pg_index.indisprimary,
                        pg_index.indkey, pg_index.indrelid,
@@ -246,34 +244,31 @@ SQL
                  WHERE oid IN (
                     SELECT indexrelid
                     FROM pg_index si, pg_class sc, pg_namespace sn
-                    WHERE ' . $this->getTableWhereClause($table, 'sc', 'sn') . '
+                    WHERE ' . $this->getTableWhereClause($name, 'sc', 'sn') . '
                     AND sc.oid=si.indrelid AND sc.relnamespace = sn.oid
                  ) AND pg_index.indexrelid = oid';
     }
 
-    private function getTableWhereClause(string $table, string $classAlias = 'c', string $namespaceAlias = 'n'): string
+    private function getTableWhereClause(Name $tableName, string $classAlias, string $namespaceAlias): string
     {
         $whereClause = $namespaceAlias . ".nspname NOT IN ('pg_catalog', 'information_schema', 'pg_toast') AND ";
-        if (strpos($table, '.') !== false) {
-            [$schema, $table] = explode('.', $table);
-            $schema           = $this->quoteStringLiteral($schema);
+        if (strpos($tableName, '.') !== false) {
+            [$schema, $tableName] = explode('.', $tableName);
+            $schema               = $this->buildNameLiteral($schema);
         } else {
             $schema = 'ANY(current_schemas(false))';
         }
 
-        $table = new Identifier($table);
-        $table = $this->quoteStringLiteral($table->getName());
-
         return $whereClause . sprintf(
             '%s.relname = %s AND %s.nspname = %s',
             $classAlias,
-            $table,
+            $this->buildNameLiteral($tableName),
             $namespaceAlias,
             $schema
         );
     }
 
-    public function getListTableColumnsSQL(string $table, ?string $database = null): string
+    public function getListTableColumnsSQL(Name $name, ?UnqualifiedName $databaseName = null): string
     {
         return "SELECT
                     a.attnum,
@@ -300,7 +295,7 @@ SQL
                         FROM pg_description WHERE pg_description.objoid = c.oid AND a.attnum = pg_description.objsubid
                     ) AS comment
                     FROM pg_attribute a, pg_class c, pg_type t, pg_namespace n
-                    WHERE " . $this->getTableWhereClause($table, 'c', 'n') . '
+                    WHERE " . $this->getTableWhereClause($name, 'c', 'n') . '
                         AND a.attnum > 0
                         AND a.attrelid = c.oid
                         AND a.atttypid = t.oid
@@ -349,8 +344,8 @@ SQL
                 continue;
             }
 
-            $query = 'ADD ' . $this->getColumnDeclarationSQL($column->getQuotedName($this), $column->toArray());
-            $sql[] = 'ALTER TABLE ' . $diff->getName($this)->getQuotedName($this) . ' ' . $query;
+            $query = 'ADD ' . $this->getColumnDeclarationSQL($column->getName(), $column->toArray());
+            $sql[] = 'ALTER TABLE ' . $diff->getName($this)->getName() . ' ' . $query;
 
             $comment = $this->getColumnComment($column);
 
@@ -359,8 +354,8 @@ SQL
             }
 
             $commentsSQL[] = $this->getCommentOnColumnSQL(
-                $diff->getName($this)->getQuotedName($this),
-                $column->getQuotedName($this),
+                $diff->getName($this)->getName(),
+                $column->getName(),
                 $comment
             );
         }
@@ -370,8 +365,8 @@ SQL
                 continue;
             }
 
-            $query = 'DROP ' . $column->getQuotedName($this);
-            $sql[] = 'ALTER TABLE ' . $diff->getName($this)->getQuotedName($this) . ' ' . $query;
+            $query = 'DROP ' . $column->getName();
+            $sql[] = 'ALTER TABLE ' . $diff->getName($this)->getName() . ' ' . $query;
         }
 
         foreach ($diff->changedColumns as $columnDiff) {
@@ -383,7 +378,7 @@ SQL
                 continue;
             }
 
-            $oldColumnName = $columnDiff->getOldColumnName()->getQuotedName($this);
+            $oldColumnName = $columnDiff->getOldColumnName()->getName();
             $column        = $columnDiff->column;
 
             if (
@@ -400,7 +395,7 @@ SQL
 
                 // here was a server version check before, but DBAL API does not support this anymore.
                 $query = 'ALTER ' . $oldColumnName . ' TYPE ' . $type->getSQLDeclaration($columnDefinition, $this);
-                $sql[] = 'ALTER TABLE ' . $diff->getName($this)->getQuotedName($this) . ' ' . $query;
+                $sql[] = 'ALTER TABLE ' . $diff->getName($this)->getName() . ' ' . $query;
             }
 
             if ($columnDiff->hasChanged('default') || $this->typeChangeBreaksDefaultValue($columnDiff)) {
@@ -408,12 +403,12 @@ SQL
                     ? ' DROP DEFAULT'
                     : ' SET' . $this->getDefaultValueDeclarationSQL($column->toArray());
                 $query         = 'ALTER ' . $oldColumnName . $defaultClause;
-                $sql[]         = 'ALTER TABLE ' . $diff->getName($this)->getQuotedName($this) . ' ' . $query;
+                $sql[]         = 'ALTER TABLE ' . $diff->getName($this)->getName() . ' ' . $query;
             }
 
             if ($columnDiff->hasChanged('notnull')) {
                 $query = 'ALTER ' . $oldColumnName . ' ' . ($column->getNotnull() ? 'SET' : 'DROP') . ' NOT NULL';
-                $sql[] = 'ALTER TABLE ' . $diff->getName($this)->getQuotedName($this) . ' ' . $query;
+                $sql[] = 'ALTER TABLE ' . $diff->getName($this)->getName() . ' ' . $query;
             }
 
             if ($columnDiff->hasChanged('autoincrement')) {
@@ -423,13 +418,13 @@ SQL
 
                     $sql[] = 'CREATE SEQUENCE ' . $seqName;
                     $sql[] = "SELECT setval('" . $seqName . "', (SELECT MAX(" . $oldColumnName . ') FROM '
-                        . $diff->getName($this)->getQuotedName($this) . '))';
+                        . $diff->getName($this)->getName() . '))';
                     $query = 'ALTER ' . $oldColumnName . " SET DEFAULT nextval('" . $seqName . "')";
-                    $sql[] = 'ALTER TABLE ' . $diff->getName($this)->getQuotedName($this) . ' ' . $query;
+                    $sql[] = 'ALTER TABLE ' . $diff->getName($this)->getName() . ' ' . $query;
                 } else {
                     // Drop autoincrement, but do NOT drop the sequence. It might be re-used by other tables or have
                     $query = 'ALTER ' . $oldColumnName . ' DROP DEFAULT';
-                    $sql[] = 'ALTER TABLE ' . $diff->getName($this)->getQuotedName($this) . ' ' . $query;
+                    $sql[] = 'ALTER TABLE ' . $diff->getName($this)->getName() . ' ' . $query;
                 }
             }
 
@@ -438,8 +433,8 @@ SQL
 
             if ($columnDiff->hasChanged('comment') || $oldComment !== $newComment) {
                 $commentsSQL[] = $this->getCommentOnColumnSQL(
-                    $diff->getName($this)->getQuotedName($this),
-                    $column->getQuotedName($this),
+                    $diff->getName($this)->getName(),
+                    $column->getName(),
                     $newComment
                 );
             }
@@ -450,7 +445,7 @@ SQL
 
             $query = 'ALTER ' . $oldColumnName . ' TYPE '
                 . $column->getType()->getSQLDeclaration($column->toArray(), $this);
-            $sql[] = 'ALTER TABLE ' . $diff->getName($this)->getQuotedName($this) . ' ' . $query;
+            $sql[] = 'ALTER TABLE ' . $diff->getName($this)->getName() . ' ' . $query;
         }
 
         foreach ($diff->renamedColumns as $oldColumnName => $column) {
@@ -458,10 +453,9 @@ SQL
                 continue;
             }
 
-            $oldColumnName = new Identifier($oldColumnName);
-
-            $sql[] = 'ALTER TABLE ' . $diff->getName($this)->getQuotedName($this) .
-                ' RENAME COLUMN ' . $oldColumnName->getQuotedName($this) . ' TO ' . $column->getQuotedName($this);
+            $sql[] = 'ALTER TABLE ' . $this->buildNameIdentifier($diff->getName())
+                . ' RENAME COLUMN ' . $this->buildNameIdentifier($oldColumnName)
+                . ' TO ' . $this->buildNameIdentifier($column->getName());
         }
 
         $tableSql = [];
@@ -474,8 +468,8 @@ SQL
             if ($newName !== null) {
                 $sql[] = sprintf(
                     'ALTER TABLE %s RENAME TO %s',
-                    $diff->getName($this)->getQuotedName($this),
-                    $newName->getQuotedName($this)
+                    $diff->getName($this)->getName(),
+                    $newName->getName()
                 );
             }
 
@@ -518,19 +512,19 @@ SQL
     /**
      * {@inheritdoc}
      */
-    protected function getRenameIndexSQL(string $oldIndexName, Index $index, string $tableName): array
+    protected function getRenameIndexSQL(Name $oldIndexName, Index $index, Name $tableName): array
     {
         if (strpos($tableName, '.') !== false) {
             [$schema]     = explode('.', $tableName);
             $oldIndexName = $schema . '.' . $oldIndexName;
         }
 
-        return ['ALTER INDEX ' . $oldIndexName . ' RENAME TO ' . $index->getQuotedName($this)];
+        return ['ALTER INDEX ' . $oldIndexName . ' RENAME TO ' . $index->getName()];
     }
 
     public function getCreateSequenceSQL(Sequence $sequence): string
     {
-        return 'CREATE SEQUENCE ' . $sequence->getQuotedName($this) .
+        return 'CREATE SEQUENCE ' . $sequence->getName() .
             ' INCREMENT BY ' . $sequence->getAllocationSize() .
             ' MINVALUE ' . $sequence->getInitialValue() .
             ' START ' . $sequence->getInitialValue() .
@@ -539,7 +533,7 @@ SQL
 
     public function getAlterSequenceSQL(Sequence $sequence): string
     {
-        return 'ALTER SEQUENCE ' . $sequence->getQuotedName($this) .
+        return 'ALTER SEQUENCE ' . $sequence->getName() .
             ' INCREMENT BY ' . $sequence->getAllocationSize() .
             $this->getSequenceCacheSQL($sequence);
     }
@@ -556,20 +550,20 @@ SQL
         return '';
     }
 
-    public function getDropSequenceSQL(string $name): string
+    public function getDropSequenceSQL(Name $name): string
     {
         return parent::getDropSequenceSQL($name) . ' CASCADE';
     }
 
-    public function getDropForeignKeySQL(string $foreignKey, string $table): string
+    public function getDropForeignKeySQL(Name $name, Name $tableName): string
     {
-        return $this->getDropConstraintSQL($foreignKey, $table);
+        return $this->getDropConstraintSQL($name, $tableName);
     }
 
     /**
      * {@inheritDoc}
      */
-    protected function _getCreateTableSQL(string $name, array $columns, array $options = []): array
+    protected function _getCreateTableSQL(Name $name, array $columns, array $options = []): array
     {
         $queryFields = $this->getColumnDeclarationListSQL($columns);
 
@@ -731,9 +725,9 @@ SQL
         return parent::convertFromBoolean($item);
     }
 
-    public function getSequenceNextValSQL(string $sequence): string
+    public function getSequenceNextValSQL(Name $name): string
     {
-        return "SELECT NEXTVAL('" . $sequence . "')";
+        return "SELECT NEXTVAL('" . $name . "')";
     }
 
     public function getSetTransactionIsolationSQL(int $level): string
@@ -868,15 +862,14 @@ SQL
         return 'Y-m-d H:i:sO';
     }
 
-    public function getEmptyIdentityInsertSQL(string $quotedTableName, string $quotedIdentifierColumnName): string
+    public function getEmptyIdentityInsertSQL(Name $tableName, Name $identityColumnName): string
     {
-        return 'INSERT INTO ' . $quotedTableName . ' (' . $quotedIdentifierColumnName . ') VALUES (DEFAULT)';
+        return 'INSERT INTO ' . $tableName . ' (' . $identityColumnName . ') VALUES (DEFAULT)';
     }
 
-    public function getTruncateTableSQL(string $tableName, bool $cascade = false): string
+    public function getTruncateTableSQL(Name $name, bool $cascade = false): string
     {
-        $tableIdentifier = new Identifier($tableName);
-        $sql             = 'TRUNCATE ' . $tableIdentifier->getQuotedName($this);
+        $sql = parent::getTruncateTableSQL($name, $cascade);
 
         if ($cascade) {
             $sql .= ' CASCADE';
@@ -1028,7 +1021,7 @@ SQL
 SELECT obj_description(%s::regclass) AS table_comment;
 SQL
             ,
-            $this->quoteStringLiteral($table)
+            $this->buildNameLiteral($table)
         );
     }
 }
