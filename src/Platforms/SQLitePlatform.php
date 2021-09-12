@@ -820,9 +820,15 @@ class SQLitePlatform extends AbstractPlatform
         $indexes     = $fromTable->getIndexes();
         $columnNames = $this->getColumnNamesInAlteredTable($diff, $fromTable);
 
+        $indexPositionsByName = [];
+
         foreach ($indexes as $key => $index) {
+            $lowerCaseName = strtolower($index->getName());
+
+            $indexPositionsByName[$lowerCaseName] = $key;
+
             foreach ($diff->getRenamedIndexes() as $oldIndexName => $renamedIndex) {
-                if (strtolower($key) !== strtolower($oldIndexName)) {
+                if ($lowerCaseName !== strtolower($oldIndexName)) {
                     continue;
                 }
 
@@ -866,7 +872,13 @@ class SQLitePlatform extends AbstractPlatform
                 continue;
             }
 
-            unset($indexes[strtolower($indexName)]);
+            $lowerCaseName = strtolower($index->getName());
+
+            if (! isset($indexPositionsByName[$lowerCaseName])) {
+                continue;
+            }
+
+            unset($indexes[$indexPositionsByName[$lowerCaseName]]);
         }
 
         foreach (

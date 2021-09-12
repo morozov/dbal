@@ -237,7 +237,9 @@ class Comparator
         $toTableIndexes   = $toTable->getIndexes();
 
         /* See if all the indexes in "from" table exist in "to" table */
-        foreach ($toTableIndexes as $indexName => $index) {
+        foreach ($toTableIndexes as $index) {
+            $indexName = strtolower($index->getName());
+
             if (($index->isPrimary() && $fromTable->hasPrimaryKey()) || $fromTable->hasIndex($indexName)) {
                 continue;
             }
@@ -248,7 +250,9 @@ class Comparator
         }
 
         /* See if there are any removed indexes in "to" table */
-        foreach ($fromTableIndexes as $indexName => $index) {
+        foreach ($fromTableIndexes as $index) {
+            $indexName = strtolower($index->getName());
+
             // See if index is removed in "to" table.
             if (
                 ($index->isPrimary() && ! $toTable->hasPrimaryKey()) ||
