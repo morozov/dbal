@@ -17,13 +17,19 @@ use Doctrine\DBAL\Schema\Visitor\Visitor;
 use Doctrine\DBAL\Types\Type;
 
 use function array_filter;
+use function array_map;
 use function array_merge;
 use function array_values;
+use function crc32;
+use function dechex;
+use function implode;
 use function in_array;
 use function is_string;
 use function preg_match;
 use function sprintf;
 use function strtolower;
+use function strtoupper;
+use function substr;
 
 use const ARRAY_FILTER_USE_KEY;
 
@@ -141,11 +147,7 @@ class Table extends AbstractAsset
         array $options = []
     ): self {
         if ($indexName === null) {
-            $indexName = $this->_generateIdentifierName(
-                array_merge([$this->getName()], $columnNames),
-                'uniq',
-                $this->_getMaxIdentifierLength()
-            );
+            $indexName = $this->generateIdentifierName('uniq', $columnNames);
         }
 
         return $this->_addUniqueConstraint($this->_createUniqueConstraint($columnNames, $indexName, $flags, $options));
@@ -163,11 +165,7 @@ class Table extends AbstractAsset
         array $options = []
     ): self {
         if ($indexName === null) {
-            $indexName = $this->_generateIdentifierName(
-                array_merge([$this->getName()], $columnNames),
-                'idx',
-                $this->_getMaxIdentifierLength()
-            );
+            $indexName = $this->generateIdentifierName('idx', $columnNames);
         }
 
         return $this->_addIndex($this->_createIndex($columnNames, $indexName, false, false, $flags, $options));
@@ -213,11 +211,7 @@ class Table extends AbstractAsset
     public function addUniqueIndex(array $columnNames, ?string $indexName = null, array $options = []): self
     {
         if ($indexName === null) {
-            $indexName = $this->_generateIdentifierName(
-                array_merge([$this->getName()], $columnNames),
-                'uniq',
-                $this->_getMaxIdentifierLength()
-            );
+            $indexName = $this->generateIdentifierName('uniq', $columnNames);
         }
 
         return $this->_addIndex($this->_createIndex($columnNames, $indexName, true, false, [], $options));
@@ -343,11 +337,7 @@ class Table extends AbstractAsset
         ?string $name = null
     ): self {
         if ($name === null) {
-            $name = $this->_generateIdentifierName(
-                array_merge((array) $this->getName(), $localColumnNames),
-                'fk',
-                $this->_getMaxIdentifierLength()
-            );
+            $name = $this->generateIdentifierName('fk', $localColumnNames);
         }
 
         foreach ($localColumnNames as $columnName) {
@@ -727,11 +717,7 @@ class Table extends AbstractAsset
     {
         $name = $constraint->getName() !== ''
             ? $constraint->getName()
-            : $this->_generateIdentifierName(
-                array_merge((array) $this->getName(), $constraint->getColumns()),
-                'fk',
-                $this->_getMaxIdentifierLength()
-            );
+            : $this->generateIdentifierName('fk', $constraint->getColumns());
 
         $name = $this->normalizeIdentifier($name);
 
@@ -740,11 +726,7 @@ class Table extends AbstractAsset
         // If there is already an index that fulfills this requirements drop the request. In the case of __construct
         // calling this method during hydration from schema-details all the explicitly added indexes lead to duplicates.
         // This creates computation overhead in this case, however no duplicate indexes are ever added (column based).
-        $indexName = $this->_generateIdentifierName(
-            array_merge([$this->getName()], $constraint->getColumns()),
-            'idx',
-            $this->_getMaxIdentifierLength()
-        );
+        $indexName = $this->generateIdentifierName('idx', $constraint->getColumns());
 
         $indexCandidate = $this->_createIndex($constraint->getColumns(), $indexName, true, false);
 
@@ -763,11 +745,7 @@ class Table extends AbstractAsset
     {
         $name = $constraint->getName() !== ''
             ? $constraint->getName()
-            : $this->_generateIdentifierName(
-                array_merge((array) $this->getName(), $constraint->getLocalColumns()),
-                'fk',
-                $this->_getMaxIdentifierLength()
-            );
+            : $this->generateIdentifierName('fk', $constraint->getLocalColumns());
 
         $name = $this->normalizeIdentifier($name);
 
@@ -777,11 +755,7 @@ class Table extends AbstractAsset
         // If there is already an index that fulfills this requirements drop the request. In the case of __construct
         // calling this method during hydration from schema-details all the explicitly added indexes lead to duplicates.
         // This creates computation overhead in this case, however no duplicate indexes are ever added (column based).
-        $indexName = $this->_generateIdentifierName(
-            array_merge([$this->getName()], $constraint->getLocalColumns()),
-            'idx',
-            $this->_getMaxIdentifierLength()
-        );
+        $indexName = $this->generateIdentifierName('idx', $constraint->getLocalColumns());
 
         $indexCandidate = $this->_createIndex($constraint->getLocalColumns(), $indexName, false, false);
 
@@ -882,5 +856,23 @@ class Table extends AbstractAsset
         }
 
         return new Index($indexName, $columns, $isUnique, $isPrimary, $flags, $options);
+    }
+
+    /**
+     * Generates an identifier from a list of column names obeying a certain string length.
+     *
+     * This is especially important for Oracle, since it does not allow identifiers larger than 30 chars,
+     * however building idents automatically for foreign keys, composite keys or such can easily create
+     * very long names.
+     *
+     * @param array<int, string> $columnNames
+     */
+    private function generateIdentifierName(string $prefix, array $columnNames): string
+    {
+        $hash = implode('', array_map(static function ($column): string {
+            return dechex(crc32($column));
+        }, array_merge([$this->getName()], $columnNames)));
+
+        return strtoupper(substr($prefix . '_' . $hash, 0, $this->_getMaxIdentifierLength()));
     }
 }
