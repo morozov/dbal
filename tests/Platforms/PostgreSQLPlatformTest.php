@@ -7,7 +7,6 @@ namespace Doctrine\DBAL\Tests\Platforms;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Platforms\PostgreSQLPlatform;
 use Doctrine\DBAL\Schema\Column;
-use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Sequence;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\TransactionIsolationLevel;
@@ -51,87 +50,6 @@ class PostgreSQLPlatformTest extends AbstractPlatformTestCase
     {
         return 'ALTER TABLE test ADD FOREIGN KEY (fk_name_id)'
             . ' REFERENCES other_table (id) NOT DEFERRABLE INITIALLY IMMEDIATE';
-    }
-
-    public function testGeneratesForeignKeySqlForNonStandardOptions(): void
-    {
-        $foreignKey = new ForeignKeyConstraint(
-            ['foreign_id'],
-            'my_table',
-            ['id'],
-            'my_fk',
-            ['onDelete' => 'CASCADE'],
-        );
-        self::assertEquals(
-            'CONSTRAINT my_fk FOREIGN KEY (foreign_id)'
-            . ' REFERENCES my_table (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE',
-            $this->platform->getForeignKeyDeclarationSQL($foreignKey),
-        );
-
-        $foreignKey = new ForeignKeyConstraint(
-            ['foreign_id'],
-            'my_table',
-            ['id'],
-            'my_fk',
-            ['match' => 'full'],
-        );
-        self::assertEquals(
-            'CONSTRAINT my_fk FOREIGN KEY (foreign_id)'
-            . ' REFERENCES my_table (id) MATCH full NOT DEFERRABLE INITIALLY IMMEDIATE',
-            $this->platform->getForeignKeyDeclarationSQL($foreignKey),
-        );
-
-        $foreignKey = new ForeignKeyConstraint(
-            ['foreign_id'],
-            'my_table',
-            ['id'],
-            'my_fk',
-            ['deferrable' => true],
-        );
-        self::assertEquals(
-            'CONSTRAINT my_fk FOREIGN KEY (foreign_id)'
-            . ' REFERENCES my_table (id) DEFERRABLE INITIALLY IMMEDIATE',
-            $this->platform->getForeignKeyDeclarationSQL($foreignKey),
-        );
-
-        $foreignKey = new ForeignKeyConstraint(
-            ['foreign_id'],
-            'my_table',
-            ['id'],
-            'my_fk',
-            ['deferred' => true],
-        );
-        self::assertEquals(
-            'CONSTRAINT my_fk FOREIGN KEY (foreign_id)'
-            . ' REFERENCES my_table (id) NOT DEFERRABLE INITIALLY DEFERRED',
-            $this->platform->getForeignKeyDeclarationSQL($foreignKey),
-        );
-
-        $foreignKey = new ForeignKeyConstraint(
-            ['foreign_id'],
-            'my_table',
-            ['id'],
-            'my_fk',
-            ['deferred' => true],
-        );
-        self::assertEquals(
-            'CONSTRAINT my_fk FOREIGN KEY (foreign_id)'
-            . ' REFERENCES my_table (id) NOT DEFERRABLE INITIALLY DEFERRED',
-            $this->platform->getForeignKeyDeclarationSQL($foreignKey),
-        );
-
-        $foreignKey = new ForeignKeyConstraint(
-            ['foreign_id'],
-            'my_table',
-            ['id'],
-            'my_fk',
-            ['deferrable' => true, 'deferred' => true, 'match' => 'full'],
-        );
-        self::assertEquals(
-            'CONSTRAINT my_fk FOREIGN KEY (foreign_id)'
-            . ' REFERENCES my_table (id) MATCH full DEFERRABLE INITIALLY DEFERRED',
-            $this->platform->getForeignKeyDeclarationSQL($foreignKey),
-        );
     }
 
     public function testGeneratesSqlSnippets(): void
@@ -223,20 +141,6 @@ class PostgreSQLPlatformTest extends AbstractPlatformTestCase
         $sql = $this->platform->getCreateTableSQL($table);
 
         self::assertEquals([sprintf('CREATE TABLE autoinc_table_notnull_enabled (id %s NOT NULL)', $definition)], $sql);
-    }
-
-    /** @dataProvider serialTypes */
-    public function testGetDefaultValueDeclarationSQLIgnoresTheDefaultKeyWhenTheFieldIsSerial(string $type): void
-    {
-        $sql = $this->platform->getDefaultValueDeclarationSQL(
-            [
-                'autoincrement' => true,
-                'type'          => Type::getType($type),
-                'default'       => 1,
-            ],
-        );
-
-        self::assertSame('', $sql);
     }
 
     public function testGeneratesTypeDeclarationForIntegers(): void
@@ -667,14 +571,6 @@ class PostgreSQLPlatformTest extends AbstractPlatformTestCase
             ],
             $this->platform->getCreateTableSQL($table),
             'Comments are added to table.',
-        );
-    }
-
-    public function testColumnCollationDeclarationSQL(): void
-    {
-        self::assertEquals(
-            'COLLATE "en_US.UTF-8"',
-            $this->platform->getColumnCollationDeclarationSQL('en_US.UTF-8'),
         );
     }
 

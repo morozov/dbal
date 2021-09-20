@@ -18,7 +18,6 @@ use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\TableDiff;
 use Doctrine\DBAL\Schema\UniqueConstraint;
 use Doctrine\DBAL\Types\Type;
-use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
 use function implode;
@@ -46,31 +45,6 @@ abstract class AbstractPlatformTestCase extends TestCase
     public function testQuoteIdentifier(): void
     {
         self::assertEquals('"test"."test"', $this->platform->quoteIdentifier('test.test'));
-    }
-
-    /** @dataProvider getReturnsForeignKeyReferentialActionSQL */
-    public function testReturnsForeignKeyReferentialActionSQL(string $action, string $expectedSQL): void
-    {
-        self::assertSame($expectedSQL, $this->platform->getForeignKeyReferentialActionSQL($action));
-    }
-
-    /** @return mixed[][] */
-    public static function getReturnsForeignKeyReferentialActionSQL(): iterable
-    {
-        return [
-            ['CASCADE', 'CASCADE'],
-            ['SET NULL', 'SET NULL'],
-            ['NO ACTION', 'NO ACTION'],
-            ['RESTRICT', 'RESTRICT'],
-            ['SET DEFAULT', 'SET DEFAULT'],
-            ['CaScAdE', 'CASCADE'],
-        ];
-    }
-
-    public function testGetInvalidForeignKeyReferentialActionSQL(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        $this->platform->getForeignKeyReferentialActionSQL('unknown');
     }
 
     public function testGetUnknownDoctrineMappingType(): void
@@ -148,30 +122,6 @@ abstract class AbstractPlatformTestCase extends TestCase
 
     abstract public function getGenerateUniqueIndexSql(): string;
 
-    public function testGeneratesPartialIndexesSqlOnlyWhenSupportingPartialIndexes(): void
-    {
-        $where            = 'test IS NULL AND test2 IS NOT NULL';
-        $indexDef         = new Index('name', ['test', 'test2'], false, false, [], ['where' => $where]);
-        $uniqueConstraint = new UniqueConstraint('name', ['test', 'test2'], [], []);
-
-        $expected = ' WHERE ' . $where;
-
-        $indexes = [];
-
-        $uniqueConstraintSQL = $this->platform->getUniqueConstraintDeclarationSQL($uniqueConstraint);
-        self::assertStringEndsNotWith($expected, $uniqueConstraintSQL, 'WHERE clause should NOT be present');
-
-        $indexes[] = $this->platform->getCreateIndexSQL($indexDef, 'table');
-
-        foreach ($indexes as $index) {
-            if ($this->platform->supportsPartialIndexes()) {
-                self::assertStringEndsWith($expected, $index, 'WHERE clause should be present');
-            } else {
-                self::assertStringEndsNotWith($expected, $index, 'WHERE clause should NOT be present');
-            }
-        }
-    }
-
     public function testGeneratesForeignKeyCreationSql(): void
     {
         $fk = new ForeignKeyConstraint(['fk_name_id'], 'other_table', ['id']);
@@ -221,14 +171,6 @@ abstract class AbstractPlatformTestCase extends TestCase
         return sprintf(
             'ALTER TABLE test ADD CONSTRAINT constraint_fk FOREIGN KEY (fk_name) REFERENCES %s (id)',
             $quotedForeignTable,
-        );
-    }
-
-    public function testGetCustomColumnDeclarationSql(): void
-    {
-        self::assertEquals(
-            'foo MEDIUMINT(6) UNSIGNED',
-            $this->platform->getColumnDeclarationSQL('foo', ['columnDefinition' => 'MEDIUMINT(6) UNSIGNED']),
         );
     }
 
@@ -324,54 +266,41 @@ abstract class AbstractPlatformTestCase extends TestCase
         $this->platform->getAlterTableSQL($tableDiff);
     }
 
-    public function testGetDefaultValueDeclarationSQL(): void
+    public function testCreateTableColumnComments(): void
     {
-        // non-timestamp value will get single quotes
-        self::assertEquals(" DEFAULT 'non_timestamp'", $this->platform->getDefaultValueDeclarationSQL([
-            'type' => Type::getType('string'),
-            'default' => 'non_timestamp',
-        ]));
+        $table = new Table('test');
+        $table->addColumn('id', 'integer', ['comment' => 'This is a comment']);
+        $table->setPrimaryKey(['id']);
+
+        self::assertEquals($this->getCreateTableColumnCommentsSQL(), $this->platform->getCreateTableSQL($table));
     }
 
-    public function testGetDefaultValueDeclarationSQLDateTime(): void
+    public function testAlterTableColumnComments(): void
     {
-        // timestamps on datetime types should not be quoted
-        foreach (['datetime', 'datetimetz', 'datetime_immutable', 'datetimetz_immutable'] as $type) {
-            self::assertSame(
-                ' DEFAULT ' . $this->platform->getCurrentTimestampSQL(),
-                $this->platform->getDefaultValueDeclarationSQL([
-                    'type'    => Type::getType($type),
-                    'default' => $this->platform->getCurrentTimestampSQL(),
-                ]),
-            );
-        }
+        $foo = new Column('foo', Type::getType('string'), ['length' => 255]);
+        $bar = new Column('baz', Type::getType('string'), [
+            'length'  => 255,
+            'comment' => 'B comment',
+        ]);
+
+        $tableDiff                        = new TableDiff('mytable');
+        $tableDiff->addedColumns['quota'] = new Column('quota', Type::getType('integer'), ['comment' => 'A comment']);
+        $tableDiff->changedColumns['foo'] = new ColumnDiff('foo', $foo, ['comment'], $foo);
+        $tableDiff->changedColumns['bar'] = new ColumnDiff('bar', $bar, ['comment'], $bar);
+
+        self::assertEquals($this->getAlterTableColumnCommentsSQL(), $this->platform->getAlterTableSQL($tableDiff));
     }
 
-    public function testGetDefaultValueDeclarationSQLForIntegerTypes(): void
+    /** @return string[] */
+    public function getCreateTableColumnCommentsSQL(): array
     {
-        foreach (['bigint', 'integer', 'smallint'] as $type) {
-            self::assertEquals(
-                ' DEFAULT 1',
-                $this->platform->getDefaultValueDeclarationSQL([
-                    'type'    => Type::getType($type),
-                    'default' => 1,
-                ]),
-            );
-        }
+        self::markTestSkipped('Platform does not support Column comments.');
     }
 
-    public function testGetDefaultValueDeclarationSQLForDateType(): void
+    /** @return string[] */
+    public function getAlterTableColumnCommentsSQL(): array
     {
-        $currentDateSql = $this->platform->getCurrentDateSQL();
-        foreach (['date', 'date_immutable'] as $type) {
-            self::assertSame(
-                ' DEFAULT ' . $currentDateSql,
-                $this->platform->getDefaultValueDeclarationSQL([
-                    'type'    => Type::getType($type),
-                    'default' => $currentDateSql,
-                ]),
-            );
-        }
+        self::markTestSkipped('Platform does not support Column comments.');
     }
 
     public function testKeywordList(): void
@@ -515,16 +444,6 @@ abstract class AbstractPlatformTestCase extends TestCase
     }
 
     abstract protected function getQuotesReservedKeywordInTruncateTableSQL(): string;
-
-    public function testQuotesReservedKeywordInIndexDeclarationSQL(): void
-    {
-        $index = new Index('select', ['foo']);
-
-        self::assertSame(
-            $this->getQuotesReservedKeywordInIndexDeclarationSQL(),
-            $this->platform->getIndexDeclarationSQL($index),
-        );
-    }
 
     abstract protected function getQuotesReservedKeywordInIndexDeclarationSQL(): string;
 
@@ -799,61 +718,6 @@ abstract class AbstractPlatformTestCase extends TestCase
         ];
     }
 
-    protected function getQuotedCommentOnColumnSQLWithoutQuoteCharacter(): string
-    {
-        return "COMMENT ON COLUMN mytable.id IS 'This is a comment'";
-    }
-
-    public function testGetCommentOnColumnSQLWithoutQuoteCharacter(): void
-    {
-        self::assertEquals(
-            $this->getQuotedCommentOnColumnSQLWithoutQuoteCharacter(),
-            $this->platform->getCommentOnColumnSQL('mytable', 'id', 'This is a comment'),
-        );
-    }
-
-    protected function getQuotedCommentOnColumnSQLWithQuoteCharacter(): string
-    {
-        return "COMMENT ON COLUMN mytable.id IS 'It''s a quote !'";
-    }
-
-    public function testGetCommentOnColumnSQLWithQuoteCharacter(): void
-    {
-        self::assertEquals(
-            $this->getQuotedCommentOnColumnSQLWithQuoteCharacter(),
-            $this->platform->getCommentOnColumnSQL('mytable', 'id', "It's a quote !"),
-        );
-    }
-
-    /**
-     * @see testGetCommentOnColumnSQL
-     *
-     * @return string[]
-     */
-    abstract protected function getCommentOnColumnSQL(): array;
-
-    public function testGetCommentOnColumnSQL(): void
-    {
-        self::assertSame(
-            $this->getCommentOnColumnSQL(),
-            [
-                $this->platform->getCommentOnColumnSQL('foo', 'bar', 'comment'), // regular identifiers
-                $this->platform->getCommentOnColumnSQL('`Foo`', '`BAR`', 'comment'), // explicitly quoted identifiers
-                $this->platform->getCommentOnColumnSQL('select', 'from', 'comment'), // reserved keyword identifiers
-            ],
-        );
-    }
-
-    /** @dataProvider getGeneratesInlineColumnCommentSQL */
-    public function testGeneratesInlineColumnCommentSQL(string $comment, string $expectedSql): void
-    {
-        if (! $this->platform->supportsInlineColumnComments()) {
-            self::markTestSkipped(sprintf('%s does not support inline column comments.', $this->platform::class));
-        }
-
-        self::assertSame($expectedSql, $this->platform->getInlineColumnCommentSQL($comment));
-    }
-
     /** @return mixed[][] */
     public static function getGeneratesInlineColumnCommentSQL(): iterable
     {
@@ -888,21 +752,6 @@ abstract class AbstractPlatformTestCase extends TestCase
     protected static function getInlineColumnEmptyCommentSQL(): string
     {
         return "COMMENT ''";
-    }
-
-    public function testThrowsExceptionOnGeneratingInlineColumnCommentSQLIfUnsupported(): void
-    {
-        if ($this->platform->supportsInlineColumnComments()) {
-            self::markTestSkipped(sprintf('%s supports inline column comments.', $this->platform::class));
-        }
-
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage(
-            'Operation "' . AbstractPlatform::class . '::getInlineColumnCommentSQL" is not supported by platform.',
-        );
-        $this->expectExceptionCode(0);
-
-        $this->platform->getInlineColumnCommentSQL('unsupported');
     }
 
     public function testQuoteStringLiteral(): void

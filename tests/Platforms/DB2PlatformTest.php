@@ -7,7 +7,6 @@ namespace Doctrine\DBAL\Tests\Platforms;
 use Doctrine\DBAL\Exception\InvalidColumnDeclaration;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Platforms\DB2Platform;
-use Doctrine\DBAL\Platforms\Exception\NotSupported;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ColumnDiff;
 use Doctrine\DBAL\Schema\Index;
@@ -523,14 +522,6 @@ class DB2PlatformTest extends AbstractPlatformTestCase
     protected function getQuotesReservedKeywordInTruncateTableSQL(): string
     {
         return 'TRUNCATE "select" IMMEDIATE';
-    }
-
-    public function testQuotesReservedKeywordInIndexDeclarationSQL(): void
-    {
-        $this->expectException(NotSupported::class);
-        $index = new Index('select', ['foo']);
-
-        $this->platform->getIndexDeclarationSQL($index);
     }
 
     protected function supportsInlineIndexDeclaration(): bool

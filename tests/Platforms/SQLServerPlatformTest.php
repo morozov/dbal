@@ -840,21 +840,6 @@ class SQLServerPlatformTest extends AbstractPlatformTestCase
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public static function getReturnsForeignKeyReferentialActionSQL(): iterable
-    {
-        return [
-            ['CASCADE', 'CASCADE'],
-            ['SET NULL', 'SET NULL'],
-            ['NO ACTION', 'NO ACTION'],
-            ['RESTRICT', 'NO ACTION'],
-            ['SET DEFAULT', 'SET DEFAULT'],
-            ['CaScAdE', 'CASCADE'],
-        ];
-    }
-
     protected function getQuotesReservedKeywordInUniqueConstraintDeclarationSQL(): string
     {
         return 'CONSTRAINT [select] UNIQUE (foo)';
@@ -965,28 +950,6 @@ class SQLServerPlatformTest extends AbstractPlatformTestCase
         $expectedSql = "SELECT * FROM test\nORDER BY col DESC OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY";
         $sql         = $this->platform->modifyLimitQuery($querySql, 10);
         self::assertEquals($expectedSql, $sql);
-    }
-
-    public function testGetDefaultValueDeclarationSQLForDateType(): void
-    {
-        $currentDateSql = $this->platform->getCurrentDateSQL();
-        foreach (['date', 'date_immutable'] as $type) {
-            self::assertSame(
-                ' DEFAULT CONVERT(date, GETDATE())',
-                $this->platform->getDefaultValueDeclarationSQL([
-                    'type' => Type::getType($type),
-                    'default' => $currentDateSql,
-                ]),
-            );
-        }
-    }
-
-    public function testColumnCollationDeclarationSQL(): void
-    {
-        self::assertSame(
-            'COLLATE Latin1_General_CS_AS_KS_WS',
-            $this->platform->getColumnCollationDeclarationSQL('Latin1_General_CS_AS_KS_WS'),
-        );
     }
 
     public function testGetCreateTableSQLWithColumnCollation(): void

@@ -125,14 +125,12 @@ class PostgreSQLPlatform extends AbstractPlatform
         return true;
     }
 
-    /** @internal The method should be only used from within the {@see AbstractPlatform} class hierarchy. */
-    public function supportsPartialIndexes(): bool
+    protected function supportsPartialIndexes(): bool
     {
         return true;
     }
 
-    /** @internal The method should be only used from within the {@see AbstractPlatform} class hierarchy. */
-    public function supportsCommentOnStatement(): bool
+    protected function supportsCommentOnStatement(): bool
     {
         return true;
     }
@@ -188,8 +186,7 @@ class PostgreSQLPlatform extends AbstractPlatform
         );
     }
 
-    /** @internal The method should be only used from within the {@see AbstractPlatform} class hierarchy. */
-    public function getAdvancedForeignKeyOptionsSQL(ForeignKeyConstraint $foreignKey): string
+    protected function getAdvancedForeignKeyOptionsSQL(ForeignKeyConstraint $foreignKey): string
     {
         $query = '';
 
@@ -774,10 +771,8 @@ class PostgreSQLPlatform extends AbstractPlatform
 
     /**
      * {@inheritdoc}
-     *
-     * @internal The method should be only used from within the {@see AbstractPlatform} class hierarchy.
      */
-    public function getDefaultValueDeclarationSQL(array $column): string
+    protected function getDefaultValueDeclarationSQL(array $column): string
     {
         if (isset($column['autoincrement']) && $column['autoincrement'] === true) {
             return '';
@@ -786,8 +781,7 @@ class PostgreSQLPlatform extends AbstractPlatform
         return parent::getDefaultValueDeclarationSQL($column);
     }
 
-    /** @internal The method should be only used from within the {@see AbstractPlatform} class hierarchy. */
-    public function supportsColumnCollation(): bool
+    protected function supportsColumnCollation(): bool
     {
         return true;
     }

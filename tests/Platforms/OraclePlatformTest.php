@@ -9,7 +9,6 @@ use Doctrine\DBAL\Exception\InvalidColumnDeclaration;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Platforms\OraclePlatform;
 use Doctrine\DBAL\Schema\Column;
-use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Sequence;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\TransactionIsolationLevel;
@@ -124,45 +123,6 @@ class OraclePlatformTest extends AbstractPlatformTestCase
     protected function getGenerateForeignKeySql(): string
     {
         return 'ALTER TABLE test ADD FOREIGN KEY (fk_name_id) REFERENCES other_table (id)';
-    }
-
-    /**
-     * @param mixed[] $options
-     *
-     * @dataProvider getGeneratesAdvancedForeignKeyOptionsSQLData
-     */
-    public function testGeneratesAdvancedForeignKeyOptionsSQL(array $options, string $expectedSql): void
-    {
-        $foreignKey = new ForeignKeyConstraint(['foo'], 'foreign_table', ['bar'], '', $options);
-
-        self::assertSame($expectedSql, $this->platform->getAdvancedForeignKeyOptionsSQL($foreignKey));
-    }
-
-    /** @return mixed[][] */
-    public static function getGeneratesAdvancedForeignKeyOptionsSQLData(): iterable
-    {
-        return [
-            [[], ''],
-            [['onUpdate' => 'CASCADE'], ''],
-            [['onDelete' => 'CASCADE'], ' ON DELETE CASCADE'],
-            [['onDelete' => 'NO ACTION'], ''],
-            [['onDelete' => 'RESTRICT'], ''],
-            [['onUpdate' => 'SET NULL', 'onDelete' => 'SET NULL'], ' ON DELETE SET NULL'],
-        ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public static function getReturnsForeignKeyReferentialActionSQL(): iterable
-    {
-        return [
-            ['CASCADE', 'CASCADE'],
-            ['SET NULL', 'SET NULL'],
-            ['NO ACTION', ''],
-            ['RESTRICT', ''],
-            ['CaScAdE', 'CASCADE'],
-        ];
     }
 
     public function testGenerateTableWithAutoincrement(): void

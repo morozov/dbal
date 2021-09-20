@@ -477,8 +477,7 @@ END;';
         return $this->getDropConstraintSQL($foreignKey, $table);
     }
 
-    /** @internal The method should be only used from within the {@see AbstractPlatform} class hierarchy. */
-    public function getAdvancedForeignKeyOptionsSQL(ForeignKeyConstraint $foreignKey): string
+    protected function getAdvancedForeignKeyOptionsSQL(ForeignKeyConstraint $foreignKey): string
     {
         $referentialAction = '';
 
@@ -493,8 +492,7 @@ END;';
         return '';
     }
 
-    /** @internal The method should be only used from within the {@see AbstractPlatform} class hierarchy. */
-    public function getForeignKeyReferentialActionSQL(string $action): string
+    protected function getForeignKeyReferentialActionSQL(string $action): string
     {
         $action = strtoupper($action);
 
@@ -632,10 +630,8 @@ END;';
 
     /**
      * {@inheritdoc}
-     *
-     * @internal The method should be only used from within the {@see AbstractPlatform} class hierarchy.
      */
-    public function getColumnDeclarationSQL(string $name, array $column): string
+    protected function getColumnDeclarationSQL(string $name, array $column): string
     {
         if (isset($column['columnDefinition'])) {
             $declaration = $column['columnDefinition'];
@@ -684,8 +680,7 @@ END;';
         return $identitySequenceIdentifier->getQuotedName($this);
     }
 
-    /** @internal The method should be only used from within the {@see AbstractPlatform} class hierarchy. */
-    public function supportsCommentOnStatement(): bool
+    protected function supportsCommentOnStatement(): bool
     {
         return true;
     }
