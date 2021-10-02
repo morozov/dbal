@@ -830,13 +830,11 @@ class TableTest extends TestCase
 
         self::assertCount(2, $constraints);
 
-        $constraintNames = array_keys($constraints);
+        self::assertSame('fk_d87f7e0c341ce00bad15b1b1', $constraints[0]->getName());
+        self::assertSame('fk_d87f7e0cda12812744761484', $constraints[1]->getName());
 
-        self::assertSame('fk_d87f7e0c341ce00bad15b1b1', $constraintNames[0]);
-        self::assertSame('fk_d87f7e0cda12812744761484', $constraintNames[1]);
-
-        self::assertSame($uniqueConstraints[0], $constraints['fk_d87f7e0c341ce00bad15b1b1']);
-        self::assertSame($uniqueConstraints[1], $constraints['fk_d87f7e0cda12812744761484']);
+        self::assertSame($uniqueConstraints[0], $constraints[0]);
+        self::assertSame($uniqueConstraints[1], $constraints[1]);
     }
 
     public function testRemoveUniqueConstraint(): void

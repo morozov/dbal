@@ -938,9 +938,10 @@ class SqlitePlatform extends AbstractPlatform
         $indexes     = $fromTable->getIndexes();
         $columnNames = $this->getColumnNamesInAlteredTable($diff, $fromTable);
 
-        foreach ($indexes as $key => $index) {
+        foreach ($indexes as $index) {
+            $key = strtolower($index->getName());
             foreach ($diff->renamedIndexes as $oldIndexName => $renamedIndex) {
-                if (strtolower($key) !== strtolower($oldIndexName)) {
+                if ($key !== strtolower($oldIndexName)) {
                     continue;
                 }
 
