@@ -326,7 +326,7 @@ class Table extends AbstractAsset
         array $flags = [],
         array $options = []
     ) {
-        if (preg_match('(([^a-zA-Z0-9_]+))', $this->normalizeIdentifier($indexName)) === 1) {
+        if (preg_match('[^a-zA-Z0-9_]', $this->normalizeIdentifier($indexName)) === 1) {
             throw SchemaException::indexNameInvalid($indexName);
         }
 
@@ -489,12 +489,12 @@ class Table extends AbstractAsset
         $indexName               = $this->normalizeIdentifier($indexName);
         $replacedImplicitIndexes = [];
 
-        foreach ($this->implicitIndexes as $name => $implicitIndex) {
-            if (! $implicitIndex->isFullfilledBy($indexCandidate) || ! isset($this->_indexes[$name])) {
+        foreach ($this->implicitIndexes as $offset => $implicitIndex) {
+            if (! $implicitIndex->isFullfilledBy($indexCandidate)) {
                 continue;
             }
 
-            $replacedImplicitIndexes[] = $name;
+            $replacedImplicitIndexes[] = $offset;
         }
 
         if (
@@ -504,8 +504,8 @@ class Table extends AbstractAsset
             throw SchemaException::indexAlreadyExists($indexName, $this->_name);
         }
 
-        foreach ($replacedImplicitIndexes as $name) {
-            unset($this->_indexes[$name], $this->implicitIndexes[$name]);
+        foreach ($replacedImplicitIndexes as $offset) {
+            unset($this->implicitIndexes[$offset]);
         }
 
         if ($indexCandidate->isPrimary()) {
@@ -534,9 +534,7 @@ class Table extends AbstractAsset
         // If there is already an index that fulfills this requirements drop the request. In the case of __construct
         // calling this method during hydration from schema-details all the explicitly added indexes lead to duplicates.
         // This creates computation overhead in this case, however no duplicate indexes are ever added (column based).
-        $indexName = $this->_generateIdentifierName($mergedNames, 'idx', $this->_getMaxIdentifierLength());
-
-        $indexCandidate = $this->_createIndex($constraint->getColumns(), $indexName, true, false);
+        $indexCandidate = $this->_createIndex($constraint->getColumns(), '', true, false);
 
         foreach ($this->_indexes as $existingIndex) {
             if ($indexCandidate->isFullfilledBy($existingIndex)) {
@@ -544,7 +542,7 @@ class Table extends AbstractAsset
             }
         }
 
-        $this->implicitIndexes[$this->normalizeIdentifier($indexName)] = $indexCandidate;
+        $this->implicitIndexes[] = $indexCandidate;
 
         return $this;
     }
@@ -577,13 +575,7 @@ class Table extends AbstractAsset
            added indexes lead to duplicates. This creates computation overhead in
            this case, however no duplicate indexes are ever added (based on
            columns). */
-        $indexName = $this->_generateIdentifierName(
-            array_merge([$this->getName()], $constraint->getColumns()),
-            'idx',
-            $this->_getMaxIdentifierLength()
-        );
-
-        $indexCandidate = $this->_createIndex($constraint->getColumns(), $indexName, false, false);
+        $indexCandidate = $this->_createIndex($constraint->getColumns(), '', false, false);
 
         foreach ($this->_indexes as $existingIndex) {
             if ($indexCandidate->isFullfilledBy($existingIndex)) {
@@ -591,8 +583,7 @@ class Table extends AbstractAsset
             }
         }
 
-        $this->_addIndex($indexCandidate);
-        $this->implicitIndexes[$this->normalizeIdentifier($indexName)] = $indexCandidate;
+        $this->implicitIndexes[] = $indexCandidate;
 
         return $this;
     }

@@ -400,9 +400,6 @@ class SqlitePlatformTest extends AbstractPlatformTestCase
                 . ', CONSTRAINT FK_8D93D6493D8E604F FOREIGN KEY (parent)'
                 . ' REFERENCES user (id) DEFERRABLE INITIALLY DEFERRED'
                 . ')',
-            'CREATE INDEX IDX_8D93D64923A0E66 ON user (article)',
-            'CREATE INDEX IDX_8D93D6495A8A6C8D ON user (post)',
-            'CREATE INDEX IDX_8D93D6493D8E604F ON user (parent)',
         ];
 
         self::assertEquals($sql, $this->platform->getCreateTableSQL($table));
