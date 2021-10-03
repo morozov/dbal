@@ -41,9 +41,11 @@ class UniqueConstraint extends AbstractAsset
      * @param array<string>        $flags
      * @param array<string, mixed> $options
      */
-    public function __construct(string $name, array $columns, array $flags = [], array $options = [])
+    public function __construct(?string $name, array $columns, array $flags = [], array $options = [])
     {
-        $this->_setName($name);
+        if ($name !== null) {
+            $this->_setName($name);
+        }
 
         $this->options = $options;
 

@@ -17,7 +17,6 @@ use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Types\Types;
 use PHPUnit\Framework\TestCase;
 
-use function array_keys;
 use function array_shift;
 
 class TableTest extends TestCase
@@ -199,21 +198,6 @@ class TableTest extends TestCase
             new Index('an_idx', ['bar'], false, false),
         ];
         new Table('foo', $columns, $indexes, [], []);
-    }
-
-    public function testConstraints(): void
-    {
-        $constraint = new ForeignKeyConstraint([], 'foo', []);
-
-        $tableA      = new Table('foo', [], [], [], [$constraint]);
-        $constraints = $tableA->getForeignKeys();
-
-        self::assertCount(1, $constraints);
-
-        $constraintNames = array_keys($constraints);
-
-        self::assertSame('fk_8c736521', $constraintNames[0]);
-        self::assertSame($constraint, $constraints['fk_8c736521']);
     }
 
     public function testOptions(): void
@@ -826,17 +810,7 @@ class TableTest extends TestCase
 
         $table = new Table('test', $columns, [], $uniqueConstraints);
 
-        $constraints = $table->getUniqueConstraints();
-
-        self::assertCount(2, $constraints);
-
-        $constraintNames = array_keys($constraints);
-
-        self::assertSame('fk_d87f7e0c341ce00bad15b1b1', $constraintNames[0]);
-        self::assertSame('fk_d87f7e0cda12812744761484', $constraintNames[1]);
-
-        self::assertSame($uniqueConstraints[0], $constraints['fk_d87f7e0c341ce00bad15b1b1']);
-        self::assertSame($uniqueConstraints[1], $constraints['fk_d87f7e0cda12812744761484']);
+        self::assertSame($uniqueConstraints, $table->getUniqueConstraints());
     }
 
     public function testRemoveUniqueConstraint(): void

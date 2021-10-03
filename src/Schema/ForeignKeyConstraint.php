@@ -50,17 +50,19 @@ class ForeignKeyConstraint extends AbstractAsset
      * @param array<int, string>   $localColumnNames   Names of the referencing table columns.
      * @param string               $foreignTableName   Referenced table.
      * @param array<int, string>   $foreignColumnNames Names of the referenced table columns.
-     * @param string               $name               Name of the foreign key constraint.
+     * @param ?string              $name               Name of the foreign key constraint.
      * @param array<string, mixed> $options            Options associated with the foreign key constraint.
      */
     public function __construct(
         array $localColumnNames,
         string $foreignTableName,
         array $foreignColumnNames,
-        string $name = '',
+        ?string $name = null,
         array $options = []
     ) {
-        $this->_setName($name);
+        if ($name !== null) {
+            $this->_setName($name);
+        }
 
         $this->_localColumnNames = $this->createIdentifierMap($localColumnNames);
         $this->_foreignTableName = new Identifier($foreignTableName);
