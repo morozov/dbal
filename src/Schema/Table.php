@@ -35,7 +35,7 @@ class Table extends AbstractAsset
     /** @var Column[] */
     protected array $_columns = [];
 
-    /** @var Index[] */
+    /** @var array<int,Index> */
     private array $implicitIndexes = [];
 
     /** @var Index[] */
@@ -678,23 +678,23 @@ class Table extends AbstractAsset
         $indexName               = $this->normalizeIdentifier($indexName);
         $replacedImplicitIndexes = [];
 
-        foreach ($this->implicitIndexes as $name => $implicitIndex) {
-            if (! $implicitIndex->isFullfilledBy($indexCandidate) || ! isset($this->_indexes[$name])) {
+        foreach ($this->implicitIndexes as $key => $implicitIndex) {
+            if (! $implicitIndex->isFullfilledBy($indexCandidate)) {
                 continue;
             }
 
-            $replacedImplicitIndexes[] = $name;
+            $replacedImplicitIndexes[] = $key;
         }
 
         if (
-            (isset($this->_indexes[$indexName]) && ! in_array($indexName, $replacedImplicitIndexes, true)) ||
+            isset($this->_indexes[$indexName]) ||
             ($this->_primaryKeyName !== null && $indexCandidate->isPrimary())
         ) {
             throw IndexAlreadyExists::new($indexName, $this->_name);
         }
 
-        foreach ($replacedImplicitIndexes as $name) {
-            unset($this->_indexes[$name], $this->implicitIndexes[$name]);
+        foreach ($replacedImplicitIndexes as $key) {
+            unset($this->implicitIndexes[$key]);
         }
 
         if ($indexCandidate->isPrimary()) {
@@ -723,13 +723,7 @@ class Table extends AbstractAsset
         // If there is already an index that fulfills this requirements drop the request. In the case of __construct
         // calling this method during hydration from schema-details all the explicitly added indexes lead to duplicates.
         // This creates computation overhead in this case, however no duplicate indexes are ever added (column based).
-        $indexName = $this->_generateIdentifierName(
-            array_merge([$this->getName()], $constraint->getColumns()),
-            'idx',
-            $this->_getMaxIdentifierLength()
-        );
-
-        $indexCandidate = $this->_createIndex($constraint->getColumns(), $indexName, true, false);
+        $indexCandidate = $this->_createIndex($constraint->getColumns(), '', true, false);
 
         foreach ($this->_indexes as $existingIndex) {
             if ($indexCandidate->isFullfilledBy($existingIndex)) {
@@ -737,7 +731,7 @@ class Table extends AbstractAsset
             }
         }
 
-        $this->implicitIndexes[$this->normalizeIdentifier($indexName)] = $indexCandidate;
+        $this->implicitIndexes[] = $indexCandidate;
 
         return $this;
     }
@@ -774,7 +768,7 @@ class Table extends AbstractAsset
             }
         }
 
-        $this->implicitIndexes[$this->normalizeIdentifier($indexName)] = $indexCandidate;
+        $this->implicitIndexes[] = $indexCandidate;
 
         return $this;
     }
@@ -819,7 +813,7 @@ class Table extends AbstractAsset
         array $flags = [],
         array $options = []
     ): UniqueConstraint {
-        if (preg_match('(([^a-zA-Z0-9_]+))', $this->normalizeIdentifier($indexName)) === 1) {
+        if (preg_match('[^a-zA-Z0-9_]', $this->normalizeIdentifier($indexName)) === 1) {
             throw IndexNameInvalid::new($indexName);
         }
 
