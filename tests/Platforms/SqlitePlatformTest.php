@@ -400,9 +400,6 @@ class SqlitePlatformTest extends AbstractPlatformTestCase
                 . ', CONSTRAINT FK_8D93D6493D8E604F FOREIGN KEY (parent)'
                 . ' REFERENCES user (id) DEFERRABLE INITIALLY DEFERRED'
                 . ')',
-            'CREATE INDEX IDX_8D93D64923A0E66 ON user (article)',
-            'CREATE INDEX IDX_8D93D6495A8A6C8D ON user (post)',
-            'CREATE INDEX IDX_8D93D6493D8E604F ON user (parent)',
         ];
 
         self::assertEquals($sql, $this->platform->getCreateTableSQL($table));
@@ -430,9 +427,6 @@ class SqlitePlatformTest extends AbstractPlatformTestCase
         $diff->removedIndexes['index1'] = $table->getIndex('index1');
 
         $sql = [
-            'DROP INDEX IDX_8D93D64923A0E66',
-            'DROP INDEX IDX_8D93D6495A8A6C8D',
-            'DROP INDEX IDX_8D93D6493D8E604F',
             'DROP INDEX index1',
             'CREATE TEMPORARY TABLE __temp__user AS SELECT id, article, post FROM user',
             'DROP TABLE user',
@@ -447,8 +441,6 @@ class SqlitePlatformTest extends AbstractPlatformTestCase
             'INSERT INTO user ("key", article, comment) SELECT id, article, post FROM __temp__user',
             'DROP TABLE __temp__user',
             'ALTER TABLE user RENAME TO client',
-            'CREATE INDEX IDX_8D93D64923A0E66 ON client (article)',
-            'CREATE INDEX IDX_8D93D6495A8A6C8D ON client (comment)',
         ];
 
         self::assertEquals($sql, $this->platform->getAlterTableSQL($diff));
@@ -643,8 +635,6 @@ class SqlitePlatformTest extends AbstractPlatformTestCase
     protected function getQuotesTableIdentifiersInAlterTableSQL(): array
     {
         return [
-            'DROP INDEX IDX_8C736521A81E660E',
-            'DROP INDEX IDX_8C736521FDC58D6C',
             'CREATE TEMPORARY TABLE __temp__foo AS SELECT fk, fk2, id, fk3, bar FROM "foo"',
             'DROP TABLE "foo"',
             'CREATE TABLE "foo" (fk2 INTEGER NOT NULL, fk3 INTEGER NOT NULL, fk INTEGER NOT NULL, ' .
@@ -654,8 +644,6 @@ class SqlitePlatformTest extends AbstractPlatformTestCase
             'INSERT INTO "foo" (fk, fk2, war, fk3, bar) SELECT fk, fk2, id, fk3, bar FROM __temp__foo',
             'DROP TABLE __temp__foo',
             'ALTER TABLE "foo" RENAME TO "table"',
-            'CREATE INDEX IDX_8C736521A81E660E ON "table" (fk)',
-            'CREATE INDEX IDX_8C736521FDC58D6C ON "table" (fk2)',
         ];
     }
 

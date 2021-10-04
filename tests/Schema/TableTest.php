@@ -357,24 +357,6 @@ class TableTest extends TestCase
         self::assertCount(1, $table->getIndexes());
     }
 
-    public function testAddForeignKeyIndexImplicitly(): void
-    {
-        $table = new Table('foo');
-        $table->addColumn('id', 'integer');
-
-        $foreignTable = new Table('bar');
-        $foreignTable->addColumn('id', 'integer');
-
-        $table->addForeignKeyConstraint($foreignTable, ['id'], ['id'], ['foo' => 'bar']);
-
-        $indexes = $table->getIndexes();
-        self::assertCount(1, $indexes);
-        $index = current($indexes);
-
-        self::assertTrue($table->hasIndex($index->getName()));
-        self::assertEquals(['id'], $index->getColumns());
-    }
-
     public function testAddForeignKeyDoesNotCreateDuplicateIndex(): void
     {
         $table = new Table('foo');
@@ -389,30 +371,6 @@ class TableTest extends TestCase
         self::assertCount(1, $table->getIndexes());
         self::assertTrue($table->hasIndex('bar_idx'));
         self::assertSame(['bar'], $table->getIndex('bar_idx')->getColumns());
-    }
-
-    public function testAddForeignKeyAddsImplicitIndexIfIndexColumnsDoNotSpan(): void
-    {
-        $table = new Table('foo');
-        $table->addColumn('bar', 'integer');
-        $table->addColumn('baz', 'string');
-        $table->addColumn('bloo', 'string');
-        $table->addIndex(['baz', 'bar'], 'composite_idx');
-        $table->addIndex(['bar', 'baz', 'bloo'], 'full_idx');
-
-        $foreignTable = new Table('bar');
-        $foreignTable->addColumn('foo', 'integer');
-        $foreignTable->addColumn('baz', 'string');
-
-        $table->addForeignKeyConstraint($foreignTable, ['bar', 'baz'], ['foo', 'baz']);
-
-        self::assertCount(3, $table->getIndexes());
-        self::assertTrue($table->hasIndex('composite_idx'));
-        self::assertTrue($table->hasIndex('full_idx'));
-        self::assertTrue($table->hasIndex('idx_8c73652176ff8caa78240498'));
-        self::assertSame(['baz', 'bar'], $table->getIndex('composite_idx')->getColumns());
-        self::assertSame(['bar', 'baz', 'bloo'], $table->getIndex('full_idx')->getColumns());
-        self::assertSame(['bar', 'baz'], $table->getIndex('idx_8c73652176ff8caa78240498')->getColumns());
     }
 
     public function testOverrulingIndexDoesNotDropOverruledIndex(): void
@@ -474,78 +432,6 @@ class TableTest extends TestCase
 
         self::assertTrue($table->hasPrimaryKey());
         self::assertTrue($table->hasIndex('idx_unique'));
-    }
-
-    public function testAddingFulfillingRegularIndexOverridesImplicitForeignKeyConstraintIndex(): void
-    {
-        $foreignTable = new Table('foreign');
-        $foreignTable->addColumn('id', 'integer');
-
-        $localTable = new Table('local');
-        $localTable->addColumn('id', 'integer');
-        $localTable->addForeignKeyConstraint($foreignTable, ['id'], ['id']);
-
-        self::assertCount(1, $localTable->getIndexes());
-
-        $localTable->addIndex(['id'], 'explicit_idx');
-
-        self::assertCount(1, $localTable->getIndexes());
-        self::assertTrue($localTable->hasIndex('explicit_idx'));
-    }
-
-    public function testAddingFulfillingUniqueIndexOverridesImplicitForeignKeyConstraintIndex(): void
-    {
-        $foreignTable = new Table('foreign');
-        $foreignTable->addColumn('id', 'integer');
-
-        $localTable = new Table('local');
-        $localTable->addColumn('id', 'integer');
-        $localTable->addForeignKeyConstraint($foreignTable, ['id'], ['id']);
-
-        self::assertCount(1, $localTable->getIndexes());
-
-        $localTable->addUniqueIndex(['id'], 'explicit_idx');
-
-        self::assertCount(1, $localTable->getIndexes());
-        self::assertTrue($localTable->hasIndex('explicit_idx'));
-    }
-
-    public function testAddingFulfillingPrimaryKeyOverridesImplicitForeignKeyConstraintIndex(): void
-    {
-        $foreignTable = new Table('foreign');
-        $foreignTable->addColumn('id', 'integer');
-
-        $localTable = new Table('local');
-        $localTable->addColumn('id', 'integer');
-        $localTable->addForeignKeyConstraint($foreignTable, ['id'], ['id']);
-
-        self::assertCount(1, $localTable->getIndexes());
-
-        $localTable->setPrimaryKey(['id'], 'explicit_idx');
-
-        self::assertCount(1, $localTable->getIndexes());
-        self::assertTrue($localTable->hasIndex('explicit_idx'));
-    }
-
-    public function testAddingFulfillingExplicitIndexOverridingImplicitForeignKeyConstraintIndexWithSameName(): void
-    {
-        $foreignTable = new Table('foreign');
-        $foreignTable->addColumn('id', 'integer');
-
-        $localTable = new Table('local');
-        $localTable->addColumn('id', 'integer');
-        $localTable->addForeignKeyConstraint($foreignTable, ['id'], ['id']);
-
-        self::assertCount(1, $localTable->getIndexes());
-        self::assertTrue($localTable->hasIndex('IDX_8BD688E8BF396750'));
-
-        $implicitIndex = $localTable->getIndex('IDX_8BD688E8BF396750');
-
-        $localTable->addIndex(['id'], 'IDX_8BD688E8BF396750');
-
-        self::assertCount(1, $localTable->getIndexes());
-        self::assertTrue($localTable->hasIndex('IDX_8BD688E8BF396750'));
-        self::assertNotSame($implicitIndex, $localTable->getIndex('IDX_8BD688E8BF396750'));
     }
 
     public function testQuotedTableName(): void

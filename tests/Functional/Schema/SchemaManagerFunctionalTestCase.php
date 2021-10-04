@@ -1357,33 +1357,6 @@ abstract class SchemaManagerFunctionalTestCase extends FunctionalTestCase
         }
     }
 
-    public function testDoesNotListIndexesImplicitlyCreatedByForeignKeys(): void
-    {
-        if (! $this->schemaManager->getDatabasePlatform()->supportsForeignKeyConstraints()) {
-            self::markTestSkipped('This test is only supported on platforms that have foreign keys.');
-        }
-
-        $primaryTable = new Table('test_list_index_impl_primary');
-        $primaryTable->addColumn('id', 'integer');
-        $primaryTable->setPrimaryKey(['id']);
-
-        $foreignTable = new Table('test_list_index_impl_foreign');
-        $foreignTable->addColumn('fk1', 'integer');
-        $foreignTable->addColumn('fk2', 'integer');
-        $foreignTable->addIndex(['fk1'], 'explicit_fk1_idx');
-        $foreignTable->addForeignKeyConstraint('test_list_index_impl_primary', ['fk1'], ['id']);
-        $foreignTable->addForeignKeyConstraint('test_list_index_impl_primary', ['fk2'], ['id']);
-
-        $this->dropAndCreateTable($primaryTable);
-        $this->dropAndCreateTable($foreignTable);
-
-        $indexes = $this->schemaManager->listTableIndexes('test_list_index_impl_foreign');
-
-        self::assertCount(2, $indexes);
-        self::assertArrayHasKey('explicit_fk1_idx', $indexes);
-        self::assertArrayHasKey('idx_3d6c147fdc58d6c', $indexes);
-    }
-
     /**
      * @param callable(AbstractSchemaManager):Comparator $comparatorFactory
      *

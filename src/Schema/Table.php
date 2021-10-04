@@ -591,7 +591,6 @@ class Table extends AbstractAsset
             }
         }
 
-        $this->_addIndex($indexCandidate);
         $this->implicitIndexes[$this->normalizeIdentifier($indexName)] = $indexCandidate;
 
         return $this;
