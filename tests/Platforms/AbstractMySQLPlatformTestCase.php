@@ -569,7 +569,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
         self::assertSame(
             [
                 'CREATE TABLE foreign_table (id INT NOT NULL, fk_id INT NOT NULL, '
-                    . 'INDEX IDX_5690FFE2A57719D0 (fk_id), PRIMARY KEY(id)) '
+                    . 'PRIMARY KEY(id)) '
                     . 'ENGINE = MyISAM',
             ],
             $this->platform->getCreateTableSQL(
@@ -584,7 +584,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
         self::assertSame(
             [
                 'CREATE TABLE foreign_table (id INT NOT NULL, fk_id INT NOT NULL, '
-                    . 'INDEX IDX_5690FFE2A57719D0 (fk_id), PRIMARY KEY(id)) '
+                    . 'PRIMARY KEY(id)) '
                     . 'ENGINE = InnoDB',
                 'ALTER TABLE foreign_table ADD CONSTRAINT FK_5690FFE2A57719D0 FOREIGN KEY (fk_id)'
                     . ' REFERENCES foreign_table (id)',
