@@ -52,7 +52,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     {
         return [
             'CREATE TABLE test (foo VARCHAR(255) DEFAULT NULL, bar VARCHAR(255) DEFAULT NULL, '
-                . 'UNIQUE INDEX UNIQ_D87F7E0C8C73652176FF8CAA (foo, bar))',
+                . 'UNIQUE INDEX uniq_foo_bar (foo, bar))',
         ];
     }
 
@@ -162,7 +162,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
         $keyTable->addColumn('bar', 'integer');
         $keyTable->addColumn('baz', 'string', ['length' => 32]);
         $keyTable->setPrimaryKey(['bar']);
-        $keyTable->addUniqueIndex(['baz']);
+        $keyTable->addUniqueIndex(['baz'], 'uniq_baz');
 
         $oldTable = new Table('foo');
         $oldTable->addColumn('bar', 'integer');
@@ -176,7 +176,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
 
         self::assertEquals([
             'ALTER TABLE foo ADD PRIMARY KEY (bar)',
-            'CREATE UNIQUE INDEX UNIQ_8C73652178240498 ON foo (baz)',
+            'CREATE UNIQUE INDEX uniq_baz ON foo (baz)',
         ], $sql);
     }
 
@@ -264,7 +264,7 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
     {
         return [
             'CREATE TABLE `quoted` (`create` VARCHAR(255) NOT NULL, '
-                . 'INDEX IDX_22660D028FD6E0FB (`create`))',
+                . 'INDEX idx_create (`create`))',
         ];
     }
 

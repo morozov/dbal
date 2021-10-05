@@ -158,18 +158,10 @@ class Table extends AbstractAsset
      */
     public function addIndex(
         array $columnNames,
-        ?string $indexName = null,
+        string $indexName,
         array $flags = [],
         array $options = []
     ): self {
-        if ($indexName === null) {
-            $indexName = $this->_generateIdentifierName(
-                array_merge([$this->getName()], $columnNames),
-                'idx',
-                $this->_getMaxIdentifierLength()
-            );
-        }
-
         return $this->_addIndex($this->_createIndex($columnNames, $indexName, false, false, $flags, $options));
     }
 
@@ -210,30 +202,21 @@ class Table extends AbstractAsset
      *
      * @throws SchemaException
      */
-    public function addUniqueIndex(array $columnNames, ?string $indexName = null, array $options = []): self
+    public function addUniqueIndex(array $columnNames, string $indexName, array $options = []): self
     {
-        if ($indexName === null) {
-            $indexName = $this->_generateIdentifierName(
-                array_merge([$this->getName()], $columnNames),
-                'uniq',
-                $this->_getMaxIdentifierLength()
-            );
-        }
-
         return $this->_addIndex($this->_createIndex($columnNames, $indexName, true, false, [], $options));
     }
 
     /**
      * Renames an index.
      *
-     * @param string      $oldName The name of the index to rename from.
-     * @param string|null $newName The name of the index to rename to.
-     *                                  If null is given, the index name will be auto-generated.
+     * @param string $oldName The name of the index to rename from.
+     * @param string $newName The name of the index to rename to.
      *
      * @throws SchemaException If no index exists for the given current name
      *                         or if an index with the given new name already exists on this table.
      */
-    public function renameIndex(string $oldName, ?string $newName = null): self
+    public function renameIndex(string $oldName, string $newName): self
     {
         $oldName           = $this->normalizeIdentifier($oldName);
         $normalizedNewName = $this->normalizeIdentifier($newName);
@@ -255,7 +238,7 @@ class Table extends AbstractAsset
         if ($oldIndex->isPrimary()) {
             $this->dropPrimaryKey();
 
-            return $this->setPrimaryKey($oldIndex->getColumns(), $newName ?? null);
+            return $this->setPrimaryKey($oldIndex->getColumns(), $newName);
         }
 
         unset($this->_indexes[$oldName]);

@@ -47,7 +47,7 @@ class SQLServerPlatformTestCase extends AbstractPlatformTestCase
     {
         return [
             'CREATE TABLE test (foo NVARCHAR(255), bar NVARCHAR(255))',
-            'CREATE UNIQUE INDEX UNIQ_D87F7E0C8C73652176FF8CAA ON test (foo, bar)'
+            'CREATE UNIQUE INDEX uniq_foo_bar ON test (foo, bar)'
                 . ' WHERE foo IS NOT NULL AND bar IS NOT NULL',
         ];
     }
@@ -632,7 +632,7 @@ class SQLServerPlatformTestCase extends AbstractPlatformTestCase
     {
         return [
             'CREATE TABLE [quoted] ([create] NVARCHAR(255) NOT NULL)',
-            'CREATE INDEX IDX_22660D028FD6E0FB ON [quoted] ([create])',
+            'CREATE INDEX idx_create ON [quoted] ([create])',
         ];
     }
 

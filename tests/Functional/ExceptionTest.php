@@ -105,7 +105,7 @@ class ExceptionTest extends FunctionalTestCase
     {
         $table = new Table('unique_column_table');
         $table->addColumn('id', 'integer');
-        $table->addUniqueIndex(['id']);
+        $table->addUniqueIndex(['id'], 'uniq_id');
 
         $this->dropAndCreateTable($table);
 

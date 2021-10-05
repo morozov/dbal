@@ -178,9 +178,9 @@ class SchemaTest extends TestCase
         $schema = new Schema([], [], $schemaConfig);
         $table  = $schema->createTable('smalltable');
         $table->addColumn('long_id', 'integer');
-        $table->addIndex(['long_id']);
+        $table->addUniqueConstraint(['long_id']);
 
-        $indexes = $table->getIndexes();
+        $indexes = $table->getUniqueConstraints();
         self::assertCount(1, $indexes);
 
         $index = array_shift($indexes);

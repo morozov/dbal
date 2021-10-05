@@ -68,7 +68,7 @@ class DB2PlatformTest extends AbstractPlatformTestCase
     {
         return [
             'CREATE TABLE test (foo VARCHAR(255) DEFAULT NULL, bar VARCHAR(255) DEFAULT NULL)',
-            'CREATE UNIQUE INDEX UNIQ_D87F7E0C8C73652176FF8CAA ON test (foo, bar)',
+            'CREATE UNIQUE INDEX uniq_foo_bar ON test (foo, bar)',
         ];
     }
 
@@ -101,7 +101,7 @@ class DB2PlatformTest extends AbstractPlatformTestCase
     {
         return [
             'CREATE TABLE "quoted" ("create" VARCHAR(255) NOT NULL)',
-            'CREATE INDEX IDX_22660D028FD6E0FB ON "quoted" ("create")',
+            'CREATE INDEX idx_create ON "quoted" ("create")',
         ];
     }
 
@@ -177,13 +177,13 @@ class DB2PlatformTest extends AbstractPlatformTestCase
         $table->addColumn('id', 'integer');
         $table->addColumn('name', 'string', ['length' => 50]);
         $table->setPrimaryKey(['id']);
-        $table->addIndex(['name']);
+        $table->addIndex(['name'], 'idx_name');
         $table->addIndex(['id', 'name'], 'composite_idx');
 
         self::assertEquals(
             [
                 'CREATE TABLE test (id INTEGER NOT NULL, name VARCHAR(50) NOT NULL, PRIMARY KEY(id))',
-                'CREATE INDEX IDX_D87F7E0C5E237E06 ON test (name)',
+                'CREATE INDEX idx_name ON test (name)',
                 'CREATE INDEX composite_idx ON test (id, name)',
             ],
             $this->platform->getCreateTableSQL($table)

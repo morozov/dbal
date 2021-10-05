@@ -184,7 +184,7 @@ abstract class AbstractPlatformTestCase extends TestCase
         $table = new Table('test');
         $table->addColumn('foo', 'string', ['notnull' => false, 'length' => 255]);
         $table->addColumn('bar', 'string', ['notnull' => false, 'length' => 255]);
-        $table->addUniqueIndex(['foo', 'bar']);
+        $table->addUniqueIndex(['foo', 'bar'], 'uniq_foo_bar');
 
         $sql = $this->platform->getCreateTableSQL($table);
         self::assertEquals($this->getGenerateTableWithMultiColumnUniqueIndexSql(), $sql);
@@ -610,7 +610,7 @@ abstract class AbstractPlatformTestCase extends TestCase
     {
         $table = new Table('`quoted`');
         $table->addColumn('create', 'string', ['length' => 255]);
-        $table->addIndex(['create']);
+        $table->addIndex(['create'], 'idx_create');
 
         $sql = $this->platform->getCreateTableSQL($table);
         self::assertEquals($this->getQuotedColumnInIndexSQL(), $sql);

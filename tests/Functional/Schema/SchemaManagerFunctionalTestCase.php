@@ -1063,7 +1063,7 @@ abstract class SchemaManagerFunctionalTestCase extends FunctionalTestCase
         $table->addColumn('foo', 'integer');
         $table->addColumn('bar', 'string', ['length' => 32]);
         $table->addForeignKeyConstraint($foreignTableName, ['foo'], ['id']);
-        $table->addIndex(['bar']);
+        $table->addIndex(['bar'], 'idx_bar');
         $table->setPrimaryKey(['id']);
 
         $this->dropAndCreateTable($table);

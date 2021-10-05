@@ -347,7 +347,7 @@ class TableTest extends TestCase
     {
         $table = new Table('foo.bar');
         $table->addColumn('baz', 'integer', []);
-        $table->addIndex(['baz']);
+        $table->addIndex(['baz'], 'idx_baz');
 
         self::assertCount(1, $table->getIndexes());
     }
@@ -415,14 +415,14 @@ class TableTest extends TestCase
     {
         $table = new Table('bar');
         $table->addColumn('baz', 'integer', []);
-        $table->addIndex(['baz']);
+        $table->addIndex(['baz'], 'idx_baz');
 
         $indexes = $table->getIndexes();
         self::assertCount(1, $indexes);
         $index = array_shift($indexes);
         self::assertNotNull($index);
 
-        $table->addUniqueIndex(['baz']);
+        $table->addUniqueIndex(['baz'], 'uniq_baz');
         self::assertCount(2, $table->getIndexes());
         self::assertTrue($table->hasIndex($index->getName()));
     }
@@ -574,7 +574,7 @@ class TableTest extends TestCase
         $table = new Table('test');
         $table->addColumn('"foo"', 'integer');
         $table->addColumn('bar', 'integer');
-        $table->addIndex(['"foo"', '"bar"']);
+        $table->addIndex(['"foo"', '"bar"'], 'idx_foo_bar');
 
         self::assertTrue($table->columnsAreIndexed(['"foo"', '"bar"']));
     }
@@ -653,40 +653,10 @@ class TableTest extends TestCase
         );
         self::assertEquals(new Index('uniq_new', ['bar', 'baz'], true), $table->getIndex('uniq_new'));
 
-        // Rename to auto-generated name.
-        self::assertSame($table, $table->renameIndex('pk_new', null));
-        self::assertSame($table, $table->renameIndex('idx_new', null));
-        self::assertSame($table, $table->renameIndex('uniq_new', null));
-
-        self::assertTrue($table->hasPrimaryKey());
-        self::assertTrue($table->hasIndex('primary'));
-        self::assertTrue($table->hasIndex('IDX_D87F7E0C8C736521'));
-        self::assertTrue($table->hasIndex('UNIQ_D87F7E0C76FF8CAA78240498'));
-
-        self::assertFalse($table->hasIndex('pk_new'));
-        self::assertFalse($table->hasIndex('idx_new'));
-        self::assertFalse($table->hasIndex('uniq_new'));
-
-        self::assertEquals(new Index('primary', ['id'], true, true), $table->getPrimaryKey());
-        self::assertEquals(new Index('primary', ['id'], true, true), $table->getIndex('primary'));
-        self::assertEquals(
-            new Index('IDX_D87F7E0C8C736521', ['foo'], false, false, ['flag']),
-            $table->getIndex('IDX_D87F7E0C8C736521')
-        );
-        self::assertEquals(
-            new Index('UNIQ_D87F7E0C76FF8CAA78240498', ['bar', 'baz'], true),
-            $table->getIndex('UNIQ_D87F7E0C76FF8CAA78240498')
-        );
-
         // Rename to same name (changed case).
         self::assertSame($table, $table->renameIndex('primary', 'PRIMARY'));
-        self::assertSame($table, $table->renameIndex('IDX_D87F7E0C8C736521', 'idx_D87F7E0C8C736521'));
-        self::assertSame($table, $table->renameIndex('UNIQ_D87F7E0C76FF8CAA78240498', 'uniq_D87F7E0C76FF8CAA78240498'));
-
-        self::assertTrue($table->hasPrimaryKey());
-        self::assertTrue($table->hasIndex('primary'));
-        self::assertTrue($table->hasIndex('IDX_D87F7E0C8C736521'));
-        self::assertTrue($table->hasIndex('UNIQ_D87F7E0C76FF8CAA78240498'));
+        self::assertSame($table, $table->renameIndex('IDX_NEW', 'idx_new'));
+        self::assertSame($table, $table->renameIndex('UNIQ_NEW', 'uniq_new'));
     }
 
     public function testKeepsIndexOptionsOnRenamingRegularIndex(): void
