@@ -254,8 +254,11 @@ class Comparator
                 ($index->isPrimary() && ! $toTable->hasPrimaryKey()) ||
                 ! $index->isPrimary() && ! $toTable->hasIndex($indexName)
             ) {
-                $tableDifferences->removedIndexes[$indexName] = $index;
-                $changes++;
+                if (! $toTable->hasImplicitIndexFulfilledBy($index)) {
+                    $tableDifferences->removedIndexes[$indexName] = $index;
+                    $changes++;
+                }
+
                 continue;
             }
 

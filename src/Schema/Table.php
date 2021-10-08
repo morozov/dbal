@@ -566,6 +566,17 @@ class Table extends AbstractAsset
         return $this->_indexes;
     }
 
+    public function hasImplicitIndexFulfilledBy(Index $index): bool
+    {
+        foreach ($this->implicitIndexes as $implicitIndex) {
+            if ($implicitIndex->isFullfilledBy($index)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * Returns the unique constraints.
      *
@@ -674,16 +685,16 @@ class Table extends AbstractAsset
      */
     protected function _addIndex(Index $indexCandidate): self
     {
-        $indexName               = $indexCandidate->getName();
-        $indexName               = $this->normalizeIdentifier($indexName);
-        $replacedImplicitIndexes = [];
+        $indexName                = $indexCandidate->getName();
+        $indexName                = $this->normalizeIdentifier($indexName);
+        $fulfilledImplicitIndexes = [];
 
         foreach ($this->implicitIndexes as $key => $implicitIndex) {
             if (! $implicitIndex->isFullfilledBy($indexCandidate)) {
                 continue;
             }
 
-            $replacedImplicitIndexes[] = $key;
+            $fulfilledImplicitIndexes[] = $key;
         }
 
         if (
@@ -693,7 +704,7 @@ class Table extends AbstractAsset
             throw IndexAlreadyExists::new($indexName, $this->_name);
         }
 
-        foreach ($replacedImplicitIndexes as $key) {
+        foreach ($fulfilledImplicitIndexes as $key) {
             unset($this->implicitIndexes[$key]);
         }
 
