@@ -35,27 +35,32 @@ final class Driver implements DriverInterface
      */
     public function connect(array $params)
     {
-        $connection = $this->driver->connect($params);
-
-        $portability = (new OptimizeFlags())(
-            $this->getDatabasePlatform(),
-            $this->mode
-        );
-
+        $mode = $this->mode;
         $case = 0;
 
-        if ($this->case !== 0 && ($portability & Connection::PORTABILITY_FIX_CASE) !== 0) {
-            if ($connection instanceof PDO\Connection) {
+        if ($this->case !== 0 && ($mode & Connection::PORTABILITY_FIX_CASE) !== 0) {
+            if (
+                $this->driver instanceof PDO\MySQL\Driver
+                || $this->driver instanceof PDO\OCI\Driver
+                || $this->driver instanceof PDO\PgSQL\Driver
+                || $this->driver instanceof PDO\SQLite\Driver
+                || $this->driver instanceof PDO\SQLSrv\Driver
+            ) {
                 // make use of c-level support for case handling
-                $portability &= ~Connection::PORTABILITY_FIX_CASE;
-                $connection->getWrappedConnection()->setAttribute(\PDO::ATTR_CASE, $this->case);
+                $params['driverOptions'][\PDO::ATTR_CASE] = $this->case;
+
+                $mode &= ~Connection::PORTABILITY_FIX_CASE;
             } else {
                 $case = $this->case === ColumnCase::LOWER ? CASE_LOWER : CASE_UPPER;
             }
         }
 
-        $convertEmptyStringToNull = ($portability & Connection::PORTABILITY_EMPTY_TO_NULL) !== 0;
-        $rightTrimString          = ($portability & Connection::PORTABILITY_RTRIM) !== 0;
+        $connection = $this->driver->connect($params);
+
+        $mode = (new OptimizeFlags())($this->getDatabasePlatform(), $mode);
+
+        $convertEmptyStringToNull = ($mode & Connection::PORTABILITY_EMPTY_TO_NULL) !== 0;
+        $rightTrimString          = ($mode & Connection::PORTABILITY_RTRIM) !== 0;
 
         if (! $convertEmptyStringToNull && ! $rightTrimString && $case === 0) {
             return $connection;
