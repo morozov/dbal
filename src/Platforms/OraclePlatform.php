@@ -630,31 +630,28 @@ END;';
      */
     public function getListTableForeignKeysSQL($table)
     {
-        $table = $this->normalizeIdentifier($table);
-        $table = $this->quoteStringLiteral($table->getName());
-
-        return "SELECT alc.constraint_name,
-          alc.DELETE_RULE,
-          cols.column_name \"local_column\",
-          cols.position,
-          (
-              SELECT r_cols.table_name
-              FROM   user_cons_columns r_cols
-              WHERE  alc.r_constraint_name = r_cols.constraint_name
-              AND    r_cols.position = cols.position
-          ) AS \"references_table\",
-          (
-              SELECT r_cols.column_name
-              FROM   user_cons_columns r_cols
-              WHERE  alc.r_constraint_name = r_cols.constraint_name
-              AND    r_cols.position = cols.position
-          ) AS \"foreign_column\"
-     FROM user_cons_columns cols
-     JOIN user_constraints alc
-       ON alc.constraint_name = cols.constraint_name
-      AND alc.constraint_type = 'R'
-      AND alc.table_name = " . $table . '
-    ORDER BY cols.constraint_name ASC, cols.position ASC';
+        return sprintf(
+            <<<'SQL'
+SELECT cons.CONSTRAINT_NAME,
+       cons.DELETE_RULE,
+       cols.COLUMN_NAME "local_column",
+       cols.POSITION,
+       r_cols.TABLE_NAME as "references_table",
+       r_cols.COLUMN_NAME as "foreign_column"
+FROM USER_CONSTRAINTS cons
+         JOIN USER_CONS_COLUMNS cols
+              ON cols.CONSTRAINT_NAME = cons.CONSTRAINT_NAME
+                  AND cols.TABLE_NAME = cons.TABLE_NAME
+        JOIN USER_CONS_COLUMNS r_cols
+             ON r_cols.CONSTRAINT_NAME = cons.R_CONSTRAINT_NAME
+            AND r_cols.POSITION = cols.POSITION
+WHERE cons.TABLE_NAME = %s
+  AND cons.CONSTRAINT_TYPE = 'R'
+ORDER BY cols.CONSTRAINT_NAME, cols.POSITION
+SQL
+            ,
+            $this->quoteStringLiteral($this->normalizeIdentifier($table)->getName())
+        );
     }
 
     /**
