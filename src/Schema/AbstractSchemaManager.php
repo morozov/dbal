@@ -11,13 +11,13 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Platforms\Exception\NotSupported;
 use Doctrine\DBAL\Result;
 use Doctrine\DBAL\Schema\Exception\TableDoesNotExist;
+use Doctrine\DBAL\Schema\Introspection\TableProvider;
 
 use function array_filter;
 use function array_intersect;
 use function array_map;
 use function array_values;
 use function count;
-use function strtolower;
 
 /**
  * Base class for schema managers. Schema managers are used to inspect and/or
@@ -28,8 +28,11 @@ use function strtolower;
 abstract class AbstractSchemaManager
 {
     /** @param T $platform */
-    public function __construct(protected Connection $connection, protected AbstractPlatform $platform)
-    {
+    public function __construct(
+        protected Connection $connection,
+        protected AbstractPlatform $platform,
+        protected TableProvider $tableProvider,
+    ) {
     }
 
     /**
@@ -653,39 +656,6 @@ abstract class AbstractSchemaManager
     }
 
     /**
-     * Independent of the database the keys of the column list result are lowercased.
-     *
-     * The name of the created column instance however is kept in its case.
-     *
-     * @param array<int, array<string, mixed>> $tableColumns
-     *
-     * @return array<string, Column>
-     *
-     * @throws Exception
-     */
-    protected function _getPortableTableColumnList(string $table, string $database, array $tableColumns): array
-    {
-        $list = [];
-        foreach ($tableColumns as $tableColumn) {
-            $column = $this->_getPortableTableColumnDefinition($tableColumn);
-
-            $name        = strtolower($column->getQuotedName($this->platform));
-            $list[$name] = $column;
-        }
-
-        return $list;
-    }
-
-    /**
-     * Gets Table Column Definition.
-     *
-     * @param array<string, mixed> $tableColumn
-     *
-     * @throws Exception
-     */
-    abstract protected function _getPortableTableColumnDefinition(array $tableColumn): Column;
-
-    /**
      * Aggregates and groups the index results according to the required data result.
      *
      * @param array<int, array<string, mixed>> $tableIndexes
@@ -698,34 +668,6 @@ abstract class AbstractSchemaManager
     {
         $result = [];
         foreach ($tableIndexes as $tableIndex) {
-            $indexName = $keyName = $tableIndex['key_name'];
-            if ($tableIndex['primary']) {
-                $keyName = 'primary';
-            }
-
-            $keyName = strtolower($keyName);
-
-            if (! isset($result[$keyName])) {
-                $options = [
-                    'lengths' => [],
-                ];
-
-                if (isset($tableIndex['where'])) {
-                    $options['where'] = $tableIndex['where'];
-                }
-
-                $result[$keyName] = [
-                    'name' => $indexName,
-                    'columns' => [],
-                    'unique' => ! $tableIndex['non_unique'],
-                    'primary' => $tableIndex['primary'],
-                    'flags' => $tableIndex['flags'] ?? [],
-                    'options' => $options,
-                ];
-            }
-
-            $result[$keyName]['columns'][]            = $tableIndex['column_name'];
-            $result[$keyName]['options']['lengths'][] = $tableIndex['length'] ?? null;
         }
 
         $indexes = [];
