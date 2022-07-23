@@ -546,11 +546,6 @@ class SQLitePlatformTest extends AbstractPlatformTestCase
         );
     }
 
-    public function testSupportsColumnCollation(): void
-    {
-        self::assertTrue($this->platform->supportsColumnCollation());
-    }
-
     public function testGetCreateTableSQLWithColumnCollation(): void
     {
         $table = new Table('foo');

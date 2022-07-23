@@ -158,10 +158,6 @@ abstract class AbstractPlatformTestCase extends TestCase
 
         $indexes = [];
 
-        if ($this->supportsInlineIndexDeclaration()) {
-            $indexes[] = $this->platform->getIndexDeclarationSQL($indexDef);
-        }
-
         $uniqueConstraintSQL = $this->platform->getUniqueConstraintDeclarationSQL($uniqueConstraint);
         self::assertStringEndsNotWith($expected, $uniqueConstraintSQL, 'WHERE clause should NOT be present');
 
@@ -524,10 +520,6 @@ abstract class AbstractPlatformTestCase extends TestCase
     {
         $index = new Index('select', ['foo']);
 
-        if (! $this->supportsInlineIndexDeclaration()) {
-            $this->expectException(Exception::class);
-        }
-
         self::assertSame(
             $this->getQuotesReservedKeywordInIndexDeclarationSQL(),
             $this->platform->getIndexDeclarationSQL($index),
@@ -535,21 +527,6 @@ abstract class AbstractPlatformTestCase extends TestCase
     }
 
     abstract protected function getQuotesReservedKeywordInIndexDeclarationSQL(): string;
-
-    protected function supportsInlineIndexDeclaration(): bool
-    {
-        return true;
-    }
-
-    public function testSupportsCommentOnStatement(): void
-    {
-        self::assertSame($this->supportsCommentOnStatement(), $this->platform->supportsCommentOnStatement());
-    }
-
-    protected function supportsCommentOnStatement(): bool
-    {
-        return false;
-    }
 
     public function testGetCreateSchemaSQL(): void
     {

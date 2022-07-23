@@ -7,6 +7,7 @@ namespace Doctrine\DBAL\Tests\Platforms;
 use Doctrine\DBAL\Exception\InvalidColumnDeclaration;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Platforms\DB2Platform;
+use Doctrine\DBAL\Platforms\Exception\NotSupported;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ColumnDiff;
 use Doctrine\DBAL\Schema\Index;
@@ -337,21 +338,6 @@ class DB2PlatformTest extends AbstractPlatformTestCase
         self::assertEquals('SUBSTR(column, 5, 2)', $this->platform->getSubstringExpression('column', '5', '2'));
     }
 
-    public function testSupportsIdentityColumns(): void
-    {
-        self::assertTrue($this->platform->supportsIdentityColumns());
-    }
-
-    public function testDoesNotSupportSavePoints(): void
-    {
-        self::assertFalse($this->platform->supportsSavepoints());
-    }
-
-    public function testDoesNotSupportReleasePoints(): void
-    {
-        self::assertFalse($this->platform->supportsReleaseSavepoints());
-    }
-
     public function testGetVariableLengthStringTypeDeclarationSQLNoLength(): void
     {
         $this->expectException(InvalidColumnDeclaration::class);
@@ -539,14 +525,17 @@ class DB2PlatformTest extends AbstractPlatformTestCase
         return 'TRUNCATE "select" IMMEDIATE';
     }
 
+    public function testQuotesReservedKeywordInIndexDeclarationSQL(): void
+    {
+        $this->expectException(NotSupported::class);
+        $index = new Index('select', ['foo']);
+
+        $this->platform->getIndexDeclarationSQL($index);
+    }
+
     protected function supportsInlineIndexDeclaration(): bool
     {
         return false;
-    }
-
-    protected function supportsCommentOnStatement(): bool
-    {
-        return true;
     }
 
     /**

@@ -108,16 +108,6 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
         );
     }
 
-    public function testSupportsIdentityColumns(): void
-    {
-        self::assertTrue($this->platform->supportsIdentityColumns());
-    }
-
-    public function testDoesSupportSavePoints(): void
-    {
-        self::assertTrue($this->platform->supportsSavepoints());
-    }
-
     public function getGenerateIndexSql(): string
     {
         return 'CREATE INDEX my_idx ON mytable (user_name, last_login)';
@@ -634,11 +624,6 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
             'CHARACTER SET ascii',
             $this->platform->getColumnCharsetDeclarationSQL('ascii'),
         );
-    }
-
-    public function testSupportsColumnCollation(): void
-    {
-        self::assertTrue($this->platform->supportsColumnCollation());
     }
 
     public function testColumnCollationDeclarationSQL(): void

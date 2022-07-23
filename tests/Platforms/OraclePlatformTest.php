@@ -111,21 +111,6 @@ class OraclePlatformTest extends AbstractPlatformTestCase
         );
     }
 
-    public function testSupportsIdentityColumns(): void
-    {
-        self::assertFalse($this->platform->supportsIdentityColumns());
-    }
-
-    public function testSupportsSavePoints(): void
-    {
-        self::assertTrue($this->platform->supportsSavepoints());
-    }
-
-    protected function supportsCommentOnStatement(): bool
-    {
-        return true;
-    }
-
     public function getGenerateIndexSql(): string
     {
         return 'CREATE INDEX my_idx ON mytable (user_name, last_login)';

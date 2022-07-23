@@ -125,21 +125,6 @@ class SQLServerPlatformTest extends AbstractPlatformTestCase
         );
     }
 
-    public function testSupportsIdentityColumns(): void
-    {
-        self::assertTrue($this->platform->supportsIdentityColumns());
-    }
-
-    public function testSupportsSchemas(): void
-    {
-        self::assertTrue($this->platform->supportsSchemas());
-    }
-
-    public function testDoesNotSupportSavePoints(): void
-    {
-        self::assertTrue($this->platform->supportsSavepoints());
-    }
-
     public function getGenerateIndexSql(): string
     {
         return 'CREATE INDEX my_idx ON mytable (user_name, last_login)';
@@ -996,11 +981,6 @@ class SQLServerPlatformTest extends AbstractPlatformTestCase
         }
     }
 
-    public function testSupportsColumnCollation(): void
-    {
-        self::assertTrue($this->platform->supportsColumnCollation());
-    }
-
     public function testColumnCollationDeclarationSQL(): void
     {
         self::assertSame(
@@ -1022,11 +1002,6 @@ class SQLServerPlatformTest extends AbstractPlatformTestCase
             ],
             $this->platform->getCreateTableSQL($table),
         );
-    }
-
-    public function testSupportsSequences(): void
-    {
-        self::assertTrue($this->platform->supportsSequences());
     }
 
     public function testGeneratesSequenceSqlCommands(): void

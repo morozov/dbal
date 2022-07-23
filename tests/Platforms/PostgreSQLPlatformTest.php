@@ -279,26 +279,6 @@ class PostgreSQLPlatformTest extends AbstractPlatformTestCase
         );
     }
 
-    public function testSupportsIdentityColumns(): void
-    {
-        self::assertTrue($this->platform->supportsIdentityColumns());
-    }
-
-    public function testSupportsSavePoints(): void
-    {
-        self::assertTrue($this->platform->supportsSavepoints());
-    }
-
-    public function testSupportsSequences(): void
-    {
-        self::assertTrue($this->platform->supportsSequences());
-    }
-
-    protected function supportsCommentOnStatement(): bool
-    {
-        return true;
-    }
-
     public function testModifyLimitQuery(): void
     {
         $sql = $this->platform->modifyLimitQuery('SELECT * FROM user', 10, 0);
@@ -658,11 +638,6 @@ class PostgreSQLPlatformTest extends AbstractPlatformTestCase
     {
         self::assertTrue($this->platform->hasDoctrineTypeMappingFor('tsvector'));
         self::assertEquals('text', $this->platform->getDoctrineTypeMapping('tsvector'));
-    }
-
-    public function testSupportsPartialIndexes(): void
-    {
-        self::assertTrue($this->platform->supportsPartialIndexes());
     }
 
     public function testGetCreateTableSQLWithUniqueConstraints(): void
