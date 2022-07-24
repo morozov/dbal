@@ -1844,14 +1844,12 @@ abstract class AbstractPlatform
      * Obtains DBMS specific SQL code portion needed to set the CHARACTER SET
      * of a column declaration to be used in statements like CREATE TABLE.
      *
-     * @internal The method should be only used from within the {@see AbstractPlatform} class hierarchy.
-     *
      * @param string $charset The name of the charset.
      *
      * @return string DBMS specific SQL code portion needed to set the CHARACTER SET
      *                of a column declaration.
      */
-    public function getColumnCharsetDeclarationSQL(string $charset): string
+    protected function getColumnCharsetDeclarationSQL(string $charset): string
     {
         return '';
     }

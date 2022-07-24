@@ -669,8 +669,7 @@ abstract class AbstractMySQLPlatform extends AbstractPlatform
         return $this->getUnsignedDeclaration($column) . $autoinc;
     }
 
-    /** @internal The method should be only used from within the {@see AbstractPlatform} class hierarchy. */
-    public function getColumnCharsetDeclarationSQL(string $charset): string
+    protected function getColumnCharsetDeclarationSQL(string $charset): string
     {
         return 'CHARACTER SET ' . $charset;
     }

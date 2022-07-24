@@ -618,14 +618,6 @@ abstract class AbstractMySQLPlatformTestCase extends AbstractPlatformTestCase
         );
     }
 
-    public function testColumnCharsetDeclarationSQL(): void
-    {
-        self::assertSame(
-            'CHARACTER SET ascii',
-            $this->platform->getColumnCharsetDeclarationSQL('ascii'),
-        );
-    }
-
     public function testColumnCollationDeclarationSQL(): void
     {
         self::assertSame(
