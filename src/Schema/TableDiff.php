@@ -12,7 +12,11 @@ class TableDiff
     /** @var string */
     public $name;
 
-    /** @var string|false */
+    /**
+     * @deprecated Rename tables via {@link AbstractSchemaManager::renameTable()} instead.
+     *
+     * @var string|false
+     */
     public $newName = false;
 
     /**
@@ -140,7 +144,11 @@ class TableDiff
         );
     }
 
-    /** @return Identifier|false */
+    /**
+     * @deprecated Rename tables via {@link AbstractSchemaManager::renameTable()} instead.
+     *
+     * @return Identifier|false
+     */
     public function getNewName()
     {
         if ($this->newName === false) {

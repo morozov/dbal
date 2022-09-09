@@ -610,6 +610,13 @@ SQL
         $newName    = $diff->getNewName();
 
         if ($newName !== false) {
+            Deprecation::trigger(
+                'doctrine/dbal',
+                'https://github.com/doctrine/dbal/pull/TODO',
+                'Generation of SQL that renames a table using %s is deprecated. Use getRenameTableSQL() instead.',
+                __METHOD__,
+            );
+
             $queryParts[] = 'RENAME TO ' . $newName->getQuotedName($this);
         }
 

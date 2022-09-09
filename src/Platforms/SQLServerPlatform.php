@@ -661,6 +661,13 @@ class SQLServerPlatform extends AbstractPlatform
         $newName = $diff->getNewName();
 
         if ($newName !== false) {
+            Deprecation::trigger(
+                'doctrine/dbal',
+                'https://github.com/doctrine/dbal/pull/TODO',
+                'Generation of "rename table" SQL using %s is deprecated. Use getRenameTableSQL() instead.',
+                __METHOD__,
+            );
+
             $sql[] = "sp_rename '" . $diff->getName($this)->getQuotedName($this) . "', '" . $newName->getName() . "'";
 
             /**
@@ -688,6 +695,32 @@ class SQLServerPlatform extends AbstractPlatform
         );
 
         return array_merge($sql, $tableSql, $columnSql);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getRenameTableSQL(string $oldName, string $newName): array
+    {
+        return [
+            sprintf('sp_rename %s, %s', $this->quoteStringLiteral($oldName), $this->quoteStringLiteral($newName)),
+
+            /* Rename table's default constraints names
+             * to match the new table name.
+             * This is necessary to ensure that the default
+             * constraints can be referenced in future table
+             * alterations as the table name is encoded in
+             * default constraints' names. */
+            "DECLARE @sql NVARCHAR(MAX) = N''; "
+                . "SELECT @sql += N'EXEC sp_rename N''' + dc.name + ''', N''' "
+                . "+ REPLACE(dc.name, '" . $this->generateIdentifierName($oldName)
+                . "', "
+                . "'" . $this->generateIdentifierName($newName) . "') + ''', ''OBJECT'';' "
+                . 'FROM sys.default_constraints dc '
+                . 'JOIN sys.tables tbl ON dc.parent_object_id = tbl.object_id '
+                . 'WHERE tbl.name = ' . $this->quoteStringLiteral($newName) . ';'
+                . 'EXEC sp_executesql @sql',
+        ];
     }
 
     /**
