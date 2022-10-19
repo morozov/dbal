@@ -7,6 +7,11 @@ parameters:
     reportUnmatchedIgnoredErrors: false
     checkMissingIterableValueType: false
     checkGenericClassInNonGenericObjectType: false
+    exceptions:
+        check:
+            missingCheckedExceptionInThrows: true
+        uncheckedExceptionClasses:
+            - LogicException
     ignoreErrors:
         # Requires a release of https://github.com/JetBrains/phpstorm-stubs/pull/1158
         -

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Doctrine\DBAL\Platforms;
 
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Platforms\Keywords\KeywordList;
 use Doctrine\DBAL\Platforms\Keywords\MySQLKeywords;
 use Doctrine\DBAL\Schema\AbstractAsset;
@@ -460,11 +459,7 @@ abstract class AbstractMySQLPlatform extends AbstractPlatform
         );
     }
 
-    /**
-     * @return string[]
-     *
-     * @throws Exception
-     */
+    /** @return string[] */
     private function getPreAlterTableAlterPrimaryKeySQL(TableDiff $diff, Index $index): array
     {
         if (! $index->isPrimary()) {
@@ -505,8 +500,6 @@ abstract class AbstractMySQLPlatform extends AbstractPlatform
      * @param TableDiff $diff The table diff to gather the SQL for.
      *
      * @return string[]
-     *
-     * @throws Exception
      */
     private function getPreAlterTableAlterIndexForeignKeySQL(TableDiff $diff): array
     {

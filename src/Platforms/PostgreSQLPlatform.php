@@ -478,6 +478,8 @@ class PostgreSQLPlatform extends AbstractPlatform
      *
      * @param mixed    $item     The value(s) to convert.
      * @param callable $callback The callback function to use for converting the real boolean value(s).
+     *
+     * @throws UnexpectedValueException
      */
     private function doConvertBooleans(mixed $item, callable $callback): mixed
     {
@@ -496,6 +498,8 @@ class PostgreSQLPlatform extends AbstractPlatform
      * {@inheritDoc}
      *
      * Postgres wants boolean values converted to the strings 'true'/'false'.
+     *
+     * @throws UnexpectedValueException
      */
     public function convertBooleans(mixed $item): mixed
     {
@@ -516,6 +520,11 @@ class PostgreSQLPlatform extends AbstractPlatform
         );
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @throws UnexpectedValueException
+     */
     public function convertBooleansToDatabaseValue(mixed $item): mixed
     {
         if (! $this->useBooleanTrueFalseStrings) {
