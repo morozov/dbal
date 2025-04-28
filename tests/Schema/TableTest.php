@@ -95,37 +95,6 @@ class TableTest extends TestCase
         self::assertCount(2, $table->getColumns());
     }
 
-    public function testRenameColumn(): void
-    {
-        $typeTxt = Type::getType(Types::TEXT);
-        $table   = Table::editor()
-            ->setUnquotedName('foo')
-            ->setColumns(
-                Column::editor()
-                    ->setUnquotedName('foo')
-                    ->setTypeName(Types::STRING)
-                    ->create(),
-            )
-            ->create();
-
-        self::assertFalse($table->hasColumn('bar'));
-        self::assertTrue($table->hasColumn('foo'));
-
-        $column = $table->renameColumn('foo', 'bar');
-        $column->setType($typeTxt);
-        self::assertTrue($table->hasColumn('bar'), 'Should now have bar column');
-        self::assertFalse($table->hasColumn('foo'), 'Should not have foo column anymore');
-        self::assertCount(1, $table->getColumns());
-
-        self::assertEquals(['bar' => 'foo'], $table->getRenamedColumns());
-        $table->renameColumn('bar', 'baz');
-
-        self::assertTrue($table->hasColumn('baz'), 'Should now have baz column');
-        self::assertFalse($table->hasColumn('bar'), 'Should not have bar column anymore');
-        self::assertEquals(['baz' => 'foo'], $table->getRenamedColumns());
-        self::assertCount(1, $table->getColumns());
-    }
-
     public function testRenameColumnException(): void
     {
         $table = Table::editor()
@@ -142,25 +111,6 @@ class TableTest extends TestCase
         $this->expectExceptionMessage('Attempt to rename column "foo.baz" to the same name.');
 
         $table->renameColumn('baz', '`BaZ`');
-    }
-
-    public function testRenameColumnLoop(): void
-    {
-        $table = Table::editor()
-            ->setUnquotedName('foo')
-            ->setColumns(
-                Column::editor()
-                    ->setUnquotedName('baz')
-                    ->setTypeName(Types::INTEGER)
-                    ->create(),
-            )
-            ->create();
-
-        $table->renameColumn('baz', '`foo`');
-        self::assertCount(1, $table->getRenamedColumns());
-        $table->renameColumn('foo', 'Baz');
-        self::assertCount(1, $table->getColumns());
-        self::assertCount(0, $table->getRenamedColumns());
     }
 
     public function testRenameColumnInIndex(): void

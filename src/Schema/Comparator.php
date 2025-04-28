@@ -181,37 +181,6 @@ class Comparator
             $modifiedColumns[$oldColumnName] = new ColumnDiff($oldColumn, $newColumn);
         }
 
-        $renamedColumnNames = $newTable->getRenamedColumns();
-
-        foreach ($addedColumns as $addedColumnName => $addedColumn) {
-            if (
-                ! isset(
-                    $renamedColumnNames[$addedColumn->getObjectName()
-                        ->getIdentifier()
-                        ->getValue()],
-                )
-            ) {
-                continue;
-            }
-
-            $removedColumnName = strtolower(
-                $renamedColumnNames[$addedColumn->getObjectName()
-                        ->getIdentifier()
-                        ->getValue()],
-            );
-
-            // Explicitly renamed columns need to be diffed, because their types can also have changed
-            $modifiedColumns[$removedColumnName] = new ColumnDiff(
-                $droppedColumns[$removedColumnName],
-                $addedColumn,
-            );
-
-            unset(
-                $addedColumns[$addedColumnName],
-                $droppedColumns[$removedColumnName],
-            );
-        }
-
         if ($this->config->getDetectRenamedColumns()) {
             $this->detectRenamedColumns($modifiedColumns, $addedColumns, $droppedColumns);
         }

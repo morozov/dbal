@@ -58,9 +58,6 @@ final class Table extends AbstractNamedObject
     /** @var UnqualifiedNamedObjectSet<Column> */
     private UnqualifiedNamedObjectSet $columns;
 
-    /** @var array<string, string> keys are new names, values are old names */
-    private array $renamedColumns = [];
-
     /** @var UnqualifiedNamedObjectSet<Index> */
     private UnqualifiedNamedObjectSet $indexes;
 
@@ -307,12 +304,6 @@ final class Table extends AbstractNamedObject
         return $column;
     }
 
-    /** @return array<string, string> */
-    public function getRenamedColumns(): array
-    {
-        return $this->renamedColumns;
-    }
-
     /**
      * @deprecated Use {@see edit()} and {@see TableEditor::renameColumn()} instead.
      *
@@ -350,17 +341,6 @@ final class Table extends AbstractNamedObject
         $this->renameColumnInIndexes($oldKey, $parsedNewName);
         $this->renameColumnInForeignKeyConstraints($oldKey, $parsedNewName);
         $this->renameColumnInUniqueConstraints($oldKey, $parsedNewName);
-
-        // If a column is renamed multiple times, we only want to know the original and last new name
-        if (isset($this->renamedColumns[$oldKey])) {
-            $keyToRemove = $oldKey;
-            $oldKey      = $this->renamedColumns[$oldKey];
-            unset($this->renamedColumns[$keyToRemove]);
-        }
-
-        if ($newKey !== $oldKey) {
-            $this->renamedColumns[$newKey] = $oldKey;
-        }
 
         return $newColumn;
     }

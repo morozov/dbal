@@ -9,7 +9,6 @@ use Doctrine\DBAL\Schema\Name\UnqualifiedName;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\TableDiff;
 use Doctrine\DBAL\Tests\FunctionalTestCase;
-use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Types\Types;
 use PHPUnit\Framework\Attributes\DataProvider;
 
@@ -89,56 +88,6 @@ class RenameColumnTest extends FunctionalTestCase
         }
 
         return $renamed;
-    }
-
-    /**
-     * @param non-empty-string $oldColumnName
-     * @param non-empty-string $newColumnName
-     */
-    #[DataProvider('columnNameProvider')]
-    public function testColumnPositionRetainedAfterExplicitRenaming(string $oldColumnName, string $newColumnName): void
-    {
-        $table = Table::editor()
-            ->setUnquotedName('test_rename')
-            ->setColumns(
-                Column::editor()
-                    ->setUnquotedName($oldColumnName)
-                    ->setTypeName(Types::INTEGER)
-                    ->setLength(16)
-                    ->create(),
-                Column::editor()
-                    ->setUnquotedName('c2')
-                    ->setTypeName(Types::INTEGER)
-                    ->create(),
-            )
-            ->create();
-
-        $this->dropAndCreateTable($table);
-
-        // Force a different type to make sure it's not being caught implicitly
-        $table->renameColumn($oldColumnName, $newColumnName)
-            ->setType(Type::getType(Types::BIGINT))
-            ->setLength(32);
-
-        $sm   = $this->connection->createSchemaManager();
-        $diff = $sm->createComparator()
-            ->compareTables($sm->introspectTableByUnquotedName('test_rename'), $table);
-
-        $sm->alterTable($diff);
-
-        $table = $sm->introspectTableByUnquotedName('test_rename');
-
-        self::assertCount(1, $diff->getChangedColumns());
-        self::assertCount(1, $diff->getRenamedColumns());
-        self::assertCount(1, $diff->getModifiedColumns());
-
-        $this->assertUnqualifiedNameListEquals([
-            UnqualifiedName::unquoted($newColumnName),
-            UnqualifiedName::unquoted('c2'),
-        ], array_map(
-            static fn (Column $column): UnqualifiedName => $column->getObjectName(),
-            $table->getColumns(),
-        ));
     }
 
     /** @return iterable<array{non-empty-string,non-empty-string}> */
