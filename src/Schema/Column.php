@@ -91,7 +91,11 @@ class Column extends AbstractNamedObject
         $this->setOptions($options);
     }
 
-    /** @param array<string, mixed> $options */
+    /**
+     * @deprecated
+     *
+     * @param array<string, mixed> $options
+     */
     public function setOptions(array $options): self
     {
         foreach ($options as $name => $value) {
@@ -107,6 +111,7 @@ class Column extends AbstractNamedObject
         return $this;
     }
 
+    /** @deprecated */
     public function setType(Type $type): self
     {
         $this->_type = $type;
@@ -114,6 +119,7 @@ class Column extends AbstractNamedObject
         return $this;
     }
 
+    /** @deprecated */
     public function setLength(?int $length): self
     {
         $this->_length = $length;
@@ -121,6 +127,7 @@ class Column extends AbstractNamedObject
         return $this;
     }
 
+    /** @deprecated */
     public function setPrecision(?int $precision): self
     {
         $this->_precision = $precision;
@@ -128,6 +135,7 @@ class Column extends AbstractNamedObject
         return $this;
     }
 
+    /** @deprecated */
     public function setScale(int $scale): self
     {
         $this->_scale = $scale;
@@ -135,6 +143,7 @@ class Column extends AbstractNamedObject
         return $this;
     }
 
+    /** @deprecated */
     public function setUnsigned(bool $unsigned): self
     {
         $this->_unsigned = $unsigned;
@@ -142,6 +151,7 @@ class Column extends AbstractNamedObject
         return $this;
     }
 
+    /** @deprecated */
     public function setFixed(bool $fixed): self
     {
         $this->_fixed = $fixed;
@@ -149,6 +159,7 @@ class Column extends AbstractNamedObject
         return $this;
     }
 
+    /** @deprecated */
     public function setNotnull(bool $notnull): self
     {
         $this->_notnull = $notnull;
@@ -156,6 +167,7 @@ class Column extends AbstractNamedObject
         return $this;
     }
 
+    /** @deprecated */
     public function setDefault(mixed $default): self
     {
         $this->_default = $default;
@@ -163,7 +175,11 @@ class Column extends AbstractNamedObject
         return $this;
     }
 
-    /** @param PlatformOptions $platformOptions */
+    /**
+     * @deprecated
+     *
+     * @param PlatformOptions $platformOptions
+     */
     public function setPlatformOptions(array $platformOptions): self
     {
         $this->_platformOptions = $platformOptions;
@@ -171,7 +187,11 @@ class Column extends AbstractNamedObject
         return $this;
     }
 
-    /** @param key-of<PlatformOptions> $name */
+    /**
+     * @deprecated
+     *
+     * @param key-of<PlatformOptions> $name
+     */
     public function setPlatformOption(string $name, mixed $value): self
     {
         $this->_platformOptions[$name] = $value;
@@ -179,7 +199,11 @@ class Column extends AbstractNamedObject
         return $this;
     }
 
-    /** @param  ?non-empty-string $value */
+    /**
+     * @deprecated
+     *
+     * @param ?non-empty-string $value
+     */
     public function setColumnDefinition(?string $value): self
     {
         $this->_columnDefinition = $value;
@@ -295,6 +319,7 @@ class Column extends AbstractNamedObject
         return $this->_autoincrement;
     }
 
+    /** @deprecated */
     public function setAutoincrement(bool $flag): self
     {
         $this->_autoincrement = $flag;
@@ -302,6 +327,7 @@ class Column extends AbstractNamedObject
         return $this;
     }
 
+    /** @deprecated */
     public function setComment(string $comment): self
     {
         $this->_comment = $comment;
@@ -315,6 +341,8 @@ class Column extends AbstractNamedObject
     }
 
     /**
+     * @deprecated
+     *
      * @param list<string> $values
      *
      * @return $this
