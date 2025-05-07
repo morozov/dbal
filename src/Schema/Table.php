@@ -86,6 +86,9 @@ final class Table extends AbstractNamedObject
     private ?PrimaryKeyConstraint $primaryKeyConstraint = null;
 
     /**
+     * @internal Use {@link Table::editor()} to instantiate an editor and {@link TableEditor::create()} to create a
+     *           table.
+     *
      * @param array<Column>               $columns
      * @param array<Index>                $indexes
      * @param array<UniqueConstraint>     $uniqueConstraints
@@ -153,6 +156,7 @@ final class Table extends AbstractNamedObject
         $this->options = array_merge($this->options, $options);
     }
 
+    /** @deprecated Use {@see edit()} and {@see TableEditor::addPrimaryKeyConstraint()} instead. */
     public function addPrimaryKeyConstraint(PrimaryKeyConstraint $primaryKeyConstraint): self
     {
         if ($this->primaryKeyConstraint !== null) {
@@ -165,6 +169,8 @@ final class Table extends AbstractNamedObject
     }
 
     /**
+     * @deprecated Use {@see edit()} and {@see TableEditor::addUniqueConstraint()} instead.
+     *
      * @param non-empty-list<string> $columnNames
      * @param array<int, string>     $flags
      */
@@ -181,6 +187,8 @@ final class Table extends AbstractNamedObject
     }
 
     /**
+     * @deprecated Use {@see edit()} and {@see TableEditor::addIndex()} instead.
+     *
      * @param non-empty-list<string> $columnNames
      * @param array<int, string>     $flags
      * @param array<string, mixed>   $options
@@ -198,6 +206,8 @@ final class Table extends AbstractNamedObject
 
     /**
      * Drops the primary key from this table.
+     *
+     * @deprecated Use {@see edit()} and {@see TableEditor::dropPrimaryKeyConstraint()} instead.
      */
     public function dropPrimaryKey(): void
     {
@@ -206,6 +216,8 @@ final class Table extends AbstractNamedObject
 
     /**
      * Drops an index from this table.
+     *
+     * @deprecated Use {@see edit()} and {@see TableEditor::dropIndex()} instead.
      */
     public function dropIndex(string $name): void
     {
@@ -219,6 +231,8 @@ final class Table extends AbstractNamedObject
     }
 
     /**
+     * @deprecated Use {@see edit()} and {@see TableEditor::addIndex()} instead.
+     *
      * @param non-empty-list<string> $columnNames
      * @param array<string, mixed>   $options
      */
@@ -231,6 +245,8 @@ final class Table extends AbstractNamedObject
 
     /**
      * Renames an index.
+     *
+     * @deprecated Use {@see edit()} and {@see TableEditor::renameIndex()} instead.
      *
      * @param string      $oldName The name of the index to rename from.
      * @param string|null $newName The name of the index to rename to. If null is given, the index name
@@ -276,6 +292,8 @@ final class Table extends AbstractNamedObject
     }
 
     /**
+     * @deprecated Use {@see edit()} and {@see TableEditor::addColumn()} instead.
+     *
      * @param array<string, mixed> $options
      *
      * @throws TypesException
@@ -296,6 +314,8 @@ final class Table extends AbstractNamedObject
     }
 
     /**
+     * @deprecated Use {@see edit()} and {@see TableEditor::renameColumn()} instead.
+     *
      * @param non-empty-string $oldName
      * @param non-empty-string $newName
      *
@@ -345,7 +365,11 @@ final class Table extends AbstractNamedObject
         return $newColumn;
     }
 
-    /** @param array<string, mixed> $options */
+    /**
+     * @deprecated Use {@see edit()} and {@see TableEditor::modifyColumn()} instead.
+     *
+     * @param array<string, mixed> $options
+     */
     public function modifyColumn(string $name, array $options): self
     {
         $column = $this->getColumn($name);
@@ -356,6 +380,8 @@ final class Table extends AbstractNamedObject
 
     /**
      * Drops a Column from the Table.
+     *
+     * @deprecated Use {@see edit()} and {@see TableEditor::dropColumn()} instead.
      */
     public function dropColumn(string $name): self
     {
@@ -407,6 +433,8 @@ final class Table extends AbstractNamedObject
      * Adds a foreign key constraint.
      *
      * Name is inferred from the referencing columns.
+     *
+     * @deprecated Use {@see edit()} and {@see TableEditor::addForeignKeyConstraint()} instead.
      *
      * @param non-empty-list<string> $referencingColumnNames
      * @param non-empty-list<string> $referencedColumnNames
@@ -547,6 +575,11 @@ final class Table extends AbstractNamedObject
         return $isDeferrable ? Deferrability::DEFERRABLE : Deferrability::NOT_DEFERRABLE;
     }
 
+    /**
+     * @deprecated Use {@see edit()} and {@see TableEditor::setComment()} instead.
+     *
+     * @return $this
+     */
     public function addOption(string $name, mixed $value): self
     {
         $this->options[$name] = $value;
@@ -582,6 +615,8 @@ final class Table extends AbstractNamedObject
 
     /**
      * Drops the foreign key constraint with the given name.
+     *
+     * @deprecated Use {@see edit()} and {@see TableEditor::dropForeignKeyConstraint()} instead.
      */
     public function dropForeignKey(string $name): void
     {
@@ -622,6 +657,8 @@ final class Table extends AbstractNamedObject
 
     /**
      * Drops the unique constraint with the given name.
+     *
+     * @deprecated Use {@see edit()} and {@see TableEditor::dropUniqueConstraint()} instead.
      */
     public function dropUniqueConstraint(string $name): void
     {
@@ -733,12 +770,17 @@ final class Table extends AbstractNamedObject
         return isset($this->options[$name]);
     }
 
+    /** @deprecated Use {@see getComment()} instead. */
     public function getOption(string $name): mixed
     {
         return $this->options[$name] ?? null;
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * @deprecated Use {@see getComment()} instead.
+     *
+     * @return array<string, mixed>
+     */
     public function getOptions(): array
     {
         return $this->options;
@@ -880,6 +922,11 @@ final class Table extends AbstractNamedObject
         return strtolower($name->getIdentifier()->getValue());
     }
 
+    /**
+     * @deprecated Use {@see edit()} and {@see TableEditor::setComment()} instead.
+     *
+     * @return $this
+     */
     public function setComment(string $comment): self
     {
         // For keeping backward compatibility with MySQL in previous releases, table comments are stored as options.
