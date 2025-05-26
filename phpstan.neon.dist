@@ -54,9 +54,9 @@ parameters:
                 - src/Platforms/*MetadataProvider.php
                 - src/Platforms/*Platform.php
 
-        # Some APIs use variable method calls internally
+        # Some APIs use variable property assignment internally
         -
-            message: '~^Variable method call on .*~'
+            identifier: property.dynamicName
             paths:
                 - src/Schema/Column.php
 

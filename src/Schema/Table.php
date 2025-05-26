@@ -31,22 +31,16 @@ use Doctrine\DBAL\Schema\Name\UnqualifiedName;
 use Doctrine\DBAL\Types\Exception\TypesException;
 use Doctrine\DBAL\Types\Type;
 use Doctrine\Deprecations\Deprecation;
-use LogicException;
 
 use function array_keys;
 use function array_map;
 use function array_merge;
 use function array_shift;
 use function count;
-use function crc32;
-use function dechex;
 use function implode;
-use function in_array;
 use function is_int;
-use function sprintf;
 use function strtolower;
 use function strtoupper;
-use function substr;
 
 /**
  * Object Representation of a table.
@@ -166,24 +160,6 @@ final class Table extends AbstractNamedObject
     }
 
     /**
-     * @deprecated Use {@see edit()} and {@see TableEditor::addUniqueConstraint()} instead.
-     *
-     * @param non-empty-list<string> $columnNames
-     * @param array<int, string>     $flags
-     */
-    public function addUniqueConstraint(
-        array $columnNames,
-        ?string $indexName = null,
-        array $flags = [],
-    ): self {
-        $indexName ??= $this->generateNameFromStringColumnNames('uniq', $columnNames);
-
-        $isClustered = in_array('clustered', $flags, true);
-
-        return $this->_addUniqueConstraint($this->createUniqueConstraint($columnNames, $indexName, $isClustered));
-    }
-
-    /**
      * @deprecated Use {@see edit()} and {@see TableEditor::addIndex()} instead.
      *
      * @param non-empty-list<string> $columnNames
@@ -199,32 +175,6 @@ final class Table extends AbstractNamedObject
         $indexName ??= $this->generateNameFromStringColumnNames('idx', $columnNames);
 
         return $this->_addIndex($this->createIndex($columnNames, $indexName, false, $flags, $options));
-    }
-
-    /**
-     * Drops the primary key from this table.
-     *
-     * @deprecated Use {@see edit()} and {@see TableEditor::dropPrimaryKeyConstraint()} instead.
-     */
-    public function dropPrimaryKey(): void
-    {
-        $this->primaryKeyConstraint = null;
-    }
-
-    /**
-     * Drops an index from this table.
-     *
-     * @deprecated Use {@see edit()} and {@see TableEditor::dropIndex()} instead.
-     */
-    public function dropIndex(string $name): void
-    {
-        $parsedName = $this->parseUnqualifiedName($name);
-
-        try {
-            $this->indexes->remove($parsedName);
-        } catch (ObjectDoesNotExist $e) {
-            throw InvalidTableModification::indexDoesNotExist($this->name, $e);
-        }
     }
 
     /**
@@ -302,60 +252,6 @@ final class Table extends AbstractNamedObject
         $this->_addColumn($column);
 
         return $column;
-    }
-
-    /**
-     * @deprecated Use {@see edit()} and {@see TableEditor::renameColumn()} instead.
-     *
-     * @param non-empty-string $oldName
-     * @param non-empty-string $newName
-     *
-     * @throws LogicException
-     */
-    public function renameColumn(string $oldName, string $newName): Column
-    {
-        $parsedOldName = $this->parseUnqualifiedName($oldName);
-        $parsedNewName = $this->parseUnqualifiedName($newName);
-
-        $oldKey = $this->getObjectKey($parsedOldName);
-        $newKey = $this->getObjectKey($parsedNewName);
-
-        if ($newKey === $oldKey) {
-            throw new LogicException(sprintf(
-                'Attempt to rename column "%s.%s" to the same name.',
-                $this->name->toString(),
-                $oldName,
-            ));
-        }
-
-        $oldColumn = $this->getColumn($oldName);
-        $options   = $oldColumn->toArray();
-
-        unset($options['name'], $options['type']);
-
-        $newColumn = new Column($parsedNewName->toString(), $oldColumn->getType(), $options);
-
-        $this->columns->remove($parsedOldName);
-        $this->_addColumn($newColumn);
-
-        $this->renameColumnInIndexes($oldKey, $parsedNewName);
-        $this->renameColumnInForeignKeyConstraints($oldKey, $parsedNewName);
-        $this->renameColumnInUniqueConstraints($oldKey, $parsedNewName);
-
-        return $newColumn;
-    }
-
-    /**
-     * @deprecated Use {@see edit()} and {@see TableEditor::modifyColumn()} instead.
-     *
-     * @param array<string, mixed> $options
-     */
-    public function modifyColumn(string $name, array $options): self
-    {
-        $column = $this->getColumn($name);
-        $column->setOptions($options);
-
-        return $this;
     }
 
     /**
@@ -591,22 +487,6 @@ final class Table extends AbstractNamedObject
         }
 
         return $foreignKeyConstraint;
-    }
-
-    /**
-     * Drops the foreign key constraint with the given name.
-     *
-     * @deprecated Use {@see edit()} and {@see TableEditor::dropForeignKeyConstraint()} instead.
-     */
-    public function dropForeignKey(string $name): void
-    {
-        $parsedName = $this->parseUnqualifiedName($name);
-
-        try {
-            $this->foreignKeyConstraints->remove($parsedName);
-        } catch (ObjectDoesNotExist $e) {
-            throw InvalidTableModification::foreignKeyConstraintDoesNotExist($this->name, $e);
-        }
     }
 
     /**
@@ -965,28 +845,6 @@ final class Table extends AbstractNamedObject
             );
     }
 
-    /** @param non-empty-list<string> $columns */
-    private function createUniqueConstraint(
-        array $columns,
-        string $indexName,
-        bool $isClustered,
-    ): UniqueConstraint {
-        $constraintName = $this->parseUnqualifiedName($indexName);
-        $columnNames    = $this->parseUnqualifiedNames($columns);
-
-        foreach ($columnNames as $columnName) {
-            if (! $this->hasColumn($columnName->toString())) {
-                throw ColumnDoesNotExist::new($this->name, $columnName);
-            }
-        }
-
-        return UniqueConstraint::editor()
-            ->setName($constraintName)
-            ->setColumnNames(...$columnNames)
-            ->setIsClustered($isClustered)
-            ->create();
-    }
-
     /**
      * @param non-empty-list<string> $columns
      * @param array<int, string>     $flags
@@ -1126,110 +984,8 @@ final class Table extends AbstractNamedObject
         );
     }
 
-    /**
-     * Generates a name from a prefix and a list of column names represented as strings obeying the configured maximum
-     * identifier length.
-     *
-     * @param array<int, string> $columnNames
-     *
-     * @return non-empty-string
-     */
-    private function generateNameFromStringColumnNames(string $prefix, array $columnNames): string
-    {
-        $hash = implode('', array_map(static function (string $columnName): string {
-            return dechex(crc32($columnName));
-        }, array_merge([
-            $this->getObjectName()
-                ->getUnqualifiedName()
-                ->getValue(),
-        ], $columnNames)));
-
-        return strtoupper(substr($prefix . '_' . $hash, 0, $this->maxIdentifierLength));
-    }
-
-    private function renameColumnInIndexes(string $oldKey, UnqualifiedName $newName): void
-    {
-        foreach ($this->indexes as $index) {
-            $modified    = false;
-            $columnNames = [];
-            foreach ($index->getIndexedColumns() as $indexedColumn) {
-                $columnName = $indexedColumn->getColumnName();
-                if ($this->getObjectKey($columnName) === $oldKey) {
-                    $columnNames[] = $newName;
-                    $modified      = true;
-                } else {
-                    $columnNames[] = $columnName;
-                }
-            }
-
-            if (! $modified) {
-                continue;
-            }
-
-            $this->indexes->modify($index->getObjectName(), static function (Index $index) use ($columnNames): Index {
-                return $index->edit()
-                    ->setColumnNames(...$columnNames)
-                    ->create();
-            });
-        }
-    }
-
-    private function renameColumnInForeignKeyConstraints(string $oldKey, UnqualifiedName $newName): void
-    {
-        foreach ($this->foreignKeyConstraints as $position => $constraint) {
-            $modified    = false;
-            $columnNames = [];
-            foreach ($constraint->getReferencingColumnNames() as $columnName) {
-                if ($this->getObjectKey($columnName) === $oldKey) {
-                    $columnNames[] = $newName;
-                    $modified      = true;
-                } else {
-                    $columnNames[] = $columnName;
-                }
-            }
-
-            if (! $modified) {
-                continue;
-            }
-
-            $this->foreignKeyConstraints->modifyByPosition(
-                $position,
-                static fn (ForeignKeyConstraint $constraint): ForeignKeyConstraint => $constraint->edit()
-                    ->setReferencingColumnNames(...$columnNames)
-                    ->create(),
-            );
-        }
-    }
-
-    private function renameColumnInUniqueConstraints(string $oldKey, UnqualifiedName $newName): void
-    {
-        foreach ($this->uniqueConstraints->toList() as $position => $constraint) {
-            $modified    = false;
-            $columnNames = [];
-            foreach ($constraint->getColumnNames() as $columnName) {
-                if ($this->getObjectKey($columnName) === $oldKey) {
-                    $columnNames[] = $newName;
-                    $modified      = true;
-                } else {
-                    $columnNames[] = $columnName;
-                }
-            }
-
-            if (! $modified) {
-                continue;
-            }
-
-            $this->uniqueConstraints->modifyByPosition(
-                $position,
-                static fn (UniqueConstraint $constraint): UniqueConstraint => $constraint->edit()
-                    ->setColumnNames(...$columnNames)
-                    ->create(),
-            );
-        }
-    }
-
-    /** @return list<?UnqualifiedName> */
-    private function getForeignKeyConstraintNamesByLocalColumnName(UnqualifiedName $columnName): array
+    /** @return list<string> */
+    private function getForeignKeyConstraintNamesByLocalColumnName(string $columnName): array
     {
         $columnKey = $this->getObjectKey($columnName);
 

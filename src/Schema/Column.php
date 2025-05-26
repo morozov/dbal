@@ -13,12 +13,11 @@ use Doctrine\DBAL\Schema\Name\UnqualifiedName;
 use Doctrine\DBAL\Types\Type;
 
 use function array_merge;
-use function method_exists;
+use function property_exists;
 
 /**
  * Object representation of a database column.
  *
- * @final
  * @extends AbstractNamedObject<UnqualifiedName>
  * @phpstan-type ColumnProperties = array{
  *     name: UnqualifiedName,
@@ -38,7 +37,7 @@ use function method_exists;
  *     enumType?: class-string,
  * }
  */
-class Column extends AbstractNamedObject
+final class Column extends AbstractNamedObject
 {
     protected Type $_type;
 
@@ -87,128 +86,17 @@ class Column extends AbstractNamedObject
 
         parent::__construct($parsedName);
 
-        $this->setType($type);
-        $this->setOptions($options);
-    }
-
-    /**
-     * @deprecated
-     *
-     * @param array<string, mixed> $options
-     */
-    public function setOptions(array $options): self
-    {
-        foreach ($options as $name => $value) {
-            $method = 'set' . $name;
-
-            if (! method_exists($this, $method)) {
-                throw UnknownColumnOption::new($name);
-            }
-
-            $this->$method($value);
-        }
-
-        return $this;
-    }
-
-    /** @deprecated */
-    public function setType(Type $type): self
-    {
         $this->_type = $type;
 
-        return $this;
-    }
+        foreach ($options as $option => $value) {
+            $property = '_' . $option;
 
-    /** @deprecated */
-    public function setLength(?int $length): self
-    {
-        $this->_length = $length;
+            if (! property_exists($this, $property)) {
+                throw UnknownColumnOption::new($option);
+            }
 
-        return $this;
-    }
-
-    /** @deprecated */
-    public function setPrecision(?int $precision): self
-    {
-        $this->_precision = $precision;
-
-        return $this;
-    }
-
-    /** @deprecated */
-    public function setScale(int $scale): self
-    {
-        $this->_scale = $scale;
-
-        return $this;
-    }
-
-    /** @deprecated */
-    public function setUnsigned(bool $unsigned): self
-    {
-        $this->_unsigned = $unsigned;
-
-        return $this;
-    }
-
-    /** @deprecated */
-    public function setFixed(bool $fixed): self
-    {
-        $this->_fixed = $fixed;
-
-        return $this;
-    }
-
-    /** @deprecated */
-    public function setNotnull(bool $notnull): self
-    {
-        $this->_notnull = $notnull;
-
-        return $this;
-    }
-
-    /** @deprecated */
-    public function setDefault(mixed $default): self
-    {
-        $this->_default = $default;
-
-        return $this;
-    }
-
-    /**
-     * @deprecated
-     *
-     * @param PlatformOptions $platformOptions
-     */
-    public function setPlatformOptions(array $platformOptions): self
-    {
-        $this->_platformOptions = $platformOptions;
-
-        return $this;
-    }
-
-    /**
-     * @deprecated
-     *
-     * @param key-of<PlatformOptions> $name
-     */
-    public function setPlatformOption(string $name, mixed $value): self
-    {
-        $this->_platformOptions[$name] = $value;
-
-        return $this;
-    }
-
-    /**
-     * @deprecated
-     *
-     * @param ?non-empty-string $value
-     */
-    public function setColumnDefinition(?string $value): self
-    {
-        $this->_columnDefinition = $value;
-
-        return $this;
+            $this->$property = $value;
+        }
     }
 
     public function getType(): Type
@@ -319,39 +207,9 @@ class Column extends AbstractNamedObject
         return $this->_autoincrement;
     }
 
-    /** @deprecated */
-    public function setAutoincrement(bool $flag): self
-    {
-        $this->_autoincrement = $flag;
-
-        return $this;
-    }
-
-    /** @deprecated */
-    public function setComment(string $comment): self
-    {
-        $this->_comment = $comment;
-
-        return $this;
-    }
-
     public function getComment(): string
     {
         return $this->_comment;
-    }
-
-    /**
-     * @deprecated
-     *
-     * @param list<string> $values
-     *
-     * @return $this
-     */
-    public function setValues(array $values): static
-    {
-        $this->_values = $values;
-
-        return $this;
     }
 
     /** @return list<string> */
