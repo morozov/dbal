@@ -65,6 +65,7 @@ class UniqueConstraint extends AbstractOptionallyNamedObject
         array $columns,
         array $flags = [],
         private readonly array $options = [],
+        private readonly ObjectOrigin $origin = ObjectOrigin::DECLARED,
     ) {
         if (count($columns) < 1) {
             Deprecation::trigger(
@@ -260,6 +261,14 @@ class UniqueConstraint extends AbstractOptionallyNamedObject
     }
 
     /**
+     * Returns the origin of the unique constraint.
+     */
+    public function getOrigin(): ObjectOrigin
+    {
+        return $this->origin;
+    }
+
+    /**
      * Removes a flag.
      *
      * @deprecated Use {@see UniqueConstraintEditor::setIsClustered()} instead.
@@ -361,6 +370,7 @@ class UniqueConstraint extends AbstractOptionallyNamedObject
         return self::editor()
             ->setName($this->getObjectName())
             ->setColumnNames(...$this->getColumnNames())
-            ->setIsClustered($this->isClustered());
+            ->setIsClustered($this->isClustered())
+            ->setOrigin($this->origin);
     }
 }

@@ -92,6 +92,7 @@ class Index extends AbstractNamedObject
         bool $isPrimary = false,
         array $flags = [],
         private readonly array $options = [],
+        private readonly ObjectOrigin $origin = ObjectOrigin::DECLARED,
     ) {
         parent::__construct($name ?? '');
 
@@ -188,6 +189,14 @@ class Index extends AbstractNamedObject
     public function isClustered(): bool
     {
         return $this->hasFlag('clustered');
+    }
+
+    /**
+     * Returns the origin of the index.
+     */
+    public function getOrigin(): ObjectOrigin
+    {
+        return $this->origin;
     }
 
     /**
@@ -759,6 +768,7 @@ class Index extends AbstractNamedObject
             ->setType($this->getType())
             ->setColumns(...$this->getIndexedColumns())
             ->setIsClustered($this->isClustered())
-            ->setPredicate($this->getPredicate());
+            ->setPredicate($this->getPredicate())
+            ->setOrigin($this->origin);
     }
 }
