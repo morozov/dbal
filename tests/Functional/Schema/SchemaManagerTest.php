@@ -1110,6 +1110,26 @@ final class SchemaManagerTest extends FunctionalTestCase
         );
     }
 
+    public function testIndexBackingUniqueConstraintIsNotDropped(): void
+    {
+        $this->skipOnOracle18();
+
+        if ($this->connection->getDatabasePlatform() instanceof AbstractMySQLPlatform) {
+            self::markTestSkipped('MySQL and MariaDB introspect a unique constraint as a unique index.');
+        }
+
+        $table = $this->declareTableWithEmailUniqueConstraint();
+
+        $this->dropTableIfExists('users');
+        $this->schemaManager->createTable($table);
+
+        self::assertTrue(
+            $this->schemaManager->createComparator()
+                ->compareTables($this->schemaManager->introspectTableByUnquotedName('users'), $table)
+                ->isEmpty(),
+        );
+    }
+
     private function skipOnOracle18(): void
     {
         if (! $this->connection->getDatabasePlatform() instanceof OraclePlatform) {

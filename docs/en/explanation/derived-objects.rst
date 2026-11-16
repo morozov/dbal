@@ -11,3 +11,9 @@ objects that exist because of them:
 The DBAL calls such an object *derived*, and an object of the application's
 schema *declared*. ``Index::getOrigin()`` and ``UniqueConstraint::getOrigin()``
 tell them apart.
+
+How the DBAL treats derived objects
+-----------------------------------
+
+The DBAL emits DDL only for declared objects. The database maintains the
+derived ones itself.
