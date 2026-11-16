@@ -1092,6 +1092,24 @@ final class SchemaManagerTest extends FunctionalTestCase
         self::assertCount(1, [...array_values($declaredIndexes), ...array_values($declaredUniqueConstraints)]);
     }
 
+    public function testRecreateIntrospectedTableWithUniqueConstraint(): void
+    {
+        $this->skipOnOracle18();
+
+        $table = $this->createTableWithEmailUniqueConstraint();
+
+        $this->dropTableIfExists('users');
+        $this->schemaManager->createTable($table);
+
+        $recreated = $this->schemaManager->introspectTableByUnquotedName('users');
+
+        self::assertTrue(
+            $this->schemaManager->createComparator()
+                ->compareTables($table, $recreated)
+                ->isEmpty(),
+        );
+    }
+
     private function skipOnOracle18(): void
     {
         if (! $this->connection->getDatabasePlatform() instanceof OraclePlatform) {
